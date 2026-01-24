@@ -1820,7 +1820,7 @@ details[open]>summary.collapse-summary .caret {
 }
 
 /* Prevent iOS Safari zoom-on-focus */
-input, select, textarea, button {
+input, select, textarea {
   font-size: 16px;
 }
 
