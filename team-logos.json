@@ -1,0 +1,482 @@
+[
+  {
+    "league": "premier-league",
+    "team": "Leeds",
+    "logo": "images/premier-league/leeds.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Arsenal",
+    "logo": "images/premier-league/arsenal.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Brighton",
+    "logo": "images/premier-league/brighton.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Everton",
+    "logo": "images/premier-league/everton.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Liverpool",
+    "logo": "images/premier-league/liverpool.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Newcastle",
+    "logo": "images/premier-league/newcastle.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Manchester United",
+    "logo": "images/premier-league/manchester-united.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Fulham",
+    "logo": "images/premier-league/fulham.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Tottenham",
+    "logo": "images/premier-league/tottenham.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Manchester City",
+    "logo": "images/premier-league/manchester-city.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Wolves",
+    "logo": "images/premier-league/wolves.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Bournemouth",
+    "logo": "images/premier-league/bournemouth.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Chelsea",
+    "logo": "images/premier-league/chelsea.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "West Ham",
+    "logo": "images/premier-league/west-ham.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Aston Villa",
+    "logo": "images/premier-league/aston-villa.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Brentford",
+    "logo": "images/premier-league/brentford.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Nottingham Forest",
+    "logo": "images/premier-league/nottingham-forest.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Crystal Palace",
+    "logo": "images/premier-league/crystal-palace.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Sunderland",
+    "logo": "images/premier-league/sunderland.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Burnley",
+    "logo": "images/premier-league/burnley.png"
+  },
+  {
+    "league": "championship",
+    "team": "Bristol City",
+    "logo": "images/championship/bristol-city.png"
+  },
+  {
+    "league": "championship",
+    "team": "Derby County",
+    "logo": "images/championship/derby-county.png"
+  },
+  {
+    "league": "championship",
+    "team": "Stoke City",
+    "logo": "images/championship/stoke-city.png"
+  },
+  {
+    "league": "championship",
+    "team": "Southampton",
+    "logo": "images/championship/southampton.png"
+  },
+  {
+    "league": "championship",
+    "team": "QPR",
+    "logo": "images/championship/qpr.png"
+  },
+  {
+    "league": "championship",
+    "team": "Coventry",
+    "logo": "images/championship/coventry.png"
+  },
+  {
+    "league": "championship",
+    "team": "Portsmouth",
+    "logo": "images/championship/portsmouth.png"
+  },
+  {
+    "league": "championship",
+    "team": "West Brom",
+    "logo": "images/championship/west-brom.png"
+  },
+  {
+    "league": "championship",
+    "team": "Blackburn Rovers",
+    "logo": "images/championship/blackburn-rovers.png"
+  },
+  {
+    "league": "championship",
+    "team": "Hull City",
+    "logo": "images/championship/hull-city.png"
+  },
+  {
+    "league": "championship",
+    "team": "Middlesbrough",
+    "logo": "images/championship/middlesbrough.png"
+  },
+  {
+    "league": "championship",
+    "team": "Norwich City",
+    "logo": "images/championship/norwich-city.png"
+  },
+  {
+    "league": "championship",
+    "team": "Leicester City",
+    "logo": "images/championship/leicester-city.png"
+  },
+  {
+    "league": "championship",
+    "team": "Charlton",
+    "logo": "images/championship/charlton.png"
+  },
+  {
+    "league": "championship",
+    "team": "Sheffield Wed",
+    "logo": "images/championship/sheffield-wed.png"
+  },
+  {
+    "league": "championship",
+    "team": "Wrexham",
+    "logo": "images/championship/wrexham.png"
+  },
+  {
+    "league": "championship",
+    "team": "Millwall",
+    "logo": "images/championship/millwall.png"
+  },
+  {
+    "league": "championship",
+    "team": "Sheffield United",
+    "logo": "images/championship/sheffield-united.png"
+  },
+  {
+    "league": "championship",
+    "team": "Watford",
+    "logo": "images/championship/watford.png"
+  },
+  {
+    "league": "championship",
+    "team": "Swansea",
+    "logo": "images/championship/swansea.png"
+  },
+  {
+    "league": "championship",
+    "team": "Oxford Utd",
+    "logo": "images/championship/oxford-utd.png"
+  },
+  {
+    "league": "championship",
+    "team": "Birmingham",
+    "logo": "images/championship/birmingham.png"
+  },
+  {
+    "league": "championship",
+    "team": "Ipswich Town",
+    "logo": "images/championship/ipswich-town.png"
+  },
+  {
+    "league": "championship",
+    "team": "Preston",
+    "logo": "images/championship/preston.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Bradford City",
+    "logo": "images/league-one/bradford-city.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Doncaster",
+    "logo": "images/league-one/doncaster.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Northampton Town",
+    "logo": "images/league-one/northampton-town.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Reading",
+    "logo": "images/league-one/reading.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Stockport",
+    "logo": "images/league-one/stockport.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Plymouth",
+    "logo": "images/league-one/plymouth.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Mansfield Town",
+    "logo": "images/league-one/mansfield-town.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Wycombe",
+    "logo": "images/league-one/wycombe.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Luton Town",
+    "logo": "images/league-one/luton-town.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Blackpool",
+    "logo": "images/league-one/blackpool.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Barnsley",
+    "logo": "images/league-one/barnsley.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Stevenage",
+    "logo": "images/league-one/stevenage.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Wigan Athletic",
+    "logo": "images/league-one/wigan-athletic.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Lincoln City",
+    "logo": "images/league-one/lincoln-city.png"
+  },
+  {
+    "league": "league-one",
+    "team": "AFC Wimbledon",
+    "logo": "images/league-one/afc-wimbledon.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Bolton",
+    "logo": "images/league-one/bolton.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Peterborough",
+    "logo": "images/league-one/peterborough.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Huddersfield",
+    "logo": "images/league-one/huddersfield.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Exeter City",
+    "logo": "images/league-one/exeter-city.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Rotherham",
+    "logo": "images/league-one/rotherham.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Burton",
+    "logo": "images/league-one/burton.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Cardiff City",
+    "logo": "images/league-one/cardiff-city.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Leyton Orient",
+    "logo": "images/league-one/leyton-orient.png"
+  },
+  {
+    "league": "league-one",
+    "team": "Port Vale",
+    "logo": "images/league-one/port-vale.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Bristol Rovers",
+    "logo": "images/league-two/bristol-rovers.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Newport County",
+    "logo": "images/league-two/newport-county.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Oldham Athletic",
+    "logo": "images/league-two/oldham-athletic.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Cambridge United",
+    "logo": "images/league-two/cambridge-united.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Chesterfield",
+    "logo": "images/league-two/chesterfield.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Walsall",
+    "logo": "images/league-two/walsall.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Tranmere",
+    "logo": "images/league-two/tranmere.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Salford City",
+    "logo": "images/league-two/salford-city.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Gillingham",
+    "logo": "images/league-two/gillingham.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Bromley",
+    "logo": "images/league-two/bromley.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Swindon Town",
+    "logo": "images/league-two/swindon-town.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Barrow",
+    "logo": "images/league-two/barrow.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Grimsby Town",
+    "logo": "images/league-two/grimsby-town.png"
+  },
+  {
+    "league": "league-two",
+    "team": "MK Dons",
+    "logo": "images/league-two/mk-dons.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Crewe Alexandra",
+    "logo": "images/league-two/crewe-alexandra.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Colchester",
+    "logo": "images/league-two/colchester.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Shrewsbury",
+    "logo": "images/league-two/shrewsbury.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Barnet",
+    "logo": "images/league-two/barnet.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Accrington Stanley",
+    "logo": "images/league-two/accrington-stanley.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Cheltenham",
+    "logo": "images/league-two/cheltenham.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Fleetwood",
+    "logo": "images/league-two/fleetwood.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Notts County",
+    "logo": "images/league-two/notts-county.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Crawley Town",
+    "logo": "images/league-two/crawley-town.png"
+  },
+  {
+    "league": "league-two",
+    "team": "Harrogate Town",
+    "logo": "images/league-two/harrogate-town.png"
+  },
+  {
+    "league": "premier-league",
+    "team": "Premier League",
+    "logo": "images/leagues/premier-league.png"
+  },
+  {
+    "league": "championship",
+    "team": "Championship",
+    "logo": "images/leagues/championship.png"
+  },
+  {
+    "league": "league-one",
+    "team": "League One",
+    "logo": "images/leagues/league-one.png"
+  },
+  {
+    "league": "league-two",
+    "team": "League Two",
+    "logo": "images/leagues/league-two.png"
+  }
+]

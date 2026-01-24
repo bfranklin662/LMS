@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Poly FC – Last Man Standing</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div id="splash" class="splash">
+    <div class="splash-inner">
+      <img class="splash-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+      <div class="splash-title">Last Man Standing</div>
+      <div class="splash-sub">Polytechnic FC</div>
+      <div class="splash-ball" aria-label="Loading">⚽</div>
+    </div>
+  </div>
+  <div class="app">
+
+    <!-- AUTH -->
+    <main id="authView" class="view">
+      <div class="card">
+        <div class="brand auth-brand reg-brand">
+          <img class="brand-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+          <div class="brand-text">
+            <div class="brand-title">Last Man Standing</div>
+            <div class="brand-sub">Polytechnic FC</div>
+          </div>
+        </div>
+
+        <hr class="auth-divider reg-card">
+
+        <div class="segmented">
+          <button id="showRegisterBtn" class="seg-btn active" type="button">Register</button>
+          <button id="showLoginBtn" class="seg-btn" type="button">Login</button>
+        </div>
+
+        <!-- Register -->
+        <form id="registerForm" class="form">
+          <div class="grid2">
+            <label>
+              <span>First name</span>
+              <input name="firstName" autocomplete="given-name" required />
+            </label>
+            <label>
+              <span>Surname</span>
+              <input name="lastName" autocomplete="family-name" required />
+            </label>
+          </div>
+
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+
+          <label>
+            <span>Phone</span>
+            <input name="phone" type="tel" autocomplete="tel" required />
+          </label>
+
+          <label>
+            <span>Team</span>
+            <select id="clubTeam" name="clubTeam" required>
+              <option value="" disabled selected>Select team</option>
+              <option>1st Team</option>
+              <option>2nd Team</option>
+              <option>3rd Team</option>
+              <option>4th Team</option>
+              <option>6th Team</option>
+              <option>7th Team</option>
+              <option>Vets</option>
+              <option>Staff</option>
+              <option>Old player</option>
+              <option>Friend of player</option>
+              <option>Relative of player</option>
+            </select>
+          </label>
+          <div id="connectionWrap" class="hidden">
+            <label>
+              <span>Connection at the club</span>
+              <input id="connectionInput" name="connection" type="text" />
+            </label>
+          </div>
+
+          <label>
+            <span>Password</span>
+            <input name="password" type="password" minlength="6" required />
+            <small class="muted">Minimum 6 characters.</small>
+          </label>
+
+          <button class="btn btn-primary" type="submit">Create account</button>
+          <p class="muted">
+            Register to submit your weekly picks. Once your £10 entry is paid, your entry can be approved.
+          </p>
+        </form>
+
+        <!-- Login -->
+        <form id="loginForm" class="form hidden">
+          <label>
+            <span>Email</span>
+            <input name="email" type="email" autocomplete="email" required />
+          </label>
+
+          <label>
+            <span>Password</span>
+            <input name="password" type="password" required />
+          </label>
+
+          <button class="btn btn-primary" type="submit">Login</button>
+        </form>
+
+        <div id="authMsg" class="msg hidden"></div>
+      </div>
+    </main>
+
+    <!-- APP -->
+    <div id="appView" class="hidden">
+      <div class="phone">
+
+        <header class="topbar">
+          <div class="brand auth-brand">
+            <img class="brand-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+            <div class="brand-text">
+              <div class="brand-title">Last Man Standing</div>
+              <div class="brand-sub">Polytechnic FC</div>
+            </div>
+          </div>
+
+          <div class="top-actions">
+            <div id="statusPill" class="pill">Alive</div>
+
+            <button id="infoBtn" class="icon-btn" type="button" title="Info">i</button>
+            <button id="profileBtn" class="icon-btn" type="button" title="Profile">👤</button>
+
+          </div>
+        </header>
+
+        <hr class="auth-divider">
+
+        <main class="content">
+          <div class="main-card">
+
+            <!-- TOP TABS -->
+            <div class="seg-tabs">
+              <button class="tab2 active" data-tab="selection" type="button">Selection</button>
+              <button class="tab2" data-tab="fixtures" type="button">Fixtures</button>
+              <button class="tab2" data-tab="entries" type="button">Players</button>
+            </div>
+
+            <!-- SELECTION PANEL -->
+            <section id="panel-selection">
+
+              <div id="paymentDetailsCard" class="fixtures-card hidden" style="margin-top:15px; cursor:pointer;"></div>
+
+              <div id="statusBox" class="status-box"></div>
+
+              <div class="card pick-card" id="pickCard">
+
+                <div class="pick-head">
+                  <div class="pick-headline">
+                    <div class="pick-head-left">
+                      <div id="gwTitle" class="pick-gw">Gameweek —</div>
+                      <div id="gwRange" class="pick-date muted small">—</div>
+                    </div>
+
+                    <div class="pick-head-right">
+                      <div class="muted small">Submission deadline</div>
+                      <div id="timeLeftText" class="pick-deadline">—</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="pick-body">
+                  <div id="pickModeInput">
+                    <div class="pick-divider"></div>
+                    <label class="field">
+                      <span>Selection:</span>
+                      <input id="teamSearch" placeholder="Type a team name (e.g. Liverpool)" />
+                    </label>
+
+                    <div id="teamSuggest" class="suggest hidden"></div>
+
+                    <div class="btn-row">
+                      <button id="submitPickBtn" class="btn btn-primary" type="button">Submit selection</button>
+                      <button id="clearPickBtn" class="btn btn-ghost" type="button">Clear</button>
+                    </div>
+
+                    <div id="fixturesMsg" class="msg hidden"></div>
+                  </div>
+
+                  <div id="pickModeSubmitted" class="hidden">
+
+                    <div class="pick-divider"></div>
+
+                    <div class="submitted-top">
+                      <div>
+                        <div class="submitted-label muted">Selection Confirmed:</div>
+                        <div id="gwPickTitle" class="submitted-title">—</div>
+                      </div>
+
+                      <div class="submitted-actions">
+                        <span id="gwPickIcon" class="state good">✓</span>
+                        <button id="editPickBtn" class="icon-btn" type="button" title="Edit pick">✏️</button>
+                      </div>
+                    </div>
+
+                    <div class="pick-divider"></div>
+
+                    <div id="submittedMeta" class="submitted-meta">—</div>
+                  </div>
+
+                </div>
+              </div>
+            </section>
+
+            <!-- FIXTURES PANEL -->
+            <section id="panel-fixtures" class="hidden">
+
+              <div class="filters">
+                <select id="gameweekSelect" class="filter"></select>
+                <select id="daySelect" class="filter"></select>
+              </div>
+
+              <div id="fixturesList"></div>
+
+            </section>
+
+            <!-- ENTRIES PANEL -->
+            <section id="panel-entries" class="hidden">
+              <details class="fixtures-card collapse-card" open style="margin-bottom:12px;">
+                <summary class="collapse-summary">
+                  <h3 style="margin:0">Remaining <span id="aliveCount" class="muted small">—</span></h3>
+                  <span class="caret">▸</span>
+                </summary>
+
+                <div style="margin-top:10px;">
+                  <div id="aliveList" class="list"></div>
+                </div>
+              </details>
+
+              <details class="fixtures-card collapse-card" open>
+                <summary class="collapse-summary">
+                  <h3 style="margin:0">Knocked Out <span id="outCount" class="muted small">—</span></h3>
+                  <span class="caret">▸</span>
+                </summary>
+
+                <div style="margin-top:10px;">
+                  <div id="outList" class="list"></div>
+                </div>
+              </details>
+            </section>
+          </div>
+        </main>
+
+
+      </div>
+    </div>
+
+
+    <footer class="footer">
+      <div class="muted small">
+        Polytechnic FC • LMS • Mobile-first demo
+      </div>
+    </footer>
+
+    <div id="modalOverlay" class="modal-overlay hidden"></div>
+
+    <!-- PLAYER MODAL -->
+    <div id="playerModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="modal-brand">
+            <img class="modal-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+            <div class="modal-brand-text">
+              <div class="modal-brand-title">Last Man Standing</div>
+              <div class="modal-brand-sub">Polytechnic FC</div>
+            </div>
+          </div>
+
+          <button class="modal-x" type="button" data-close-modal="playerModal">✕</button>
+        </div>
+        <hr class="modal-divider">
+
+        <div id="playerModalBody"></div>
+      </div>
+    </div>
+
+
+    <!-- SYSTEM MODAL -->
+    <div id="systemModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="modal-brand">
+            <img class="modal-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+            <div class="modal-brand-text">
+              <div class="modal-brand-title">Last Man Standing</div>
+              <div class="modal-brand-sub">Polytechnic FC</div>
+            </div>
+          </div>
+
+          <button class="modal-x" type="button" data-close-modal="systemModal">✕</button>
+        </div>
+        <hr class="modal-divider">
+
+        <div class="modal-title" id="systemModalTitle"></div>
+        <div class="modal-body" id="systemModalBody"></div>
+
+        <div class="modal-actions" id="systemModalActions">
+          <button class="btn btn-primary" id="systemModalOkBtn" type="button">OK</button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- PROFILE MODAL -->
+    <div id="profileModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="modal-brand">
+            <img class="modal-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+            <div class="modal-brand-text">
+              <div class="modal-brand-title">Last Man Standing</div>
+              <div class="modal-brand-sub">Polytechnic FC</div>
+            </div>
+          </div>
+
+          <button class="modal-x" type="button" data-close-modal="profileModal">✕</button>
+        </div>
+        <hr class="modal-divider">
+
+        <div class="modal-title">Profile</div>
+        <div id="profileModalBody" class="modal-body"></div>
+
+        <div class="modal-actions">
+          <button id="logoutBtnModal" class="btn btn-primary" type="button">Log out</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- INFO MODAL -->
+    <div id="infoModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="modal-brand">
+            <img class="modal-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+            <div class="modal-brand-text">
+              <div class="modal-brand-title">Last Man Standing</div>
+              <div class="modal-brand-sub">Polytechnic FC</div>
+            </div>
+          </div>
+
+          <button class="modal-x" type="button" data-close-modal="infoModal">✕</button>
+        </div>
+        <hr class="modal-divider">
+
+        <div class="modal-title">How to play</div>
+        <div style="margin-top: 12px" class="modal-body fixtures-card">
+          <ul>
+            <li>Pick one team each gameweek.</li>
+            <li>If your team wins: you’re through.</li>
+            <li>If your team loses: you’re out.</li>
+            <li>You can’t reuse a team once it has recorded a win for you.</li>
+            <li>Submission deadline is 1 hour before the first fixture of the current gameweek.</li>
+            <li>Last man standing wins the prize money.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+  <script src="app.js" defer></script>
+</body>
+
+</html>

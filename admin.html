@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>LMS Admin</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <!-- SPLASH -->
+  <div id="splash" class="splash hidden">
+    <div class="splash-inner">
+      <img class="splash-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+      <div class="splash-title">LMS Admin</div>
+      <div class="splash-sub">Polytechnic FC</div>
+      <div class="splash-ball" aria-label="Loading">⚽</div>
+    </div>
+  </div>
+
+  <div class="app">
+    <header class="topbar">
+      <div class="brand auth-brand">
+        <img class="brand-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+        <div class="brand-text">
+          <div class="brand-title">LMS Admin</div>
+          <div class="brand-sub">Polytechnic FC</div>
+        </div>
+      </div>
+
+      <div class="top-actions">
+        <button id="adminLogoutBtn" class="btn btn-ghost hidden" type="button">Log out</button>
+      </div>
+    </header>
+
+    <hr class="auth-divider">
+
+
+
+    <main class="view">
+      <div class="card">
+
+        <!-- LOGIN VIEW -->
+        <section id="loginView">
+          <h3 style="margin-top:0">Admin login</h3>
+          <label>
+
+            <input class="admin-key" id="adminKey" type="password" autocomplete="current-password" placeholder="Admin password" />
+          </label>
+          <button class="btn btn-primary" id="adminLoginBtn" type="button">Log in</button>
+        </section>
+
+        <!-- PANEL VIEW -->
+        <section id="panelView" class="hidden">
+
+          <div class="seg-tabs">
+            <button class="tab2 active" data-tab="approvals" type="button">Approvals</button>
+            <button class="tab2" data-tab="submissions" type="button">Submissions</button>
+          </div>
+
+          <!-- APPROVALS -->
+          <section id="panel-approvals">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 14px;">
+              <div id="pendingMeta" class="muted small"></div>
+              <button class="btn btn-primary" id="refreshApprovalsBtn" type="button">Refresh</button>
+            </div>
+
+            <details class="fixtures-card collapse-card" open style="margin-bottom:12px;">
+              <summary class="collapse-summary">
+                <h3 style="margin:0">Pending <span id="pendingCount" class="muted small"></span></h3>
+                <span class="caret">▸</span>
+              </summary>
+
+              <div style="margin-top:10px;">
+                <div id="pendingList" class="list"></div>
+              </div>
+            </details>
+
+
+            <details class="fixtures-card collapse-card" open>
+              <summary class="collapse-summary">
+                <h3 style="margin:0">Approved <span id="approvedCount" class="muted small"></span></h3>
+                <span class="caret">▸</span>
+              </summary>
+
+              <div style="margin-top:10px;">
+                <div id="approvedList" class="list"></div>
+              </div>
+            </details>
+
+
+          </section>
+
+          <!-- SUBMISSIONS -->
+          <section id="panel-submissions" class="hidden">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 14px;">
+              <div id="subsMeta" class="muted small"></div>
+              <button class="btn btn-primary" id="refreshSubsBtn" type="button">Refresh</button>
+            </div>
+
+            <div class="fixtures-card">
+              <details class="collapse-card" open style="margin-bottom:12px;">
+                <summary class="collapse-summary">
+                  <h3>Pending <span id="subsPendingCount"></span></h3>
+                  <span class="caret">▸</span>
+                </summary>
+
+                <div style="margin-top:10px;">
+                  <div id="subsPendingList" class="list"></div>
+                </div>
+              </details>
+
+              <details class="collapse-card" open>
+                <summary class="collapse-summary">
+                  <h3>Resolved <span id="subsResolvedCount"></span></h3>
+                  <span class="caret">▸</span>
+                </summary>
+
+                <div style="margin-top:10px;">
+                  <div id="subsResolvedList" class="list"></div>
+                </div>
+              </details>
+            </div>
+
+
+          </section>
+
+          <div id="subsContainer" class="hidden"></div>
+
+
+        </section>
+
+        <div id="adminMsg" class="msg hidden" style="margin-top:12px;"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="admin.js"></script>
+</body>
+
+
+</html>

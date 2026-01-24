@@ -1,0 +1,1412 @@
+{
+  "name": "English League One 2025/26",
+  "matches": [
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Bradford City",
+      "team2": "Doncaster",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "AFC Wimbledon",
+      "team2": "Bolton",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Northampton Town",
+      "team2": "Reading",
+      "time": "14:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Stockport",
+      "team2": "Plymouth",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Peterborough",
+      "team2": "Huddersfield",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Mansfield Town",
+      "team2": "Wycombe",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Exeter City",
+      "team2": "Rotherham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Luton Town",
+      "team2": "Blackpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Burton",
+      "team2": "Cardiff City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Barnsley",
+      "team2": "Stevenage",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Leyton Orient",
+      "team2": "Port Vale",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
+      "team1": "Wigan Athletic",
+      "team2": "Lincoln City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Luton Town",
+      "team2": "Bradford City",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Port Vale",
+      "team2": "Burton",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Bolton",
+      "team2": "Barnsley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "AFC Wimbledon",
+      "team2": "Reading",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Huddersfield",
+      "team2": "Blackpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Rotherham",
+      "team2": "Cardiff City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Peterborough",
+      "team2": "Wigan Athletic",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Wycombe",
+      "team2": "Doncaster",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Stockport",
+      "team2": "Leyton Orient",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Mansfield Town",
+      "team2": "Exeter City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Plymouth",
+      "team2": "Lincoln City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Northampton Town",
+      "team2": "Stevenage",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Reading",
+      "team2": "Wycombe",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Stevenage",
+      "team2": "Huddersfield",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Lincoln City",
+      "team2": "Bolton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Wigan Athletic",
+      "team2": "Rotherham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Bradford City",
+      "team2": "Peterborough",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Barnsley",
+      "team2": "AFC Wimbledon",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Doncaster",
+      "team2": "Port Vale",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Cardiff City",
+      "team2": "Luton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Leyton Orient",
+      "team2": "Mansfield Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Exeter City",
+      "team2": "Northampton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-14",
+      "team1": "Blackpool",
+      "team2": "Plymouth",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Stevenage",
+      "team2": "Port Vale",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Bradford City",
+      "team2": "Stockport",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Lincoln City",
+      "team2": "Northampton Town",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Doncaster",
+      "team2": "Huddersfield",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Burton",
+      "team2": "Rotherham",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Exeter City",
+      "team2": "Wycombe",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Barnsley",
+      "team2": "Peterborough",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Cardiff City",
+      "team2": "AFC Wimbledon",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Leyton Orient",
+      "team2": "Plymouth",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Blackpool",
+      "team2": "Mansfield Town",
+      "time": "20:00"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-17",
+      "team1": "Reading",
+      "team2": "Bolton",
+      "time": "20:00"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-18",
+      "team1": "Wigan Athletic",
+      "team2": "Luton Town",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Rotherham",
+      "team2": "Doncaster",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Wycombe",
+      "team2": "Stevenage",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Plymouth",
+      "team2": "Cardiff City",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Bolton",
+      "team2": "Blackpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Northampton Town",
+      "team2": "Leyton Orient",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Huddersfield",
+      "team2": "Barnsley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Stockport",
+      "team2": "Wigan Athletic",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "AFC Wimbledon",
+      "team2": "Bradford City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Port Vale",
+      "team2": "Reading",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Mansfield Town",
+      "team2": "Lincoln City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Peterborough",
+      "team2": "Exeter City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-21",
+      "team1": "Luton Town",
+      "team2": "Burton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Leyton Orient",
+      "team2": "Barnsley",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Northampton Town",
+      "team2": "Peterborough",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Wycombe",
+      "team2": "Burton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Doncaster",
+      "team2": "Cardiff City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Lincoln City",
+      "team2": "Wigan Athletic",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Stevenage",
+      "team2": "Stockport",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Rotherham",
+      "team2": "Plymouth",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Port Vale",
+      "team2": "Luton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Exeter City",
+      "team2": "Bolton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW6",
+      "date": "2026-02-28",
+      "team1": "Reading",
+      "team2": "Bradford City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Bolton",
+      "team2": "Wycombe",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Cardiff City",
+      "team2": "Lincoln City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Stockport",
+      "team2": "Mansfield Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Huddersfield",
+      "team2": "Rotherham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Luton Town",
+      "team2": "Barnsley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Reading",
+      "team2": "Exeter City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Blackpool",
+      "team2": "Wigan Athletic",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "AFC Wimbledon",
+      "team2": "Northampton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Bradford City",
+      "team2": "Leyton Orient",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Plymouth",
+      "team2": "Doncaster",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Peterborough",
+      "team2": "Port Vale",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW7",
+      "date": "2026-03-07",
+      "team1": "Burton",
+      "team2": "Stevenage",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Rotherham",
+      "team2": "Bolton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Leyton Orient",
+      "team2": "Peterborough",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Lincoln City",
+      "team2": "Stockport",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Reading",
+      "team2": "Plymouth",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Wycombe",
+      "team2": "Luton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Stevenage",
+      "team2": "AFC Wimbledon",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Wigan Athletic",
+      "team2": "Bradford City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Doncaster",
+      "team2": "Blackpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Port Vale",
+      "team2": "Huddersfield",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Mansfield Town",
+      "team2": "Barnsley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Exeter City",
+      "team2": "Cardiff City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW8",
+      "date": "2026-03-14",
+      "team1": "Northampton Town",
+      "team2": "Burton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Luton Town",
+      "team2": "Exeter City",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Blackpool",
+      "team2": "Port Vale",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Huddersfield",
+      "team2": "Lincoln City",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Barnsley",
+      "team2": "Wigan Athletic",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Plymouth",
+      "team2": "Stevenage",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Bolton",
+      "team2": "Doncaster",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Peterborough",
+      "team2": "Rotherham",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Cardiff City",
+      "team2": "Wycombe",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Stockport",
+      "team2": "Northampton Town",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "AFC Wimbledon",
+      "team2": "Leyton Orient",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Burton",
+      "team2": "Reading",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW9",
+      "date": "2026-03-17",
+      "team1": "Bradford City",
+      "team2": "Mansfield Town",
+      "time": "19:45"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Barnsley",
+      "team2": "Doncaster",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Cardiff City",
+      "team2": "Blackpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Port Vale",
+      "team2": "Bolton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Plymouth",
+      "team2": "Huddersfield",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Lincoln City",
+      "team2": "Rotherham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Burton",
+      "team2": "Bradford City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Luton Town",
+      "team2": "Stockport",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Mansfield Town",
+      "team2": "Northampton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "AFC Wimbledon",
+      "team2": "Peterborough",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Leyton Orient",
+      "team2": "Wycombe",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Stevenage",
+      "team2": "Reading",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW10",
+      "date": "2026-03-21",
+      "team1": "Wigan Athletic",
+      "team2": "Exeter City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Peterborough",
+      "team2": "Mansfield Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Northampton Town",
+      "team2": "Barnsley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Stockport",
+      "team2": "AFC Wimbledon",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Reading",
+      "team2": "Wigan Athletic",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Doncaster",
+      "team2": "Lincoln City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Bradford City",
+      "team2": "Plymouth",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Rotherham",
+      "team2": "Luton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Huddersfield",
+      "team2": "Cardiff City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Bolton",
+      "team2": "Stevenage",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Blackpool",
+      "team2": "Burton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Wycombe",
+      "team2": "Port Vale",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-03-28",
+      "team1": "Exeter City",
+      "team2": "Leyton Orient",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Stockport",
+      "team2": "Wycombe",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Burton",
+      "team2": "Barnsley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Huddersfield",
+      "team2": "Reading",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Bradford City",
+      "team2": "Northampton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Blackpool",
+      "team2": "Exeter City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Doncaster",
+      "team2": "Mansfield Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Luton Town",
+      "team2": "Peterborough",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Lincoln City",
+      "team2": "AFC Wimbledon",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Rotherham",
+      "team2": "Stevenage",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Cardiff City",
+      "team2": "Port Vale",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Plymouth",
+      "team2": "Bolton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-03",
+      "team1": "Wigan Athletic",
+      "team2": "Leyton Orient",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Leyton Orient",
+      "team2": "Huddersfield",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Wycombe",
+      "team2": "Bradford City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Reading",
+      "team2": "Lincoln City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Bolton",
+      "team2": "Stockport",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Barnsley",
+      "team2": "Plymouth",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Northampton Town",
+      "team2": "Wigan Athletic",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "AFC Wimbledon",
+      "team2": "Luton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Mansfield Town",
+      "team2": "Burton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Peterborough",
+      "team2": "Cardiff City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Stevenage",
+      "team2": "Blackpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Exeter City",
+      "team2": "Doncaster",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-06",
+      "team1": "Port Vale",
+      "team2": "Rotherham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Bradford City",
+      "team2": "Stevenage",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Huddersfield",
+      "team2": "Wycombe",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Burton",
+      "team2": "AFC Wimbledon",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Luton Town",
+      "team2": "Northampton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Lincoln City",
+      "team2": "Leyton Orient",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Plymouth",
+      "team2": "Exeter City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Blackpool",
+      "team2": "Peterborough",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Rotherham",
+      "team2": "Barnsley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Wigan Athletic",
+      "team2": "Mansfield Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Stockport",
+      "team2": "Port Vale",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Doncaster",
+      "team2": "Reading",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-11",
+      "team1": "Cardiff City",
+      "team2": "Bolton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "AFC Wimbledon",
+      "team2": "Plymouth",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Northampton Town",
+      "team2": "Doncaster",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Peterborough",
+      "team2": "Burton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Leyton Orient",
+      "team2": "Rotherham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Stevenage",
+      "team2": "Lincoln City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Bolton",
+      "team2": "Huddersfield",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Wycombe",
+      "team2": "Blackpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Exeter City",
+      "team2": "Stockport",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Reading",
+      "team2": "Cardiff City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Port Vale",
+      "team2": "Wigan Athletic",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Mansfield Town",
+      "team2": "Luton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-04-18",
+      "team1": "Barnsley",
+      "team2": "Bradford City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Blackpool",
+      "team2": "Leyton Orient",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Stockport",
+      "team2": "Peterborough",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Luton Town",
+      "team2": "Barnsley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Cardiff City",
+      "team2": "Northampton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Wigan Athletic",
+      "team2": "AFC Wimbledon",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Rotherham",
+      "team2": "Reading",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Burton",
+      "team2": "Exeter City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Plymouth",
+      "team2": "Port Vale",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Huddersfield",
+      "team2": "Mansfield Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Lincoln City",
+      "team2": "Wycombe",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Doncaster",
+      "team2": "Stevenage",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-04-25",
+      "team1": "Bradford City",
+      "team2": "Bolton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Reading",
+      "team2": "Blackpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Leyton Orient",
+      "team2": "Burton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Wycombe",
+      "team2": "Rotherham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Port Vale",
+      "team2": "Lincoln City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Exeter City",
+      "team2": "Bradford City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Mansfield Town",
+      "team2": "Cardiff City",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Stevenage",
+      "team2": "Wigan Athletic",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Northampton Town",
+      "team2": "Plymouth",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Peterborough",
+      "team2": "Doncaster",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Bolton",
+      "team2": "Luton Town",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "Barnsley",
+      "team2": "Stockport",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-02",
+      "team1": "AFC Wimbledon",
+      "team2": "Huddersfield",
+      "time": "15:00"
+    }
+  ]
+}

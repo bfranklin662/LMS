@@ -1,0 +1,16 @@
+{
+  "deadlines": [
+    { "gwId": "GW1", "date": "2026-01-30", "deadline": "20:00" },
+    { "gwId": "GW2", "date": "2026-02-06", "deadline": "20:00" },
+    { "gwId": "GW3", "date": "2026-02-10", "deadline": "19:30" },
+    { "gwId": "GW4", "date": "2026-02-17", "deadline": "14:00" },
+    { "gwId": "GW5", "date": "2026-02-21", "deadline": "12:30" },
+    { "gwId": "GW6", "date": "2026-02-27", "deadline": "20:00" },
+    { "gwId": "GW7", "date": "2026-03-07", "deadline": "19:45" },
+    { "gwId": "GW8", "date": "2026-02-27", "deadline": "14:00" },
+    { "gwId": "GW9", "date": "2026-03-01", "deadline": "14:00" },
+    { "gwId": "GW10", "date": "2026-03-06", "deadline": "14:00" },
+    { "gwId": "GW11", "date": "2026-03-09", "deadline": "14:00" },
+    { "gwId": "GW12", "date": "2026-03-12", "deadline": "14:00" }
+  ]
+}
