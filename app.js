@@ -19,7 +19,7 @@ const DEADLINE_HOURS_BEFORE_FIRST_FIXTURE = 1;
 
 const LS_SESSION = "cpfc_lms_session";
 
-const TEAM_LOGOS_URL = "team-logos.json"; // <-- change to your actual file path
+const TEAM_LOGOS_URL = "./team-logos.json"; // <-- change to your actual file path
 const DEFAULT_TEAM_LOGO = "images/team-default.png"; // optional but recommended
 
 
