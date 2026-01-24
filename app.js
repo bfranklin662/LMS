@@ -3209,19 +3209,24 @@ async function initDataAndRender_({ allowOutcomeModal = true } = {}) {
 
   // Saved login -> show splash while we load
   showSplash(true);
+
   try {
     sessionEmail = sess.email;
 
-    // This loads fixtures AND sets current/viewing correctly
+    // Loads fixtures + gameweeks + profile and renders
     await initDataAndRender_();
 
     enterApp_();
   } catch (err) {
     console.error(err);
-    // ❌ don't clearSession(); it makes random "logout" on transient failures
-    showSplash(false);
-    exitApp_(); // show auth view
-    // optional: show a message to user
-  }
 
+    // Keep session (as you wanted) — just fall back to auth
+    exitApp_();
+
+    // Optional: surface a message in auth view
+    // showAuthMessage("Couldn’t load the app. Please try again.", "bad");
+  } finally {
+    // ✅ Always hide splash (success OR failure)
+    showSplash(false);
+  }
 })();
