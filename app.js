@@ -3218,9 +3218,10 @@ async function initDataAndRender_({ allowOutcomeModal = true } = {}) {
     enterApp_();
   } catch (err) {
     console.error(err);
-    clearSession();
-    exitApp_();
-  } finally {
+    // ❌ don't clearSession(); it makes random "logout" on transient failures
     showSplash(false);
+    exitApp_(); // show auth view
+    // optional: show a message to user
   }
+
 })();
