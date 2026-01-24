@@ -245,7 +245,7 @@ function gwNum(gwId) {
 }
 
 async function loadGwListFromDeadlines() {
-  const res = await fetch("/gameweek-deadlines.json", { cache: "no-store" });
+  const res = await fetch("gameweek-deadlines.json", { cache: "no-store" });
   if (!res.ok) return [];
   const data = await res.json();
   const gwIds = (data.deadlines || [])
