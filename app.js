@@ -6,10 +6,10 @@ const API_URL = "https://lms-api.nick-horne123.workers.dev";
 const DEBUG_API = false;
 
 const FIXTURE_SOURCES = [
-  { league: "Premier League", url: "/premier-league.json" },
-  { league: "Championship", url: "/championship.json" },
-  { league: "League One", url: "/league-one.json" },
-  { league: "League Two", url: "/league-two.json" },
+  { league: "Premier League", url: "premier-league.json" },
+  { league: "Championship", url: "championship.json" },
+  { league: "League One", url: "league-one.json" },
+  { league: "League Two", url: "league-two.json" },
 ];
 
 const GAME_START_DATE = new Date("2026-01-01T00:00:00Z");
@@ -1745,7 +1745,7 @@ function buildGameweeks(fixturesArr) {
 }
 
 async function loadDeadlines() {
-  const res = await fetch("/gameweek-deadlines.json", { cache: "no-store" });
+  const res = await fetch("gameweek-deadlines.json", { cache: "no-store" });
   if (!res.ok) return new Map();
 
   const data = await res.json();
