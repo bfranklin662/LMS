@@ -41,6 +41,20 @@ body {
   min-height: 100vh;
 }
 
+html,
+body {
+  height: auto;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  /* better on mobile browser UI changes */
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+
 body.modal-open {
   overflow: hidden;
   touch-action: none;
