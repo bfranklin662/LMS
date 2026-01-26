@@ -39,7 +39,7 @@
         </div>
 
         <!-- Register -->
-        <form id="registerForm" class="form">
+        <form id="registerForm" class="form" novalidate>
           <div class="grid2">
             <label>
               <span>First name</span>
@@ -90,6 +90,28 @@
             <input name="password" type="password" minlength="6" required />
             <small class="muted">Minimum 6 characters.</small>
           </label>
+
+          <div class="gdpr">
+            <label class="gdpr-row">
+              <input id="consentRequired" type="checkbox" required />
+              <span class="gdpr-text">
+                I agree that Polytechnic FC may store and process my personal data for the
+                purpose of running the LMS competition.
+                <button type="button" class="link-btn" data-open-privacy>Privacy Policy</button>
+              </span>
+            </label>
+            <div id="consentError" class="consent-error hidden">
+              You must agree to the data policy to create an account.
+            </div>
+
+
+            <label class="gdpr-row">
+              <input id="consentMarketing" type="checkbox" />
+              <span class="gdpr-text">
+                I agree to receive emails about future Polytechnic FC competitions and events (Optional).
+              </span>
+            </label>
+          </div>
 
           <button class="btn btn-primary" type="submit">Create account</button>
           <p class="muted">
@@ -153,7 +175,7 @@
             <!-- SELECTION PANEL -->
             <section id="panel-selection">
 
-              <div id="paymentDetailsCard" class="fixtures-card hidden" style="margin-top:15px; cursor:pointer;"></div>
+              <div id="paymentDetailsCard" class="fixtures-card payment-card hidden" style="margin-top:15px; cursor:pointer;"></div>
 
               <div id="statusBox" class="status-box"></div>
 
@@ -220,8 +242,8 @@
             <section id="panel-fixtures" class="hidden">
 
               <div class="filters">
-                <select id="gameweekSelect" class="filter"></select>
-                <select id="daySelect" class="filter"></select>
+                <select id="gameweekSelect" class="filter select-dropdown"></select>
+                <select id="daySelect" class="filter select-dropdown"></select>
               </div>
 
               <div id="fixturesList"></div>
@@ -254,15 +276,13 @@
             </section>
           </div>
         </main>
-
-
       </div>
     </div>
 
 
     <footer class="footer">
       <div class="muted small">
-        Polytechnic FC • LMS • Mobile-first demo
+        Polytechnic FC • LMS • <button type="button" class="link-btn" data-open-privacy>Privacy Policy</button>
       </div>
     </footer>
 
@@ -370,6 +390,60 @@
       </div>
     </div>
 
+    <!-- PRIVACY MODAL -->
+    <div id="privacyModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <div class="modal-head">
+          <div class="modal-brand">
+            <img class="modal-logo" src="images/Poly_circle-logo.png" alt="Polytechnic FC" />
+            <div class="modal-brand-text">
+              <div class="modal-brand-title">Privacy Policy</div>
+              <div class="modal-brand-sub">Last Man Standing</div>
+            </div>
+          </div>
+
+          <button class="modal-x" type="button" data-close-modal="privacyModal">✕</button>
+        </div>
+        <hr class="modal-divider">
+
+        <div class="modal-body fixtures-card" style="margin-top:12px; line-height:1.5;">
+          <h3 style="margin-top:0">How we use your data</h3>
+          <p class="muted">
+            Polytechnic FC uses your details to run the Last Man Standing competition (creating your account, managing
+            entries,
+            contacting you about your picks and competition admin).
+          </p>
+
+          <h4>What we collect</h4>
+          <ul class="muted">
+            <li>Name, email, phone, team/club connection</li>
+            <li>Your picks and outcomes</li>
+          </ul>
+
+          <h4>Why we collect it</h4>
+          <ul class="muted">
+            <li>To run the competition and contact you about your entry</li>
+            <li>To administer results and verify eligibility</li>
+          </ul>
+
+          <h4>Legal basis</h4>
+          <p class="muted">Consent (and legitimate interests for competition administration).</p>
+
+          <h4>Who we share it with</h4>
+          <p class="muted">Only the competition organisers and the services used to host the site/API.</p>
+
+          <h4>Retention</h4>
+          <p class="muted">We keep data for the duration of the competition and a reasonable period after for
+            admin/audit.</p>
+
+          <h4>Your rights</h4>
+          <p class="muted">You can request access, correction, or deletion by contacting the organisers.</p>
+
+          <h4>Contact</h4>
+          <p class="muted">Email: <strong>polytechnicfclms@gmail.com</strong></p>
+        </div>
+      </div>
+    </div>
 
   </div>
   <script src="app.js" defer></script>
