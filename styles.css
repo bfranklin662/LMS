@@ -1311,10 +1311,6 @@ details[open]>.league-summary::before {
 }
 
 
-.warn {
-  border: 1px solid rgba(245, 158, 11, .35);
-}
-
 /* Collapsible card (admin + main app) */
 details.collapse-card {
   border: 0;
