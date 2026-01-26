@@ -1338,7 +1338,7 @@ function renderStatusBox() {
     rowsHtml = `
         <div class="status-row pending">
           <div>${escapeHtml(gwLabelShort(currentGwId))} - ${escapeHtml(pendingLine)}</div>
-          <div class="state warn">…</div>
+          <div class="state">…</div>
         </div>
       `;
   } else {
