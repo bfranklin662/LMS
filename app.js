@@ -201,7 +201,10 @@ const infoModal = document.getElementById("infoModal");
 const playerModal = document.getElementById("playerModal");
 const playerModalBody = document.getElementById("playerModalBody");
 
-const allModals = [systemModal, profileModal, infoModal, playerModal].filter(Boolean);
+const privacyModal = document.getElementById("privacyModal");
+
+const allModals = [systemModal, profileModal, infoModal, playerModal, privacyModal].filter(Boolean);
+
 
 playerModal?.addEventListener("pointerdown", (e) => {
   if (e.target === playerModal) closeModal(playerModal);
@@ -296,6 +299,25 @@ function teamInlineHtml_(teamName, { size = 18, logoPosition = "before", isSelec
   `;
 }
 
+let _scrollY = 0;
+
+function lockBodyScroll_() {
+  _scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.style.position = "fixed";
+  document.body.style.top = `-${_scrollY}px`;
+  document.body.style.left = "0";
+  document.body.style.right = "0";
+  document.body.style.width = "100%";
+}
+
+function unlockBodyScroll_() {
+  document.body.style.position = "";
+  document.body.style.top = "";
+  document.body.style.left = "";
+  document.body.style.right = "";
+  document.body.style.width = "";
+  window.scrollTo(0, _scrollY);
+}
 
 
 function fixtureTeamsHtml_(home, away, { highlightTeam = null } = {}) {
@@ -789,8 +811,7 @@ function showVerifiedModalIfNeeded() {
     "Verification complete ✅",
     `
       <div style="line-height:1.5;">
-        <p style="margin:0 0 10px;"><strong>Your account is now approved.</strong></p>
-        <p style="margin:0;">You can now submit your first team selection.</p>
+        <p class="muted">Your account is now approved. You can now submit your first team selection.</p>
       </div>
     `, { showActions: false }
   );
@@ -1967,18 +1988,6 @@ function renderFixturesTab() {
       summary.textContent = `${leagueName} (${list.length})`;
       details.appendChild(summary);
 
-      if (!details.dataset.boundAnim) {
-        details.dataset.boundAnim = "1";
-
-        details.addEventListener("toggle", () => {
-          if (!details.open) return;
-
-          const rows = details.querySelectorAll(".fixture-row");
-          rows.forEach(r => r.classList.remove("is-in"));
-          rows.forEach((r, i) => setTimeout(() => r.classList.add("is-in"), i * 35));
-        });
-      }
-
 
       const container = document.createElement("div");
       container.className = "league-group";
@@ -2951,9 +2960,9 @@ function openModal(modalEl) {
 
   modalOverlay.classList.remove("hidden");
   modalEl.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
 
-  // focus first focusable control inside modal
+  lockBodyScroll_(); // ✅ instead of overflow=hidden
+
   const focusable = modalEl.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
   focusable?.focus?.();
 }
@@ -2962,11 +2971,6 @@ function closeModal(modalEl) {
   const modalOverlay = document.getElementById("modalOverlay");
   if (!modalEl) return;
 
-  const active = document.activeElement;
-  if (active && modalEl.contains(active)) {
-    (lastFocusBeforeModal || document.body).focus?.();
-  }
-
   modalEl.classList.add("hidden");
 
   const anyOpen = Array.from(document.querySelectorAll(".modal"))
@@ -2974,11 +2978,16 @@ function closeModal(modalEl) {
 
   if (!anyOpen) {
     modalOverlay?.classList.add("hidden");
-    document.body.style.overflow = "";
+    unlockBodyScroll_(); // ✅ restore page scroll position
   }
 }
 
 
+
+document.querySelectorAll(".modal-card").forEach(card => {
+  card.addEventListener("wheel", (e) => e.stopPropagation(), { passive: true });
+  card.addEventListener("touchmove", (e) => e.stopPropagation(), { passive: true });
+});
 
 
 
