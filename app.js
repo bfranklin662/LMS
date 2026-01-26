@@ -3101,8 +3101,13 @@ const splash = document.getElementById("splash");
 
 function showSplash(on) {
   if (!splash) return;
+
   splash.classList.toggle("hidden", !on);
+
+  // IMPORTANT: only if you added the CSS that hides the rest of the page
+  document.body.classList.toggle("splashing", on);
 }
+
 
 function syncViewingToCurrent() {
   if (!viewingGwId) viewingGwId = currentGwId;
