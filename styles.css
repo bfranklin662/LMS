@@ -684,19 +684,19 @@ details[open]>.league-summary::before {
 }
 
 /* Bigger match line + logos only inside submitted-meta */
-.submitted-meta .fixture-teams{
-  font-size:15px;
-  line-height:1.15;
+.submitted-meta .fixture-teams {
+  font-size: 15px;
+  line-height: 1.15;
 }
 
-.submitted-meta .team-logo{
-  width:36px;
-  height:36px;
+.submitted-meta .team-logo {
+  width: 36px;
+  height: 36px;
 }
 
-.submitted-meta .fixture-datetime{
-  font-size:12px;
-  margin-top:-5px;
+.submitted-meta .fixture-datetime {
+  font-size: 12px;
+  margin-top: -5px;
 }
 
 
@@ -1082,7 +1082,6 @@ details[open]>.league-summary::before {
 
 .step-pill.pending {
   border: 1px solid rgba(255, 190, 80, .35);
-  background: rgba(255, 190, 80, .10);
 }
 
 .results-actions {
@@ -1143,7 +1142,7 @@ details[open]>.league-summary::before {
 
 .status-row.pending {
   border: 1px solid rgba(255, 190, 80, .35);
-  background: rgba(255, 190, 80, .10);
+
 }
 
 .status-row.loss {
@@ -1197,8 +1196,6 @@ details[open]>.league-summary::before {
   margin-bottom: 8px;
 }
 
-
-
 .seg-tabs {
   display: flex;
   border-radius: 14px;
@@ -1218,6 +1215,7 @@ details[open]>.league-summary::before {
   text-transform: uppercase;
   opacity: .75;
   color: var(--muted);
+  font-size: 13px;
 }
 
 .seg-tabs .tab2.active {
@@ -1290,7 +1288,6 @@ details[open]>.league-summary::before {
 
 .warn {
   border: 1px solid rgba(245, 158, 11, .35);
-  background: rgba(245, 158, 11, .10);
 }
 
 /* Collapsible card (admin + main app) */
@@ -1691,7 +1688,8 @@ details[open]>summary.collapse-summary .caret {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0; /* critical for ellipsis in flex */
+  min-width: 0;
+  /* critical for ellipsis in flex */
 }
 
 .team-inline {
@@ -1711,6 +1709,7 @@ details[open]>summary.collapse-summary .caret {
 .pick-card {
   padding: 14px;
 }
+
 .team-name.is-selected {
   color: #ffffff;
 
@@ -1725,10 +1724,11 @@ details[open]>summary.collapse-summary .caret {
 }
 
 /* Left side (text + team inline) should be a flex row too */
-.status-row > div:first-child {
+.status-row>div:first-child {
   display: flex;
   align-items: center;
-  min-width: 0;              /* allows ellipsis */
+  min-width: 0;
+  /* allows ellipsis */
 }
 
 /* Team inline (logo + name) */
@@ -1736,7 +1736,8 @@ details[open]>summary.collapse-summary .caret {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  min-width: 0;              /* allows ellipsis on name */
+  min-width: 0;
+  /* allows ellipsis on name */
 }
 
 /* Ensure the image doesn't affect baseline */
@@ -1753,33 +1754,35 @@ details[open]>summary.collapse-summary .caret {
 }
 
 /* Make every status row the same height */
-.status-row{
-  min-height: 44px;                 /* tweak if you want taller */
+.status-row {
+  min-height: 44px;
+  /* tweak if you want taller */
 }
 
 
 /* NEUTRAL (grey) rows: fetching / not submitted */
-.status-row.neutral{
-  border: 1px solid rgba(148,163,184,.25);
-  background: rgba(148,163,184,.08);
+.status-row.neutral {
+  border: 1px solid rgba(148, 163, 184, .25);
+  background: rgba(148, 163, 184, .08);
 }
 
 /* ATTENTION (orange) rows: team submitted */
-.status-row.attn{
-  border: 1px solid rgba(245,158,11,.35);
-  background: rgba(245,158,11,.10);
+.status-row.attn {
+  border: 1px solid rgba(245, 158, 11, .35);
+  background: rgba(245, 158, 11, .10);
 }
 
-.status-foot--split{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
+.status-foot--split {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
-.status-finish{
-  text-align:right;
-  white-space:nowrap;
-  opacity:.9;
+
+.status-finish {
+  text-align: right;
+  white-space: nowrap;
+  opacity: .9;
 }
 
 /* start hidden until animated in */
@@ -1797,11 +1800,11 @@ details[open]>summary.collapse-summary .caret {
 }
 
 /* Neutral card styling for payment / verification modal */
-.pay-card{
+.pay-card {
   padding: 12px;
   border-radius: 14px;
-  border: 1px solid rgba(255,255,255,0.10);
-  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  background: rgba(255, 255, 255, 0.04);
 }
 
 
@@ -1815,17 +1818,83 @@ details[open]>summary.collapse-summary .caret {
 .content-inner.cardlike {
   padding: 14px;
   border-radius: 18px;
-  background: rgba(255,255,255,.03);
-  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255, 255, 255, .03);
+  border: 1px solid rgba(255, 255, 255, .08);
 }
 
 /* Prevent iOS Safari zoom-on-focus */
-input, select, textarea {
+input,
+select,
+textarea {
   font-size: 16px;
 }
 
 @media (max-width: 520px) {
-  input, select, textarea {
+
+  input,
+  select,
+  textarea {
     font-size: 16px;
   }
+}
+
+.gdpr {
+  margin-top: 12px;
+}
+
+.gdpr-row {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  column-gap: 10px;
+  align-items: start;
+
+  /* IMPORTANT: keep everything inside the card */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  margin: 0px 0;
+  text-align: left;
+}
+
+.gdpr-row input {
+  margin-top: 3px;
+}
+
+.gdpr-text {
+  display: block;
+  max-width: 100%;
+  overflow-wrap: anywhere;   /* prevents overflow on long words/links */
+  word-break: break-word;
+}
+
+.link-btn{
+  background: none;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+
+.consent-error {
+  margin-top: 5px;
+  margin-bottom: 5px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.12);
+  color: #fecaca;
+  font-size: 13px;
+}
+
+.payment-card {
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 190, 80, .35);
+
+}
+
+.select-dropdown {
+  font-size: 12px;
 }
