@@ -860,24 +860,23 @@ function showConfirmModal_(title, html, { confirmText = "Confirm", cancelText = 
 }
 
 function showSystemModal_(title, html, { showActions = true } = {}) {
-  const modalOverlay = document.getElementById("modalOverlay");
   const systemModal = document.getElementById("systemModal");
   const titleEl = document.getElementById("systemModalTitle");
   const bodyEl = document.getElementById("systemModalBody");
   const actionsEl = document.getElementById("systemModalActions");
 
-  if (!modalOverlay || !systemModal || !titleEl || !bodyEl) return;
+  if (!systemModal || !titleEl || !bodyEl) return;
 
-  closeAllModals?.(); // safe if defined
+  closeAllModals?.();
 
   titleEl.textContent = title || "";
   bodyEl.innerHTML = html || "";
   if (actionsEl) actionsEl.classList.toggle("hidden", !showActions);
 
-  modalOverlay.classList.remove("hidden");
-  systemModal.classList.remove("hidden");
-  document.body.style.overflow = "hidden";
+  // ✅ Use the same modal system everywhere
+  openModal(systemModal);
 }
+
 
 
 
@@ -2978,9 +2977,16 @@ function closeModal(modalEl) {
 
   if (!anyOpen) {
     modalOverlay?.classList.add("hidden");
-    unlockBodyScroll_(); // ✅ restore page scroll position
+
+    // ✅ undo fixed-position scroll lock
+    unlockBodyScroll_();
+
+    // ✅ also clear any leftover overflow locks (from older code paths)
+    document.body.style.overflow = "";
+    document.documentElement.style.overflow = "";
   }
 }
+
 
 
 
