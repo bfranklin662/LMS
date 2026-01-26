@@ -145,6 +145,7 @@ const entriesPanel = document.getElementById("panel-entries");
 
 const panelSelection = document.getElementById("panel-selection");
 
+
 function setTab2(name) {
   activeTab2 = name;
 
@@ -445,6 +446,14 @@ function showPlayerModal_(title, html, { status = null } = {}) {
   openModal(playerModal);
 }
 
+(function bindPrivacyModalOnce() {
+  const btn = document.querySelector("[data-open-privacy]");
+  const modal = document.getElementById("privacyModal");
+  if (!btn || !modal || btn.dataset.bound) return;
+  btn.dataset.bound = "1";
+
+  btn.addEventListener("click", () => openModal(modal));
+})();
 
 
 function upsertLocalPick(gwId, team) {
@@ -2742,6 +2751,24 @@ showLoginBtn.addEventListener("click", () => {
   authMsg.classList.add("hidden");
 });
 
+// Open Privacy Modal (shared everywhere)
+document.addEventListener("click", (e) => {
+  const trigger = e.target.closest("[data-open-privacy], #privacyLink");
+  if (!trigger) return;
+
+  e.preventDefault();
+
+  const modal = document.getElementById("privacyModal");
+  const overlay = document.getElementById("modalOverlay");
+
+  if (!modal || !overlay) return;
+
+  modal.classList.remove("hidden");
+  modal.setAttribute("aria-hidden", "false");
+  overlay.classList.remove("hidden");
+});
+
+
 function setEditing(on) {
   isEditingCurrentPick = !!on;
 
@@ -2789,11 +2816,26 @@ function setEditing(on) {
   });
 })();
 
+
 registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const form = new FormData(registerForm);
   setBtnLoading(registerBtn, true);
+
+  const consentRequiredEl = document.getElementById("consentRequired");
+  const consentMarketingEl = document.getElementById("consentMarketing");
+  const consentErrorEl = document.getElementById("consentError");
+
+  const consentRequired = !!consentRequiredEl?.checked;
+  if (!consentRequired) {
+    consentErrorEl?.classList.remove("hidden");
+    setBtnLoading(registerBtn, false);
+    return;
+  }
+  consentErrorEl?.classList.add("hidden");
+
+  const consentMarketing = !!consentMarketingEl?.checked;
 
   try {
     await api({
@@ -2804,7 +2846,11 @@ registerForm.addEventListener("submit", async (e) => {
       phone: String(form.get("phone") || "").trim(),
       clubTeam: String(form.get("clubTeam") || "").trim(),
       connection: String(form.get("connection") || "").trim(),
-      password: String(form.get("password") || "")
+      password: String(form.get("password") || ""),
+
+      consentRequired, // boolean
+      consentMarketing, // boolean
+      consentTimestamp: new Date().toISOString(),
     });
 
     const emailLower = String(form.get("email") || "").trim().toLowerCase();
@@ -2813,25 +2859,24 @@ registerForm.addEventListener("submit", async (e) => {
     await initDataAndRender_();
     enterApp_();
 
-    // Show "Account created" modal first (distinct from payment modal)
     setTimeout(() => {
       showPaymentDetailsModal_({ context: "register" });
     }, 0);
 
-
-    // allow verified modal to show later even if previously seen
     localStorage.removeItem(`lms_verified_seen::${emailLower}`);
     sessionStorage.removeItem(`session_seen_verified::${emailLower}`);
 
     showAuthMessage("Registered! Now pay £10 — your entry will be approved after payment.", "good");
     registerForm.reset();
-
   } catch (err) {
     showAuthMessage(String(err.message || err), "bad");
   } finally {
     setBtnLoading(registerBtn, false);
   }
 });
+
+
+
 
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -3194,16 +3239,16 @@ async function initDataAndRender_({ allowOutcomeModal = true } = {}) {
 
 
 (async function boot() {
-  // Always start hidden until we decide where to go
+  // Start hidden until we decide where to go
   authView.classList.add("hidden");
   appView.classList.add("hidden");
 
   const sess = getSession();
 
-  // If no saved login -> show auth immediately, no splash
+  // No saved login -> show auth immediately, no splash
   if (!sess?.email) {
     showSplash(false);
-    exitApp_(); // shows auth view
+    exitApp_();
     return;
   }
 
@@ -3213,20 +3258,22 @@ async function initDataAndRender_({ allowOutcomeModal = true } = {}) {
   try {
     sessionEmail = sess.email;
 
-    // Loads fixtures + gameweeks + profile and renders
     await initDataAndRender_();
 
     enterApp_();
+
+    // ✅ IMPORTANT: hide splash after successful init + enter
+    showSplash(false);
   } catch (err) {
     console.error(err);
 
-    // Keep session (as you wanted) — just fall back to auth
-    exitApp_();
+    if (String(err?.message || err).includes("User not found")) {
+      clearSession();
+    }
 
-    // Optional: surface a message in auth view
-    // showAuthMessage("Couldn’t load the app. Please try again.", "bad");
-  } finally {
-    // ✅ Always hide splash (success OR failure)
+    // ✅ On any failure: hide splash AND show auth view
     showSplash(false);
+    exitApp_();
   }
 })();
+
