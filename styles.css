@@ -38,6 +38,10 @@ body {
 
 .app { min-height: 100vh; }
 
+body.modal-open {
+  overflow: hidden;
+  touch-action: none;
+}
 
 /* subtle global tint so the whole page stays consistent */
 body::before {
