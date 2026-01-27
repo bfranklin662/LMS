@@ -342,6 +342,39 @@ function fixtureTeamsHtml_(home, away, { highlightTeam = null } = {}) {
   `;
 }
 
+function isGwLockedById_(gwId) {
+  const gw = gameweeks.find(g => g.id === gwId);
+  if (!gw) return false;
+  return Date.now() >= gw.deadline.getTime();
+}
+
+function isApproved_(u) {
+  const v = u?.approved ?? u?.isApproved ?? u?.Approved ?? u?.verified ?? u?.isVerified ?? u?.paid ?? u?.isPaid;
+
+  // booleans / numbers
+  if (v === true || v === 1) return true;
+  if (v === false || v === 0) return false;
+
+  // strings from Sheets / APIs
+  const s = String(v ?? "").trim().toLowerCase();
+  if (["true", "yes", "y", "1", "approved"].includes(s)) return true;
+  if (["false", "no", "n", "0", "", "pending"].includes(s)) return false;
+
+  // fallback: treat unknown as NOT approved
+  return false;
+}
+
+function hasPickForGw_(u, gwId) {
+  // preferred: your API already provides this
+  if (u?.submittedForGw === true) return true;
+
+  // fallback: if API provides picks
+  const picks = Array.isArray(u?.picks) ? u.picks : [];
+  const gwKey = String(gwId || "").toUpperCase();
+  return picks.some(p => String(p?.gwId || "").toUpperCase() === gwKey && String(p?.team || "").trim());
+}
+
+
 
 async function refreshMyPlacingIfDead_() {
   // only relevant if player is dead + we have an email
@@ -365,8 +398,10 @@ async function refreshMyPlacingIfDead_() {
   }
 }
 
-
-
+function hasCompetitionStarted_() {
+  // GW1 is locked = competition started
+  return isGwLockedById_("GW1");
+}
 
 function setSession(email) {
   sessionEmail = email;
@@ -445,28 +480,32 @@ function displayTeamNameForFixture_(name) {
 }
 
 
-
-function showPlayerModal_(title, html, { status = null } = {}) {
+function showPlayerModal_(title, html, { status = null, approved = true } = {}) {
   if (!playerModal || !playerModalBody) return;
 
-  const statusPill =
-    status === "alive"
-      ? `<span class="player-status-pill alive"><span>Alive</span><span class="state good">✓</span></span>`
-      : status === "dead"
-        ? `<span class="player-status-pill dead"><span>Dead</span><span class="state bad">✕</span></span>`
-        : "";
+  let statusPill = "";
+
+  if (!approved) {
+    statusPill = `<span class="player-status-pill pending"><span>Pending</span><span class="state bad">…</span></span>`;
+  } else if (status === "alive") {
+    statusPill = `<span class="player-status-pill alive"><span>Alive</span><span class="state good">✓</span></span>`;
+  } else if (status === "dead") {
+    statusPill = `<span class="player-status-pill dead"><span>Dead</span><span class="state bad">✕</span></span>`;
+  }
 
   playerModalBody.innerHTML = `
     <div class="player-modal-head">
       <div class="player-modal-title">${escapeHtml(title)}</div>
       <div class="player-modal-status">${statusPill}</div>
     </div>
-
     <div class="modal-body" style="margin-top:6px;">${html}</div>
   `;
 
   openModal(playerModal);
 }
+
+
+
 
 (function bindPrivacyModalOnce() {
   const btn = document.querySelector("[data-open-privacy]");
@@ -755,6 +794,7 @@ async function refreshRemainingPlayersCount() {
     if (myReq !== entriesReqId) return;
 
     const users = data.users || [];
+
     const alive = users.filter(u => u.alive);
 
     lastRemainingPlayers = alive.length;
@@ -1064,16 +1104,12 @@ function renderPaymentDetailsCard_() {
   }
 }
 
-
-
 function normalizeOutcome_(o) {
   const out = String(o || "").trim().toUpperCase();
   if (out === "WIN" || out === "WON") return "WIN";
   if (out === "LOSS" || out === "LOST" || out === "LOSE") return "LOSS";
   return "PENDING";
 }
-
-
 
 
 function outcomeIcon_(o) {
@@ -1105,7 +1141,46 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
   const isAlive = player.alive === true;
   const isDead = player.alive === false;
 
-  const status = isAlive ? "alive" : isDead ? "dead" : null;
+  const approved = isApproved_(player);
+
+  const status = !approved
+    ? "pending"     // 👈 NEW
+    : isAlive
+      ? "alive"
+      : isDead
+        ? "dead"
+        : null;
+
+  function gwRowUi_(gwId, { submitted }) {
+    // (GW1 - Pending approval ...) red
+    if (!approved) {
+      return {
+        rowCls: "approval-pending",     // NEW red class
+        text: "Pending approval",
+        stateCls: "bad",
+        icon: "…"
+      };
+    }
+
+    // (GW1 - Team submitted ✓) orange
+    if (submitted) {
+      return {
+        rowCls: "pending",              // your existing orange styling
+        text: "Team submitted",
+        stateCls: "warn",
+        icon: "✓"
+      };
+    }
+
+    // (GW1 - Not submitted …) grey
+    return {
+      rowCls: "neutral",               // your existing grey styling
+      text: "Not submitted",
+      stateCls: "muted",
+      icon: "…"
+    };
+  }
+
 
   // 1) show instantly (loading state)
   const loadingHtml = `
@@ -1122,7 +1197,7 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
     </div>
   `;
 
-  showPlayerModal_(fullName, loadingHtml, { status });
+  showPlayerModal_(fullName, loadingHtml, { status, approved });
 
   // ranking line only for dead
   let positionLine = "";
@@ -1185,10 +1260,12 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
       `;
     } else {
       const submitted = !!player.submittedForGw;
-      rowsHtml = `
-        <div class="status-row pending">
-          <div>${escapeHtml(gwLabelShort(currentGwKey))} - ${submitted ? "Team submitted" : "Not submitted"}</div>
-          <div class="state ${submitted ? "warn" : "muted"}">${submitted ? "…" : "-"}</div>
+      const ui = gwRowUi_(currentGwKey, { submitted });
+
+      rowsHtml += `
+        <div class="status-row ${ui.rowCls}">
+          <div>${escapeHtml(gwLabelShort(currentGwKey))} - ${ui.text}</div>
+          <div class="state ${ui.stateCls}">${ui.icon}</div>
         </div>
       `;
     }
@@ -1199,10 +1276,11 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
       // ✅ privacy: if alive + current gw + pending, never show team or “in progress”
       if (isAlive && isCurrent && p.outcome === "PENDING") {
         const submitted = !!player.submittedForGw;
+        const ui = gwRowUi_(currentGwKey, { submitted });
         rowsHtml += `
-          <div class="status-row pending">
-            <div>${escapeHtml(gwLabelShort(p.gwId))} - ${submitted ? "Team submitted" : "Not submitted"}</div>
-            <div class="state ${submitted ? "warn" : "muted"}">${submitted ? "…" : "-"}</div>
+          <div class="status-row ${ui.rowCls}">
+            <div>${escapeHtml(gwLabelShort(currentGwKey))} - ${ui.text}</div>
+            <div class="state ${ui.stateCls}">${ui.icon}</div>
           </div>
         `;
         continue;
@@ -1227,10 +1305,12 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
       const hasCurrent = picksSorted.some(p => p.gwId === currentGwKey);
       if (!hasCurrent) {
         const submitted = !!player.submittedForGw;
+        const ui = gwRowUi_(currentGwKey, { submitted });
+
         rowsHtml += `
-          <div class="status-row pending">
-            <div>${escapeHtml(gwLabelShort(currentGwKey))} - ${submitted ? "Team submitted" : "Not submitted"}</div>
-            <div class="state ${submitted ? "warn" : "muted"}">${submitted ? "…" : "-"}</div>
+          <div class="status-row ${ui.rowCls}">
+            <div>${escapeHtml(gwLabelShort(currentGwKey))} - ${ui.text}</div>
+            <div class="state ${ui.stateCls}">${ui.icon}</div>
           </div>
         `;
       }
@@ -1248,7 +1328,7 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
   `;
 
 
-  showPlayerModal_(fullName, finalHtml, { status });
+  showPlayerModal_(fullName, finalHtml, { status, approved });
 
   // animate rows in
   requestAnimationFrame(() => {
@@ -1803,6 +1883,7 @@ async function refreshProfile() {
 
   const data = await api({ action: "getProfile", email: sessionEmail });
   sessionUser = data.user;
+  sessionUser.approved = isApproved_(sessionUser);
   sessionPicks = Array.isArray(data.picks) ? data.picks : [];
 
   // normalize outcomes + ids
@@ -2060,77 +2141,134 @@ async function renderEntriesTab() {
     if (myReq !== entriesReqId) return;
 
     const users = data.users || [];
-    const alive = users.filter(u => u.alive);
-    const out = users.filter(u => !u.alive);
     const total = users.length;
 
-    // signature to skip re-render if nothing changed
+    const started = hasCompetitionStarted_();
+
+    // ---- Bucket users depending on started ----
+    // Before GW1: Approved vs Pending approval
+    // After GW1: Alive vs Out
+    const approvedUsers = users.filter(u => isApproved_(u));
+    const pendingUsers = users.filter(u => !isApproved_(u));
+
+    const aliveUsers = users.filter(u => u.alive);
+    const outUsers = users.filter(u => !u.alive);
+
+    const leftUsers = started ? aliveUsers : approvedUsers;
+    const rightUsers = started ? outUsers : pendingUsers;
+
+    // ---- Update headings ----
+    const aliveH3 = aliveCountEl?.closest("h3");
+    if (aliveH3) aliveH3.childNodes[0].nodeValue = started ? "Alive " : "Approved ";
+
+    const outH3 = outCountEl?.closest("h3");
+    if (outH3) outH3.childNodes[0].nodeValue = started ? "Out " : "Pending approval ";
+
+    // ---- Counts ----
+    if (aliveCountEl) aliveCountEl.textContent = String(leftUsers.length);
+    if (outCountEl) outCountEl.textContent = String(rightUsers.length);
+
+    // ---- Signature (must match the SAME buckets) ----
     const sig = JSON.stringify({
       gw: gwIdForEntries,
+      started,
       total,
-      a: alive.map(u => [u.email, u.submittedForGw]).sort(),
-      o: out.map(u => [u.email, u.knockedOutGw, u.knockedOutTeam]).sort()
+      left: leftUsers.map(u => [u.email, !!u.alive, isApproved_(u), !!u.submittedForGw]).sort(),
+      right: rightUsers.map(u => [u.email, !!u.alive, isApproved_(u), u.knockedOutGw, u.knockedOutTeam, !!u.submittedForGw]).sort()
     });
 
     if (sig === lastEntriesSig) return;
     lastEntriesSig = sig;
 
-    // Only set the NUMBER (your HTML already says Remaining/Knocked Out)
-    if (aliveCountEl) aliveCountEl.textContent = String(alive.length);
-    if (outCountEl) outCountEl.textContent = String(out.length);
+    // ---- Sort ----
+    leftUsers.sort((a, b) => (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName));
 
-    alive.sort((a, b) => (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName));
-    out.sort((a, b) => {
-      const na = gwNumFromId(a.knockedOutGw) ?? -1;
-      const nb = gwNumFromId(b.knockedOutGw) ?? -1;
-      if (nb !== na) return nb - na;
-      return (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName);
-    });
+    if (started) {
+      // Out list: show most recently KO'd first
+      rightUsers.sort((a, b) => {
+        const na = gwNumFromId(a.knockedOutGw) ?? -1;
+        const nb = gwNumFromId(b.knockedOutGw) ?? -1;
+        if (nb !== na) return nb - na;
+        return (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName);
+      });
+    } else {
+      // Pending approvals: alphabetical
+      rightUsers.sort((a, b) => (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName));
+    }
 
-    const aliveHtml = alive.map(u => `
-      <div class="list-item player-row-alive" data-email="${escapeAttr(u.email)}" style="cursor:pointer;">
-        <div class="list-left">
-          <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
-          <div class="list-sub">${escapeHtml(gwIdForEntries)} - ${u.submittedForGw ? "Team Submitted" : "Not submitted"}</div>
-        </div>
-        <div class="state ${u.submittedForGw ? "good" : "warn"}">${u.submittedForGw ? "✓" : "…"}</div>
-      </div>
-    `).join("");
+    // ---- Status text (KEEP your statuses) ----
+    function entryStatus_(u) {
+      const approved = isApproved_(u);
 
-    const outHtml = out.map(u => {
-      const koLine = `${u.knockedOutGw || "—"} - ${u.knockedOutTeam || "—"}`;
+      if (!approved) return { text: "Pending approval", cls: "pending", icon: "…", stateCls: "warn" };
+      if (u.submittedForGw) return { text: "Team submitted", cls: "submitted", icon: "✓", stateCls: "good" };
+      return { text: "Not submitted", cls: "neutral", icon: "…", stateCls: "muted" };
+    }
+
+    // ---- Left HTML ----
+    const leftHtml = leftUsers.map(u => {
+      const st = entryStatus_(u);
       return `
-        <div class="list-item row-loss player-row-out" data-email="${escapeAttr(u.email)}" style="cursor:pointer;">
+        <div class="list-item player-row-alive entry-${st.cls}" data-email="${escapeAttr(u.email)}" style="cursor:pointer;">
           <div class="list-left">
             <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
-            <div class="list-sub">${escapeHtml(koLine)}</div>
+            <div class="list-sub">${escapeHtml(st.text)}</div>
           </div>
-          <div class="state bad">✕</div>
+          <div class="state ${st.stateCls}">${st.icon}</div>
         </div>
       `;
     }).join("");
 
-    // Paint HTML first (so click binding has nodes)
-    aliveList.innerHTML = aliveHtml || `<div class="muted">No remaining players.</div>`;
-    outList.innerHTML = outHtml || `<div class="muted">No knocked out players.</div>`;
+    // ---- Right HTML ----
+    const rightHtml = rightUsers.map(u => {
+      if (started) {
+        // Out list uses KO line
+        const koLine = `${u.knockedOutGw || "—"} - ${u.knockedOutTeam || "—"}`;
+        return `
+          <div class="list-item row-loss player-row-out" data-email="${escapeAttr(u.email)}" style="cursor:pointer;">
+            <div class="list-left">
+              <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
+              <div class="list-sub">${escapeHtml(koLine)}</div>
+            </div>
+            <div class="state bad">✕</div>
+          </div>
+        `;
+      }
 
-    // Bind Alive clicks
-    aliveList.querySelectorAll(".player-row-alive").forEach(rowEl => {
-      rowEl.addEventListener("click", async () => {
+      // Pre-start pending approvals: keep the pending approval status row style
+      const st = entryStatus_(u); // will be "Pending approval"
+      return `
+        <div class="list-item player-row-out entry-${st.cls}" data-email="${escapeAttr(u.email)}" style="cursor:pointer;">
+          <div class="list-left">
+            <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
+            <div class="list-sub">${escapeHtml(st.text)}</div>
+          </div>
+          <div class="state ${st.stateCls}">${st.icon}</div>
+        </div>
+      `;
+    }).join("");
+
+    // Paint HTML
+    aliveList.innerHTML = leftHtml || `<div class="muted">${started ? "No alive players." : "No approved players."}</div>`;
+    outList.innerHTML = rightHtml || `<div class="muted">${started ? "No knocked out players." : "No pending approvals."}</div>`;
+
+    // Bind Left clicks
+    aliveList.querySelectorAll("[data-email]").forEach(rowEl => {
+      rowEl.addEventListener("click", () => {
         const email = rowEl.getAttribute("data-email");
-        const player = alive.find(x => String(x.email).toLowerCase() === String(email).toLowerCase());
+        const player = leftUsers.find(x => String(x.email).toLowerCase() === String(email).toLowerCase());
         if (!player) return;
-        openPlayerPicksModal_(player, gwIdForEntries, users); // no await
+        openPlayerPicksModal_(player, gwIdForEntries, users);
       });
     });
 
-    // Bind Dead clicks
-    outList.querySelectorAll(".player-row-out").forEach(rowEl => {
-      rowEl.addEventListener("click", async () => {
+    // Bind Right clicks
+    outList.querySelectorAll("[data-email]").forEach(rowEl => {
+      rowEl.addEventListener("click", () => {
         const email = rowEl.getAttribute("data-email");
-        const player = out.find(x => String(x.email).toLowerCase() === String(email).toLowerCase());
+        const player = rightUsers.find(x => String(x.email).toLowerCase() === String(email).toLowerCase());
         if (!player) return;
-        openPlayerPicksModal_(player, gwIdForEntries, users); // no await
+        openPlayerPicksModal_(player, gwIdForEntries, users);
       });
     });
 
@@ -2140,6 +2278,7 @@ async function renderEntriesTab() {
     entriesLoading = false;
   }
 }
+
 
 
 
