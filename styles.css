@@ -1818,13 +1818,13 @@ details[open]>summary.collapse-summary .caret {
 /* NEUTRAL (grey) rows: fetching / not submitted */
 .status-row.neutral {
   border: 1px solid rgba(148, 163, 184, .25);
-  background: rgba(148, 163, 184, .08);
+
 }
 
 /* ATTENTION (orange) rows: team submitted */
 .status-row.attn {
   border: 1px solid rgba(245, 158, 11, .35);
-  background: rgba(245, 158, 11, .10);
+
 }
 
 .status-foot--split {
@@ -1996,3 +1996,20 @@ input[type="checkbox"]:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.3);
   outline-offset: 2px;
 }
+
+/* Entries status borders */
+.entry-pending { border-color: rgba(220, 0, 0, .35) !important; }      /* red */
+.entry-approved { border-color: rgba(148, 163, 184, .25) !important; } /* grey */
+.entry-submitted { border-color: rgba(245, 158, 11, .35) !important; } /* orange */
+.entry-notsubmitted { border-color: rgba(148, 163, 184, .25) !important; } /* grey */
+
+/* Pending approval row */
+.status-row.approval-pending {
+  color: #fff;
+}
+
+/* Team submitted (orange row) */
+.status-row.pending {
+  color: #fff;
+}
+
