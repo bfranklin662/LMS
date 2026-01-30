@@ -24,6 +24,9 @@ const DEFAULT_TEAM_LOGO = "images/team-default.png";
 
 
 
+// --- DEBUG: force GW report UI on/off ---
+const DEBUG_FORCE_GW_REPORT = true;   // set true to show the report card now
+const DEBUG_REPORT_GW_ID = null;      // e.g. "GW1" to force a specific GW, or null to use currentGwId
 
 
 /*******************************
@@ -242,6 +245,14 @@ let lastApprovedState = null;
 let lastMyPlacing = null;
 let lastMyTotalPlayers = null;
 
+let lastGwReportSig = "";
+let gwReportLoading = false;
+let lastGwReportCount = null;
+let lastGwReportCountGwId = null;
+let gwReportCountLoading = false;
+let lastGwReportCountFetchAt = 0;
+
+
 
 /*******************************
  * HELPERS
@@ -372,6 +383,268 @@ function hasPickForGw_(u, gwId) {
   const picks = Array.isArray(u?.picks) ? u.picks : [];
   const gwKey = String(gwId || "").toUpperCase();
   return picks.some(p => String(p?.gwId || "").toUpperCase() === gwKey && String(p?.team || "").trim());
+}
+
+function outcomeLabel_(o) {
+  const out = String(o || "PENDING").toUpperCase();
+  if (out === "WIN") return "Won";
+  if (out === "LOSS") return "Lost";
+  return "TBC";
+}
+
+function outcomeCls_(o) {
+  const out = String(o || "PENDING").toUpperCase();
+  if (out === "WIN") return "good";
+  if (out === "LOSS") return "bad";
+  return "muted";
+}
+
+function outcomeLabel_(outcome) {
+  const o = String(outcome || "").trim().toUpperCase();
+  if (o === "WIN" || o === "WON") return "Won";
+  if (o === "LOSS" || o === "LOST") return "Lost";
+  return "TBC";
+}
+
+function outcomeCls_(outcome) {
+  const o = String(outcome || "").trim().toUpperCase();
+  if (o === "WIN" || o === "WON") return "won";
+  if (o === "LOSS" || o === "LOST") return "lost";
+  return "tbc";
+}
+
+
+async function fetchGwReportRows_(gwId) {
+  const data = await api({ action: "getGwReport", gwId });
+  return Array.isArray(data.rows) ? data.rows : [];
+}
+
+function simplifyClub_(club) {
+  const s = String(club || "").trim().toLowerCase();
+  if (s.includes("friend")) return "Friend";
+  if (s.includes("relative")) return "Relative";
+  return club || "—";
+}
+
+async function refreshGwReportCount_(gwId) {
+  if (!gwId) return;
+  const now = Date.now();
+
+  // throttle (e.g. 20s) so it’s not hammering
+  if (gwReportCountLoading) return;
+  if (lastGwReportCountGwId === gwId && (now - lastGwReportCountFetchAt) < 20000) return;
+
+  gwReportCountLoading = true;
+  lastGwReportCountFetchAt = now;
+
+  try {
+    const rows = await fetchGwReportRows_(gwId); // you already have this
+    const count = Array.isArray(rows) ? rows.length : 0;
+
+    // ✅ only update cache if changed (prevents flicker)
+    if (lastGwReportCountGwId !== gwId || lastGwReportCount !== count) {
+      lastGwReportCountGwId = gwId;
+      lastGwReportCount = count;
+
+      const cardTitle = document.getElementById("gwReportCardTitle");
+      if (cardTitle) {
+        cardTitle.textContent = `${gwLabelShort(gwId)} - Player selections (${count})`;
+      }
+    }
+  } catch {
+    // do nothing; importantly, do NOT clear the existing count
+  } finally {
+    gwReportCountLoading = false;
+  }
+}
+
+
+async function openGwReportModal_(gwId) {
+  const modal = document.getElementById("gwReportModal");
+  const titleEl = document.getElementById("gwReportModalTitle");
+  const bodyEl = document.getElementById("gwReportModalBody");
+  if (!modal || !bodyEl) return;
+
+  // Header title (same format as card)
+  titleEl.innerHTML = `
+    ${escapeHtml(gwLabelShort(gwId))} - Player selections:
+    <span class="muted" id="gwReportModalCountDots">
+      <span class="dots" aria-label="Loading"></span>
+    </span>
+    <span id="gwReportModalCount"></span>
+  `;
+
+  bodyEl.innerHTML = `
+    <div class="gw-report-body" style="overflow:auto; max-height:60vh;">
+      <table class="gw-table">
+        <thead>
+          <tr>
+            <th class="gw-col-player">Player</th>
+            <th class="gw-col-club">Team</th>
+            <th class="gw-col-team">Selection</th>
+            <th class="gw-col-result">Result</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td colspan="4" class="muted small" style="padding:10px 6px;">
+              Loading…
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  openModal(modal);
+
+  let rows = [];
+  try {
+    rows = await fetchGwReportRows_(gwId);
+  } catch {
+    rows = [];
+  }
+
+  const totalSelections = rows.length;
+
+  const countEl = document.getElementById("gwReportModalCount");
+  const dotsEl = document.getElementById("gwReportModalCountDots");
+
+  if (countEl) countEl.textContent = String(totalSelections);
+  if (dotsEl) dotsEl.style.display = "none";
+
+  const tbodyHtml = (rows || []).map(r => {
+    const name = r.name || r.email || "—";
+    const club = simplifyClub_(r.clubTeam || "—");
+    const sel = String(r.selection || "").trim();
+    const resLabel = outcomeLabel_(r.outcome); // TBC/Won/Lost
+    const resCls = outcomeCls_(r.outcome);     // muted/good/bad etc
+
+    return `
+      <tr>
+        <td title="${escapeAttr(name)}">${escapeHtml(name)}</td>
+        <td class="muted" title="${escapeAttr(club)}">${escapeHtml(club)}</td>
+        <td class="gw-cell-selection">
+          ${sel
+        ? teamInlineHtml_(sel, { size: 12, logoPosition: "before" })
+        : `<span class="muted">Not submitted</span>`
+      }
+        </td>
+        <td class="gw-cell-result">
+          <span class="gw-result ${resCls}">${escapeHtml(resLabel)}</span>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  // Replace tbody only (prevents layout jump / flicker)
+  const tbody = bodyEl.querySelector(".gw-table tbody");
+  if (tbody) tbody.innerHTML = tbodyHtml || `<tr><td colspan="4" class="muted small" style="padding:10px 6px;">No selections.</td></tr>`;
+}
+
+
+async function refreshGwReportCount_(gwId) {
+  if (!gwId) return;
+  const now = Date.now();
+
+  // throttle (e.g. 20s) so it’s not hammering
+  if (gwReportCountLoading) return;
+  if (lastGwReportCountGwId === gwId && (now - lastGwReportCountFetchAt) < 20000) return;
+
+  gwReportCountLoading = true;
+  lastGwReportCountFetchAt = now;
+
+  try {
+    const rows = await fetchGwReportRows_(gwId); // you already have this
+    const count = Array.isArray(rows) ? rows.length : 0;
+
+    // ✅ only update cache if changed (prevents flicker)
+    if (lastGwReportCountGwId !== gwId || lastGwReportCount !== count) {
+      lastGwReportCountGwId = gwId;
+      lastGwReportCount = count;
+
+      const cardTitle = document.getElementById("gwReportCardTitle");
+      if (cardTitle) {
+        cardTitle.textContent = `${gwLabelShort(gwId)} - Player selections (${count})`;
+      }
+    }
+  } catch {
+    // do nothing; importantly, do NOT clear the existing count
+  } finally {
+    gwReportCountLoading = false;
+  }
+}
+
+
+async function renderGwReportCard_() {
+  const card = document.getElementById("gwReportCard");
+  if (!card) return;
+
+  const gwId = (DEBUG_REPORT_GW_ID || currentGwId);
+  if (!gwId) {
+    card.classList.add("hidden");
+    return;
+  }
+
+  // ✅ lock based on the gw we're reporting on
+  const locked = isGwLockedById_(gwId);
+  const shouldShow = DEBUG_FORCE_GW_REPORT || locked;
+
+  if (!shouldShow) {
+    card.classList.add("hidden");
+    return;
+  }
+
+  card.classList.remove("hidden");
+  card.classList.add("gw-report-card");
+
+  // ✅ store the gwId on the card so click always opens the latest gw
+  card.dataset.gwId = gwId;
+
+  if (!card.dataset.bound) {
+    card.dataset.bound = "1";
+    card.addEventListener("click", () => {
+      const id = card.dataset.gwId;
+      if (id) openGwReportModal_(id);
+    });
+  }
+
+  // Build markup once
+  if (!card.dataset.built) {
+    card.dataset.built = "1";
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+        <div style="min-width:0;">
+          <div style="font-weight:900; display:flex; align-items:baseline; gap:6px; min-width:0;">
+            <span id="gwReportCardPrefix" style="white-space:nowrap;"></span>
+            <span id="gwReportCardDots" class="muted" style="display:inline-flex;">
+              <span class="dots" aria-label="Loading"></span>
+            </span>
+            <span id="gwReportCardCount" style="white-space:nowrap;"></span>
+          </div>
+          <div class="muted small gw-modal-text">Tap to expand</div>
+        </div>
+        <div class="state muted">›</div>
+      </div>
+    `;
+  }
+
+  // keep label correct
+  const prefixEl = document.getElementById("gwReportCardPrefix");
+  if (prefixEl) prefixEl.textContent = `${gwLabelShort(gwId)} - Player selections:`;
+
+  const dotsEl = document.getElementById("gwReportCardDots");
+  const countEl = document.getElementById("gwReportCardCount");
+
+  if (lastGwReportCountGwId === gwId && typeof lastGwReportCount === "number") {
+    if (countEl) countEl.textContent = String(lastGwReportCount);
+    if (dotsEl) dotsEl.style.display = "none";
+  } else {
+    if (countEl) countEl.textContent = "";
+    if (dotsEl) dotsEl.style.display = "inline-flex";
+  }
+
+  refreshGwReportCount_(gwId);
 }
 
 
@@ -1617,6 +1890,7 @@ function renderTopUIOnly() {
   renderPickCardState();
   startDeadlineTimer();
   updateTeamDatalist();
+  renderGwReportCard_();
 }
 
 
@@ -2607,6 +2881,7 @@ function renderCurrentPickBlock() {
       submittedMeta.textContent = "Match not found for this gameweek";
     }
   }
+  renderGwReportCard_();
 }
 
 
