@@ -25,7 +25,7 @@ const DEFAULT_TEAM_LOGO = "images/team-default.png";
 
 
 // --- DEBUG: force GW report UI on/off ---
-const DEBUG_FORCE_GW_REPORT = true;   // set true to show the report card now
+const DEBUG_FORCE_GW_REPORT = false;   // set true to show the report card now
 const DEBUG_REPORT_GW_ID = null;      // e.g. "GW1" to force a specific GW, or null to use currentGwId
 
 
