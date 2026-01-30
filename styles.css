@@ -2013,3 +2013,248 @@ input[type="checkbox"]:focus-visible {
   color: #fff;
 }
 
+/* GW report table */
+.gw-report-table {
+  width: 100%;
+  table-layout: fixed; /* 🔑 forces columns to fit container */
+  border-collapse: collapse;
+}
+
+.gw-report-table th,
+.gw-report-table td {
+  padding: 6px 4px;          /* much tighter */
+  font-size: 11px;           /* small but readable */
+  line-height: 1.25;
+  vertical-align: middle;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.gw-report-table th {
+  font-size: 11px;
+  font-weight: 600;
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+.gw-col-player   { width: 29%; }
+.gw-col-club     { width: 18%; }
+.gw-col-team     { width: 38%; }
+.gw-col-result   { width: 15%; text-align: center; }
+
+.gw-report-table .team-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.gw-report-table img {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+.gw-report-table .team-name {
+  font-size: 11px;
+  white-space: normal; /* allow wrapping */
+}
+
+.gw-report-table .state {
+  font-size: 1px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.gw-report-body {
+  max-height: 70vh;
+  overflow-y: auto;
+  overflow-x: hidden; /* 🚫 no sideways scroll */
+}
+
+
+.gw-modal {
+  padding: 10px;
+}
+
+.gw-modal-body {
+  margin-top: 10px;
+}
+
+/* Modal table look */
+.gw-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;          /* forces columns to fit container */
+  font-size: 12px;
+}
+
+.gw-table thead th {
+  background: rgba(255,255,255,.08);   /* grey header */
+  color: rgba(255,255,255,.8);
+  font-weight: 700;
+  padding: 8px 6px;
+  text-align: left;
+  position: sticky;            /* sticky header while scrolling */
+  top: 0;
+  z-index: 1;
+}
+
+.gw-table tbody td {
+  padding: 8px 6px;
+  border-top: 1px solid rgba(255,255,255,.06);
+  vertical-align: top;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gw-table tbody tr:nth-child(odd) {
+  background: rgba(255,255,255,.03);
+}
+
+.gw-table tbody tr:nth-child(even) {
+  background: rgba(255,255,255,.015);
+}
+
+/* Result pill */
+.gw-result {
+  font-weight: 700;
+}
+
+.gw-result.tbc { color: rgba(255,255,255,.55); }
+.gw-result.won { color: #148433; }   /* green */
+.gw-result.lost { color: #d82020; }  /* red */
+
+/* Scroll container */
+.gw-report-body {
+  max-height: 60vh;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Table layout */
+.gw-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed; /* forces columns to fit 375px */
+  font-size: 12px;     /* smaller overall text */
+}
+
+/* Make all cells vertically centered */
+.gw-table th,
+.gw-table td {
+  padding: 8px 6px;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sticky header with solid background */
+.gw-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: #111827; /* solid so you can't see rows underneath */
+  border-bottom: 1px solid rgba(255,255,255,.12);
+}
+
+/* Slight zebra striping */
+.gw-table tbody tr:nth-child(odd) td {
+  background: rgba(255,255,255,.03);
+}
+.gw-table tbody tr:nth-child(even) td {
+  background: rgba(255,255,255,.00);
+}
+
+/* Make team inline smaller and aligned */
+.gw-table .team-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.gw-table .team-logo {
+  width: 13px !important;
+  height: 13px !important;
+}
+.gw-table .team-name {
+  font-size: 12px;
+  line-height: 1;
+}
+
+/* Result pill alignment */
+.gw-result {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1;
+  font-size: 12px;
+}
+
+/* Ensure muted "TBC" etc aligns with team row */
+.gw-cell-result, .gw-cell-selection {
+  vertical-align: middle;
+}
+
+/* ===== GW Report / Modal Scrollbar ===== */
+.gw-report-body {
+  scrollbar-width: thin;                 /* Firefox */
+  scrollbar-color: rgba(0,0,0,0);
+}
+
+/* WebKit (Chrome, Edge, Safari) */
+.gw-report-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.gw-report-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.gw-report-body::-webkit-scrollbar-thumb {
+  background-color: rgba(0,0,0);
+  border-radius: 8px;
+}
+
+.gw-report-body::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0,0,0,.85);
+}
+
+/* Make team column ellipsis like the others */
+.gw-cell-selection {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Constrain the inline team component */
+.gw-cell-selection .team-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Make the name itself ellipsis */
+.gw-cell-selection .team-name {
+  display: inline-block;
+  max-width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.gw-modal-text {
+  margin-top: 5px;
+}
+
+.gw-report-card {
+  margin-bottom: 10px;
+  border: 1px solid rgba(53, 91, 229, 0.3);
+  border-radius: 14px;
+  padding: 12px;
+  background: rgba(255,255,255,.04);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
