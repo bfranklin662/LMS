@@ -28,6 +28,17 @@ const DEFAULT_TEAM_LOGO = "images/team-default.png";
 const DEBUG_FORCE_GW_REPORT = false;   // set true to show the report card now
 const DEBUG_REPORT_GW_ID = null;      // e.g. "GW1" to force a specific GW, or null to use currentGwId
 
+// ✅ Registration lock
+const REGISTRATION_OPEN = false; // set true when you open entries again
+
+const REGISTRATION_CLOSED_HTML = `
+  <div style="line-height:1.5;">
+    <p style="margin:0 0 10px;"><strong>Thank you for registering.</strong></p>
+    <p style="margin:0 0 10px;">However, the game is now closed to new entries.</p>
+    <p style="margin:0;">We’ll notify you when the next game opens.</p>
+  </div>
+`;
+
 
 /*******************************
  * API
@@ -3242,6 +3253,28 @@ function setEditing(on) {
 registerForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
+  // ✅ Block new registrations if game is closed
+  if (!REGISTRATION_OPEN) {
+    // make sure any inline auth error is cleared
+    authMsg?.classList.add("hidden");
+
+    // show modal (no actions)
+    showSystemModal_(
+      "Entries closed",
+      `
+        <div style="line-height:1.5;">
+          <p style="margin:0 0 10px;"><strong>Thank you for registering.</strong></p>
+          <p style="margin:0 0 10px;">However, the game is now closed to new entries.</p>
+          <p style="margin:0;">We’ll notify you when the next game opens.</p>
+        </div>
+      `,
+      { showActions: false }
+    );
+
+    return;
+  }
+
+  // ---- your existing registration code below ----
   const form = new FormData(registerForm);
   setBtnLoading(registerBtn, true);
 
