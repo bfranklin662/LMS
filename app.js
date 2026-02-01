@@ -38,6 +38,7 @@ const REGISTRATION_CLOSED_HTML = `
     <p style="margin:0;">We’ll notify you when the next game opens.</p>
   </div>
 `;
+const GW_REPORT_GW_ID = "GW1"; // always show GW1 report
 
 
 /*******************************
@@ -178,6 +179,8 @@ function setTab2(name) {
     renderStatusBox();
     renderPickCardState();
     startDeadlineTimer();
+
+    renderGwReportCard_(); // ✅ add this so it appears immediately
   }
 }
 
@@ -554,50 +557,17 @@ async function openGwReportModal_(gwId) {
 }
 
 
-async function refreshGwReportCount_(gwId) {
-  if (!gwId) return;
-  const now = Date.now();
-
-  // throttle (e.g. 20s) so it’s not hammering
-  if (gwReportCountLoading) return;
-  if (lastGwReportCountGwId === gwId && (now - lastGwReportCountFetchAt) < 20000) return;
-
-  gwReportCountLoading = true;
-  lastGwReportCountFetchAt = now;
-
-  try {
-    const rows = await fetchGwReportRows_(gwId); // you already have this
-    const count = Array.isArray(rows) ? rows.length : 0;
-
-    // ✅ only update cache if changed (prevents flicker)
-    if (lastGwReportCountGwId !== gwId || lastGwReportCount !== count) {
-      lastGwReportCountGwId = gwId;
-      lastGwReportCount = count;
-
-      const cardTitle = document.getElementById("gwReportCardTitle");
-      if (cardTitle) {
-        cardTitle.textContent = `${gwLabelShort(gwId)} - Player selections (${count})`;
-      }
-    }
-  } catch {
-    // do nothing; importantly, do NOT clear the existing count
-  } finally {
-    gwReportCountLoading = false;
-  }
-}
-
-
 async function renderGwReportCard_() {
   const card = document.getElementById("gwReportCard");
   if (!card) return;
 
-  const gwId = (DEBUG_REPORT_GW_ID || currentGwId);
+  const gwId = (DEBUG_REPORT_GW_ID || GW_REPORT_GW_ID); // ✅ force GW1
   if (!gwId) {
     card.classList.add("hidden");
     return;
   }
 
-  // ✅ lock based on the gw we're reporting on
+  // ✅ show only once GW1 deadline has passed (unless debug)
   const locked = isGwLockedById_(gwId);
   const shouldShow = DEBUG_FORCE_GW_REPORT || locked;
 
@@ -609,25 +579,22 @@ async function renderGwReportCard_() {
   card.classList.remove("hidden");
   card.classList.add("gw-report-card");
 
-  // ✅ store the gwId on the card so click always opens the latest gw
-  card.dataset.gwId = gwId;
-
+  // ✅ bind click once
   if (!card.dataset.bound) {
     card.dataset.bound = "1";
-    card.addEventListener("click", () => {
-      const id = card.dataset.gwId;
-      if (id) openGwReportModal_(id);
-    });
+    card.addEventListener("click", () => openGwReportModal_(gwId));
   }
 
-  // Build markup once
+  // ✅ build instantly (so it appears immediately)
   if (!card.dataset.built) {
     card.dataset.built = "1";
     card.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
         <div style="min-width:0;">
           <div style="font-weight:900; display:flex; align-items:baseline; gap:6px; min-width:0;">
-            <span id="gwReportCardPrefix" style="white-space:nowrap;"></span>
+            <span id="gwReportCardPrefix" style="white-space:nowrap;">
+              ${escapeHtml(gwLabelShort(gwId))} - Player selections:
+            </span>
             <span id="gwReportCardDots" class="muted" style="display:inline-flex;">
               <span class="dots" aria-label="Loading"></span>
             </span>
@@ -640,13 +607,14 @@ async function renderGwReportCard_() {
     `;
   }
 
-  // keep label correct
+  // ✅ keep prefix correct
   const prefixEl = document.getElementById("gwReportCardPrefix");
   if (prefixEl) prefixEl.textContent = `${gwLabelShort(gwId)} - Player selections:`;
 
   const dotsEl = document.getElementById("gwReportCardDots");
   const countEl = document.getElementById("gwReportCardCount");
 
+  // ✅ stable display (no flicker)
   if (lastGwReportCountGwId === gwId && typeof lastGwReportCount === "number") {
     if (countEl) countEl.textContent = String(lastGwReportCount);
     if (dotsEl) dotsEl.style.display = "none";
@@ -719,7 +687,7 @@ function setIconBtnLoadingReplace(btn, loading) {
     if (!btn.dataset.originalHtml) btn.dataset.originalHtml = btn.innerHTML;
     btn.disabled = true;
     btn.classList.add("icon-loading");
-    btn.innerHTML = `<span class="icon-spinner" aria-hidden="true"></span>`;
+    btn.innerHTML = `<span class="icon-spinner" aria - hidden="true" ></span > `;
   } else {
     btn.disabled = false;
     btn.classList.remove("icon-loading");
@@ -770,20 +738,20 @@ function showPlayerModal_(title, html, { status = null, approved = true } = {}) 
   let statusPill = "";
 
   if (!approved) {
-    statusPill = `<span class="player-status-pill pending"><span>Pending</span><span class="state bad">…</span></span>`;
+    statusPill = `<span class="player-status-pill pending" ><span>Pending</span><span class="state bad">…</span></span > `;
   } else if (status === "alive") {
-    statusPill = `<span class="player-status-pill alive"><span>Alive</span><span class="state good">✓</span></span>`;
+    statusPill = `<span class="player-status-pill alive" ><span>Alive</span><span class="state good">✓</span></span > `;
   } else if (status === "dead") {
-    statusPill = `<span class="player-status-pill dead"><span>Dead</span><span class="state bad">✕</span></span>`;
+    statusPill = `<span class="player-status-pill dead" ><span>Dead</span><span class="state bad">✕</span></span > `;
   }
 
   playerModalBody.innerHTML = `
-    <div class="player-modal-head">
+  <div class="player-modal-head" >
       <div class="player-modal-title">${escapeHtml(title)}</div>
       <div class="player-modal-status">${statusPill}</div>
-    </div>
-    <div class="modal-body" style="margin-top:6px;">${html}</div>
-  `;
+    </div >
+  <div class="modal-body" style="margin-top:6px;">${html}</div>
+`;
 
   openModal(playerModal);
 }
@@ -872,8 +840,8 @@ function renderSuggestions() {
   }
 
   teamSuggest.innerHTML = hits.map(t => `
-    <button type="button" class="suggest-item" data-team="${escapeAttr(t)}">${escapeHtml(t)}</button>
-  `).join("");
+  <button type = "button" class="suggest-item" data-team="${escapeAttr(t)}" > ${ escapeHtml(t) }</button >
+    `).join("");
 
   teamSuggest.classList.remove("hidden");
 
@@ -900,13 +868,13 @@ function setGwLabelFromSelected() {
   const gw = gameweeks.find(g => g.id === currentGwId);
   if (!gw) return;
 
-  const title = `Gameweek ${gw.num}`;
+  const title = `Gameweek ${ gw.num } `;
 
   const lastKickoff = gw.fixtures[gw.fixtures.length - 1]?.kickoff || gw.firstKickoff;
   const endDay = startOfDay(lastKickoff);
 
   // 🔁 CHANGE THIS LINE
-  const range = `${formatDateWithOrdinalShortUK(gw.start)} - ${formatDateWithOrdinalShortUK(endDay)}`;
+  const range = `${ formatDateWithOrdinalShortUK(gw.start) } - ${ formatDateWithOrdinalShortUK(endDay) } `;
 
   if (gwTitleEl) gwTitleEl.textContent = title;
   if (gwRangeEl) gwRangeEl.textContent = range;
@@ -952,7 +920,7 @@ function formatDateWithOrdinalShortUK(d) {
         (dayNum % 10 === 2) ? "nd" :
           (dayNum % 10 === 3) ? "rd" : "th";
 
-  return `${weekday} ${dayNum}${suffix} ${month}`;
+  return `${ weekday } ${ dayNum }${ suffix } ${ month } `;
 }
 
 
@@ -960,7 +928,7 @@ function formatKickoffLineUK(d) {
   // "Sat 31 Jan, 15:00"
   const day = formatDateUK(d);
   const time = formatTimeUK(d);
-  return `${day}, ${time}`;
+  return `${ day }, ${ time } `;
 }
 
 function handleAccountStateChange_() {
@@ -976,7 +944,7 @@ function handleAccountStateChange_() {
 
   // pending -> approved
   if (approvedNow && lastApprovedState === false) {
-    const k = `session_seen_verified::${emailKey}`;
+    const k = `session_seen_verified::${ emailKey } `;
     if (sessionStorage.getItem(k) !== "1") {
       sessionStorage.setItem(k, "1");
       showVerifiedModalNow_();
@@ -1039,9 +1007,9 @@ function setIconBtnLoading(btn, loading, loadingText = "Working…") {
     btn.disabled = true;
     btn.classList.add("icon-loading");
     btn.innerHTML = `
-      <span class="icon-spinner" aria-hidden="true"></span>
-      <span class="sr-only">${loadingText}</span>
-    `;
+  <span class="icon-spinner" aria - hidden="true" ></span >
+    <span class="sr-only">${loadingText}</span>
+`;
   } else {
     btn.disabled = false;
     btn.classList.remove("icon-loading");
@@ -1099,7 +1067,7 @@ async function refreshRemainingPlayersCount() {
 
 function payInstructionsHtml_() {
   return `
-    <div class="pay-modal">
+  <div class="pay-modal" >
       <div class="muted" style="margin-bottom:12px;">
         Please pay the £10 entry fee to verify your account.
       </div>
@@ -1764,7 +1732,7 @@ function renderStatusBox() {
       <div>Remaining players: ${countText}</div>
       ${finishedText ? `<div class="status-finish">${escapeHtml(finishedText)}</div>` : ``}
   </div>
-  `;
+`;
 }
 
 function bindConnectionToClubToggleOnce_() {
@@ -1832,7 +1800,7 @@ function secondsToHMS(totalSeconds) {
   const hh = String(Math.floor(s / 3600)).padStart(2, "0");
   const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
   const ss = String(s % 60).padStart(2, "0");
-  return `${hh}:${mm}:${ss}`;
+  return `${ hh }:${ mm }:${ ss } `;
 }
 
 function startOfWeekFriday(date) {
@@ -1857,7 +1825,7 @@ function toGwId(fridayDate) {
   const y = fridayDate.getFullYear();
   const m = String(fridayDate.getMonth() + 1).padStart(2, "0");
   const da = String(fridayDate.getDate()).padStart(2, "0");
-  return `GW-${y}-${m}-${da}`;
+  return `GW - ${ y } -${ m } -${ da } `;
 }
 
 function escapeHtml(str) {
@@ -1916,7 +1884,7 @@ function detectGwId(raw) {
   // 2) Try round like "GW1" or "Gameweek 1"
   const round = String(raw.round || "").trim();
   const m = round.match(/GW\s*([0-9]+)/i) || round.match(/Gameweek\s*([0-9]+)/i);
-  if (m) return `GW${Number(m[1])}`;
+  if (m) return `GW${ Number(m[1]) } `;
 
   // 3) No gwId available
   return null;
@@ -1929,7 +1897,7 @@ function parseKickoffUK(dateStr, timeStr) {
   // (This avoids browser-local timezone differences)
   const t = (timeStr && String(timeStr).trim()) ? String(timeStr).trim() : null;
 
-  const iso = t ? `${dateStr}T${t}:00Z` : `${dateStr}T12:00:00Z`; // noon fallback for sorting
+  const iso = t ? `${dateStr}T${t}:00Z` : `${dateStr}T12:00:00Z`;
   const d = new Date(iso);
   return isNaN(d.getTime()) ? null : d;
 }
@@ -1969,18 +1937,18 @@ async function loadAllFixtures() {
   for (const source of FIXTURE_SOURCES) {
     try {
       const res = await fetch(source.url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`${source.url} returned ${res.status}`);
+      if (!res.ok) throw new Error(`${ source.url } returned ${ res.status } `);
 
       const data = await res.json();
       const arr = Array.isArray(data.matches) ? data.matches : null;
-      if (!arr) throw new Error(`${source.url} has no matches array`);
+      if (!arr) throw new Error(`${ source.url } has no matches array`);
 
       for (const item of arr) {
         const n = normalizeFixture(item, source.league);
         if (n) loaded.push(n);
       }
     } catch (e) {
-      errors.push(`${source.league}: ${e.message || e}`);
+      errors.push(`${ source.league }: ${ e.message || e } `);
     }
   }
 
@@ -2009,7 +1977,7 @@ async function loadAllFixtures() {
   // 4) UI message
   if (!fixtures.length) {
     const msg = errors.length
-      ? `No fixtures loaded.\n\n${errors.join("\n")}`
+      ? `No fixtures loaded.\n\n${ errors.join("\n") } `
       : "No fixtures loaded. Check your JSON files/paths.";
     showFixturesMessage(msg, "bad");
   } else {
@@ -2152,7 +2120,7 @@ async function loadDeadlines() {
     if (!gwId || !date || !time) continue;
 
     // Treat as UTC, consistent with your fixture parsing that also uses "Z"
-    map.set(gwId, `${date}T${time}:00Z`);
+    map.set(gwId, `${ date }T${ time }:00Z`);
   }
 
   return map;
@@ -2327,11 +2295,11 @@ function renderFixturesTab() {
     const head = document.createElement("div");
     head.className = "day-head";
     head.innerHTML = `
-      <div>
+  <div >
         <div class="day-title">${formatDateUK(dayDate)}</div>
         <div class="day-sub">Fixtures</div>
-      </div>
-    `;
+      </div >
+  `;
     dayGroup.appendChild(head);
 
     const leagueMap = new Map();
@@ -2350,7 +2318,7 @@ function renderFixturesTab() {
 
       const summary = document.createElement("summary");
       summary.className = "league-summary";
-      summary.textContent = `${leagueName} (${list.length})`;
+      summary.textContent = `${ leagueName } (${ list.length })`;
       details.appendChild(summary);
 
 
@@ -2362,19 +2330,19 @@ function renderFixturesTab() {
         row.className = "fixture-row";
 
         const timeHtml = f.kickoffHasTime
-          ? `<div class="fixture-time muted">${formatTimeUK(f.kickoff)}</div>`
+          ? `<div class="fixture-time muted" > ${ formatTimeUK(f.kickoff) }</div > `
           : "";
 
         const dateLine = f.kickoffHasTime
-          ? `${escapeHtml(formatDateUK(f.kickoff))} · ${escapeHtml(formatTimeUK(f.kickoff))}`
-          : `${escapeHtml(formatDateUK(f.kickoff))}`;
+          ? `${ escapeHtml(formatDateUK(f.kickoff)) } · ${ escapeHtml(formatTimeUK(f.kickoff)) } `
+          : `${ escapeHtml(formatDateUK(f.kickoff)) } `;
 
         row.innerHTML = `
-          <div class="fixture-main">
-            ${fixtureTeamsHtml_(f.home, f.away)}
-            <div class="fixture-datetime muted">${dateLine}</div>
-          </div>
-        `;
+  <div class="fixture-main" >
+    ${ fixtureTeamsHtml_(f.home, f.away) }
+<div class="fixture-datetime muted">${dateLine}</div>
+          </div >
+  `;
 
 
         container.appendChild(row);
@@ -2398,7 +2366,7 @@ function parseGwDate(gwId) {
   // expects GW-YYYY-MM-DD
   const m = String(gwId || "").match(/^GW-(\d{4})-(\d{2})-(\d{2})$/);
   if (!m) return null;
-  return new Date(`${m[1]}-${m[2]}-${m[3]}T00:00:00`);
+  return new Date(`${ m[1] } -${ m[2] } -${ m[3] } T00:00:00`);
 }
 
 async function renderEntriesTab() {
@@ -2413,10 +2381,10 @@ async function renderEntriesTab() {
 
   // Only show dots if we have no value yet (first load)
   if (aliveCountEl && (aliveCountEl.textContent || "").trim() === "—") {
-    aliveCountEl.innerHTML = `<span class="dots" aria-label="Loading"></span>`;
+    aliveCountEl.innerHTML = `<span class="dots" aria - label="Loading" ></span > `;
   }
   if (outCountEl && (outCountEl.textContent || "").trim() === "—") {
-    outCountEl.innerHTML = `<span class="dots" aria-label="Loading"></span>`;
+    outCountEl.innerHTML = `<span class="dots" aria - label="Loading" ></span > `;
   }
 
   try {
@@ -2447,7 +2415,7 @@ async function renderEntriesTab() {
     if (aliveH3) aliveH3.childNodes[0].nodeValue = started ? "Alive " : "Approved ";
 
     const outH3 = outCountEl?.closest("h3");
-    if (outH3) outH3.childNodes[0].nodeValue = started ? "Out " : "Pending approval ";
+    if (outH3) outH3.childNodes[0].nodeValue = started ? "Dead " : "Pending approval ";
 
     // ---- Counts ----
     if (aliveCountEl) aliveCountEl.textContent = String(leftUsers.length);
@@ -2494,48 +2462,48 @@ async function renderEntriesTab() {
     const leftHtml = leftUsers.map(u => {
       const st = entryStatus_(u);
       return `
-        <div class="list-item player-row-alive entry-${st.cls}" data-email="${escapeAttr(u.email)}" style="cursor:pointer;">
+  <div class="list-item player-row-alive entry-${st.cls}" data-email="${escapeAttr(u.email)}" style = "cursor:pointer;" >
           <div class="list-left">
             <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
             <div class="list-sub">${escapeHtml(st.text)}</div>
           </div>
           <div class="state ${st.stateCls}">${st.icon}</div>
-        </div>
-      `;
+        </div >
+  `;
     }).join("");
 
     // ---- Right HTML ----
     const rightHtml = rightUsers.map(u => {
       if (started) {
         // Out list uses KO line
-        const koLine = `${u.knockedOutGw || "—"} - ${u.knockedOutTeam || "—"}`;
+        const koLine = `${ u.knockedOutGw || "—" } - ${ u.knockedOutTeam || "—" } `;
         return `
-          <div class="list-item row-loss player-row-out" data-email="${escapeAttr(u.email)}" style="cursor:pointer;">
+  <div class="list-item row-loss player-row-out" data-email="${escapeAttr(u.email)}" style = "cursor:pointer;" >
             <div class="list-left">
               <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
               <div class="list-sub">${escapeHtml(koLine)}</div>
             </div>
             <div class="state bad">✕</div>
-          </div>
-        `;
+          </div >
+  `;
       }
 
       // Pre-start pending approvals: keep the pending approval status row style
       const st = entryStatus_(u); // will be "Pending approval"
       return `
-        <div class="list-item player-row-out entry-${st.cls}" data-email="${escapeAttr(u.email)}" style="cursor:pointer;">
+  <div class="list-item player-row-out entry-${st.cls}" data-email="${escapeAttr(u.email)}" style = "cursor:pointer;" >
           <div class="list-left">
             <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
             <div class="list-sub">${escapeHtml(st.text)}</div>
           </div>
           <div class="state ${st.stateCls}">${st.icon}</div>
-        </div>
-      `;
+        </div >
+  `;
     }).join("");
 
     // Paint HTML
-    aliveList.innerHTML = leftHtml || `<div class="muted">${started ? "No alive players." : "No approved players."}</div>`;
-    outList.innerHTML = rightHtml || `<div class="muted">${started ? "No knocked out players." : "No pending approvals."}</div>`;
+    aliveList.innerHTML = leftHtml || `<div class="muted" > ${ started ? "No alive players." : "No approved players." }</div > `;
+    outList.innerHTML = rightHtml || `<div class="muted" > ${ started ? "No knocked out players." : "No pending approvals." }</div > `;
 
     // Bind Left clicks
     aliveList.querySelectorAll("[data-email]").forEach(rowEl => {
@@ -2596,17 +2564,17 @@ function renderPickCardState() {
 function renderProfileTab() {
   if (!sessionUser) return;
 
-  profileName.textContent = `${sessionUser.firstName} ${sessionUser.lastName}`;
-  profileMeta.textContent = `${sessionUser.email} • ${sessionUser.clubTeam} • ${sessionUser.phone}`;
+  profileName.textContent = `${ sessionUser.firstName } ${ sessionUser.lastName } `;
+  profileMeta.textContent = `${ sessionUser.email } • ${ sessionUser.clubTeam } • ${ sessionUser.phone } `;
 
   profileStatus.textContent = sessionUser.alive
     ? `Status: Still Alive`
-    : `Status: Knocked Out (${sessionUser.knockedOutGw || "—"})`;
+    : `Status: Knocked Out(${ sessionUser.knockedOutGw || "—" })`;
 
   profileSelections.innerHTML = "";
 
   if (!sessionPicks.length) {
-    profileSelections.innerHTML = `<div class="sel-card"><div class="muted">No selections yet.</div></div>`;
+    profileSelections.innerHTML = `<div class="sel-card" > <div class="muted">No selections yet.</div></div > `;
     return;
   }
 
@@ -2617,18 +2585,18 @@ function renderProfileTab() {
 
     let line = "Result: Pending";
     if (p.fixture) {
-      line = `${p.fixture.team1} ${p.fixture.score1} vs ${p.fixture.score2} ${p.fixture.team2}`;
+      line = `${ p.fixture.team1 } ${ p.fixture.score1 } vs ${ p.fixture.score2 } ${ p.fixture.team2 } `;
     }
 
     const div = document.createElement("div");
     div.className = "sel-card";
     div.innerHTML = `
-      <div class="sel-top">
+  <div class="sel-top" >
         <div class="sel-gw">${escapeHtml(p.gwId)}</div>
         <div class="sel-pick">${escapeHtml(p.team)} <span class="state ${cls}">${icon}</span></div>
-      </div>
-      <div class="sel-meta">${escapeHtml(line)}</div>
-    `;
+      </div >
+  <div class="sel-meta">${escapeHtml(line)}</div>
+`;
     profileSelections.appendChild(div);
   }
 }
@@ -2674,9 +2642,9 @@ async function savePick(team) {
 
     // ✅ Show confirmation modal (use your single modal function)
     showSystemModal_(
-      `${gwLabelShort(gwId)} selection confirmed:`,
+      `${ gwLabelShort(gwId) } selection confirmed: `,
       `
-        <div style="margin-top:12px;">
+  <div style = "margin-top:12px;" >
           <div class="status-row pending" style="margin:0;">
             <div class="status-left" style="display:flex;align-items:center;gap:10px;">
               ${teamInlineHtml_(team, { size: 22, logoPosition: "before" })}
@@ -2687,8 +2655,8 @@ async function savePick(team) {
           <div class="muted small" style="margin-top:10px;line-height:1.4;">
             Good luck — you can edit your selection anytime before the submission deadline.
           </div>
-        </div>
-      `,
+        </div >
+  `,
       { showActions: false }
     );
 
@@ -2782,12 +2750,12 @@ function renderCurrentPickBlock() {
     if (hasPick) {
       if (gwPickTitle) {
         gwPickTitle.innerHTML = `
-          <span class="pick-title-inline">
-            ${teamInlineHtml_(team, { size: 20 })}
+  <span class="pick-title-inline" >
+    ${ teamInlineHtml_(team, { size: 20 }) }
             <span class="dash">—</span>
             <span class="muted">In progress</span>
-          </span>
-        `;
+          </span >
+  `;
       }
 
       if (gwPickIcon) {
@@ -2801,11 +2769,11 @@ function renderCurrentPickBlock() {
         if (fx) {
           const when = fx.kickoffHasTime ? formatKickoffLineUK(fx.kickoff) : formatDateUK(fx.kickoff);
           submittedMeta.innerHTML = `
-            <div class="fixture-main fixture-main--compact">
-              ${fixtureTeamsHtml_(fx.home, fx.away)}
-              <div class="fixture-datetime muted">${escapeHtml(when)}</div>
-            </div>
-          `;
+  <div class="fixture-main fixture-main--compact" >
+    ${ fixtureTeamsHtml_(fx.home, fx.away) }
+<div class="fixture-datetime muted">${escapeHtml(when)}</div>
+            </div >
+  `;
         } else {
           submittedMeta.textContent = "Match not found for this gameweek";
         }
@@ -2838,19 +2806,19 @@ function renderCurrentPickBlock() {
   // - Before deadline: DO NOT show “- In progress” for pending
   // - Keep “Won/Lost” if resolved (shouldn’t happen while alive+picking, but safe)
   if (outcome === "WIN") {
-    if (gwPickTitle) gwPickTitle.textContent = `${gwLabelShort(pick.gwId)} - ${team} - Won`;
+    if (gwPickTitle) gwPickTitle.textContent = `${ gwLabelShort(pick.gwId) } - ${ team } - Won`;
     if (gwPickIcon) {
       gwPickIcon.textContent = "✓";
       gwPickIcon.className = "state good";
     }
     if (editPickBtn) editPickBtn.disabled = true;
   } else if (outcome === "LOSS") {
-    if (gwPickTitle) gwPickTitle.textContent = `${gwLabelShort(pick.gwId)} - ${team} - Lost`;
+    if (gwPickTitle) gwPickTitle.textContent = `${ gwLabelShort(pick.gwId) } - ${ team } - Lost`;
     if (gwPickIcon) {
       gwPickIcon.textContent = "✕";
       gwPickIcon.className = "state bad";
     }
-    if (submittedMeta) submittedMeta.innerHTML = `<div class="muted"><strong>Lost — you are out!</strong></div>`;
+    if (submittedMeta) submittedMeta.innerHTML = `<div class="muted" > <strong>Lost — you are out!</strong></div > `;
     if (editPickBtn) editPickBtn.disabled = true;
     if (submitPickBtn) submitPickBtn.disabled = true;
     return;
@@ -2858,10 +2826,10 @@ function renderCurrentPickBlock() {
     // PENDING + unlocked: “Selection confirmed: …” (no “In progress”)
     if (gwPickTitle) {
       gwPickTitle.innerHTML = `
-        <span class="pick-title-inline">
-          ${teamInlineHtml_(team, { size: 20 })}
-        </span>
-      `;
+  <span class="pick-title-inline" >
+    ${ teamInlineHtml_(team, { size: 20 }) }
+        </span >
+  `;
     }
 
     if (gwPickIcon) {
@@ -2876,17 +2844,17 @@ function renderCurrentPickBlock() {
     if (fx) {
       const when = fx.kickoffHasTime ? formatKickoffLineUK(fx.kickoff) : formatDateUK(fx.kickoff);
       const whenLine = fx.kickoffHasTime
-        ? `${formatDateUK(fx.kickoff)} · ${formatTimeUK(fx.kickoff)}`
-        : `${formatDateUK(fx.kickoff)}`;
+        ? `${ formatDateUK(fx.kickoff) } · ${ formatTimeUK(fx.kickoff) } `
+        : `${ formatDateUK(fx.kickoff) } `;
 
       submittedMeta.innerHTML = `
-        <div class="fixture-row">
-          <div class="fixture-main">
-            ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: team })}
-            <div class="fixture-datetime muted">${escapeHtml(whenLine)}</div>
-          </div>
-        </div>
-      `;
+  <div class="fixture-row" >
+    <div class="fixture-main">
+      ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: team })}
+      <div class="fixture-datetime muted">${escapeHtml(whenLine)}</div>
+    </div>
+        </div >
+  `;
 
     } else {
       submittedMeta.textContent = "Match not found for this gameweek";
@@ -2934,11 +2902,11 @@ function renderGwResultBanner() {
   el.classList.toggle("loss", !isWin);
 
   el.innerHTML = `
-    <div class="result-left">
-      <div class="result-title"><strong>${escapeHtml(gwLabelShort(p.gwId))} - ${escapeHtml(p.team)} - ${isWin ? "Won" : "Lost"}</strong></div>
-    </div>
-    <div class="state ${isWin ? "good" : "bad"}">${isWin ? "✓" : "✕"}</div>
-  `;
+  <div class="result-left" >
+    <div class="result-title"><strong>${escapeHtml(gwLabelShort(p.gwId))} - ${escapeHtml(p.team)} - ${isWin ? "Won" : "Lost"}</strong></div>
+    </div >
+  <div class="state ${isWin ? " good" : "bad"}" > ${ isWin ? "✓" : "✕" }</div >
+    `;
 }
 
 function renderWinBox() {
@@ -2956,9 +2924,9 @@ function renderWinBox() {
   box.classList.remove("hidden");
   box.classList.remove("loss"); // ensure green styling
   box.innerHTML = `
-    <div><strong>${escapeHtml(gwLabelShort(p.gwId))} - ${escapeHtml(p.team)} - Won</strong></div>
-    <div class="state good">✓</div>
-  `;
+    <div > <strong>${escapeHtml(gwLabelShort(p.gwId))} - ${escapeHtml(p.team)} - Won</strong></div >
+      <div class="state good">✓</div>
+`;
 }
 
 function renderLossBoxAndHidePickCard() {
@@ -2976,9 +2944,9 @@ function renderLossBoxAndHidePickCard() {
   lossBox.classList.remove("hidden");
   lossBox.classList.add("win-box", "loss"); // reuse win-box styling + loss tint
   lossBox.innerHTML = `
-    <div><strong>${escapeHtml(gwLabelShort(gw))} - ${escapeHtml(team)} - Lost</strong></div>
+  <div > <strong>${escapeHtml(gwLabelShort(gw))} - ${escapeHtml(team)} - Lost</strong></div >
     <div class="state bad">✕</div>
-  `;
+`;
 }
 
 function showPickCardAndHideLossBox() {
@@ -3018,8 +2986,8 @@ function renderResultsBox() {
     .filter(p => p.team)
     .map(p => {
       const o = String(p.outcome || "PENDING").toUpperCase();
-      const label = `${gwLabelShort(p.gwId)} ${stepIcon(o)}`;
-      return `<span class="step-pill ${stepClass(o)}">${escapeHtml(label)}</span>`;
+      const label = `${ gwLabelShort(p.gwId) } ${ stepIcon(o) } `;
+      return `<span class="step-pill ${stepClass(o)}" > ${ escapeHtml(label) }</span > `;
     })
     .join("");
 
@@ -3033,10 +3001,10 @@ function renderResultsBox() {
     const last = picksAsc[picksAsc.length - 1];
     const koGw = sessionUser.knockedOutGw || last?.gwId || "—";
     const koTeam = sessionUser.knockedOutTeam || last?.team || "—";
-    title = `${gwLabelShort(koGw)} - ${koTeam} - Lost`;
+    title = `${ gwLabelShort(koGw) } - ${ koTeam } - Lost`;
   } else if (curPick?.team) {
     const label = formatOutcomeLabel(curPick.outcome);
-    title = `${gwLabelShort(curPick.gwId)} - ${curPick.team} - ${label}`;
+    title = `${ gwLabelShort(curPick.gwId) } - ${ curPick.team } - ${ label } `;
 
     const out = String(curPick.outcome || "PENDING").toUpperCase();
     // allow edit only if pending + not locked
@@ -3045,16 +3013,16 @@ function renderResultsBox() {
 
   // If dead we’ll add position when we have it
   box.innerHTML = `
-    <div class="results-left">
-      <div class="results-title">${escapeHtml(title)}</div>
-      ${stepsHtml ? `<div class="results-steps">${stepsHtml}</div>` : ``}
-      ${meta ? `<div class="results-meta">${escapeHtml(meta)}</div>` : ``}
-      <div id="finishLine" class="results-meta"></div>
-    </div>
-    <div class="results-actions">
-      ${showPencil ? `<button id="resultsEditBtn" class="icon-btn" type="button" title="Edit pick">✏️</button>` : ``}
-    </div>
-  `;
+  <div class="results-left" >
+    <div class="results-title">${escapeHtml(title)}</div>
+      ${ stepsHtml ? `<div class="results-steps">${stepsHtml}</div>` : `` }
+      ${ meta ? `<div class="results-meta">${escapeHtml(meta)}</div>` : `` }
+<div id="finishLine" class="results-meta"></div>
+    </div >
+  <div class="results-actions">
+    ${showPencil ? `<button id="resultsEditBtn" class="icon-btn" type="button" title="Edit pick">✏️</button>` : ``}
+  </div>
+`;
 
   // bind edit
   const editBtn = document.getElementById("resultsEditBtn");
@@ -3159,9 +3127,9 @@ function renderLastWinBox() {
   const last = wins[0];
 
   box.innerHTML = `
-    <div>${escapeHtml(last.gwId)} - ${escapeHtml(last.team)}</div>
+  <div > ${ escapeHtml(last.gwId) } - ${ escapeHtml(last.team) }</div >
     <div class="state good">✓</div>
-  `;
+`;
   box.classList.remove("hidden");
 }
 
@@ -3262,12 +3230,12 @@ registerForm.addEventListener("submit", async (e) => {
     showSystemModal_(
       "Entries closed",
       `
-        <div style="line-height:1.5;">
+  <div style = "line-height:1.5;" >
           <p style="margin:0 0 10px;"><strong>Thank you for registering.</strong></p>
           <p style="margin:0 0 10px;">However, the game is now closed to new entries.</p>
           <p style="margin:0;">We’ll notify you when the next game opens.</p>
-        </div>
-      `,
+        </div >
+  `,
       { showActions: false }
     );
 
@@ -3318,8 +3286,8 @@ registerForm.addEventListener("submit", async (e) => {
       showPaymentDetailsModal_({ context: "register" });
     }, 0);
 
-    localStorage.removeItem(`lms_verified_seen::${emailLower}`);
-    sessionStorage.removeItem(`session_seen_verified::${emailLower}`);
+    localStorage.removeItem(`lms_verified_seen::${ emailLower } `);
+    sessionStorage.removeItem(`session_seen_verified::${ emailLower } `);
 
     showAuthMessage("Registered! Now pay £10 — your entry will be approved after payment.", "good");
     registerForm.reset();
@@ -3484,24 +3452,24 @@ document.getElementById("profileBtn")?.addEventListener("click", () => {
       : (sessionUser.alive ? "✓" : "✕");
 
     body.innerHTML = `
-      <div style="display:flex;justify-content:space-between;gap:6px;align-items:flex-start;">
+  <div style = "display:flex;justify-content:space-between;gap:6px;align-items:flex-start;" >
 
-      </div>
+      </div >
 
-      <div style="margin-top:12px" class="fixtures-card">
-        <div class="muted small"><strong>Name</strong></div>
-        <div style="margin:4px 0px;">${escapeHtml(sessionUser.firstName)} ${escapeHtml(sessionUser.lastName)}</div>
+  <div style="margin-top:12px" class="fixtures-card">
+    <div class="muted small"><strong>Name</strong></div>
+    <div style="margin:4px 0px;">${escapeHtml(sessionUser.firstName)} ${escapeHtml(sessionUser.lastName)}</div>
 
-        <div style="margin-top:10px" class="muted small"><strong>Email</strong></div>
-        <div style="margin-top:4px;">${escapeHtml(sessionUser.email || "")}</div>
+    <div style="margin-top:10px" class="muted small"><strong>Email</strong></div>
+    <div style="margin-top:4px;">${escapeHtml(sessionUser.email || "")}</div>
 
-        <div style="margin-top:10px" class="muted small"><strong>Phone</strong></div>
-        <div style="margin-top:4px;">${escapeHtml(sessionUser.phone || "—")}</div>
+    <div style="margin-top:10px" class="muted small"><strong>Phone</strong></div>
+    <div style="margin-top:4px;">${escapeHtml(sessionUser.phone || "—")}</div>
 
-        <div style="margin-top:10px" class="muted small"><strong>Team / Connection</strong></div>
-        <div style="margin-top:4px;">${escapeHtml(sessionUser.clubTeam || "—")}</div>
-      </div>
-    `;
+    <div style="margin-top:10px" class="muted small"><strong>Team / Connection</strong></div>
+    <div style="margin-top:4px;">${escapeHtml(sessionUser.clubTeam || "—")}</div>
+  </div>
+`;
   }
   openModal(profileModal);
 });
@@ -3532,19 +3500,19 @@ function formatTimeLeft(ms) {
   const mins = Math.floor((total % 3600) / 60);
   const secs = total % 60;
 
-  const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  const plural = (n, word) => `${ n } ${ word }${ n === 1 ? "" : "s" } `;
 
   // Days away -> "X days Y hours"
-  if (days > 0) return `${plural(days, "day")} ${plural(hours, "hour")}`;
+  if (days > 0) return `${ plural(days, "day") } ${ plural(hours, "hour") } `;
 
   // Hours away -> "X hours Y minutes"
-  if (hours > 0) return `${plural(hours, "hour")} ${plural(mins, "minute")}`;
+  if (hours > 0) return `${ plural(hours, "hour") } ${ plural(mins, "minute") } `;
 
   // Minutes away -> "X minutes Y seconds"
-  if (mins > 0) return `${plural(mins, "minute")} ${plural(secs, "second")}`;
+  if (mins > 0) return `${ plural(mins, "minute") } ${ plural(secs, "second") } `;
 
   // Seconds only -> "X seconds"
-  return `${plural(secs, "second")}`;
+  return `${ plural(secs, "second") } `;
 }
 
 
@@ -3611,9 +3579,8 @@ function enterApp_() {
   logoutBtnApp?.classList.remove("hidden");
 
   setTab2("selection");
-
-
-  startProfilePolling(); // ✅ add this
+renderGwReportCard_(); // ✅ immediate render on first load
+startProfilePolling();
 }
 
 function exitApp_() {
@@ -3638,7 +3605,7 @@ function renderGameweekSelect() {
   for (const gw of gameweeks) {
     const opt = document.createElement("option");
     opt.value = gw.id;
-    opt.textContent = `${gw.id} (${formatDateUK(gw.start)})`;
+    opt.textContent = `${ gw.id } (${ formatDateUK(gw.start) })`;
     gameweekSelect.appendChild(opt);
   }
 
