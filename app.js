@@ -25,8 +25,11 @@ const DEFAULT_TEAM_LOGO = "images/team-default.png";
 
 
 // --- DEBUG: force GW report UI on/off ---
-const DEBUG_FORCE_GW_REPORT = false;   // set true to show the report card now
-const DEBUG_REPORT_GW_ID = null;      // e.g. "GW1" to force a specific GW, or null to use currentGwId
+const DEBUG_FORCE_GW_REPORT = false;   // set true to show the card even before deadline
+const DEBUG_REPORT_GW_ID = null;       // e.g. "GW2" to force a specific GW, or null to use currentGwId
+
+
+
 
 // ✅ Registration lock
 const REGISTRATION_OPEN = false; // set true when you open entries again
@@ -38,7 +41,8 @@ const REGISTRATION_CLOSED_HTML = `
     <p style="margin:0;">We’ll notify you when the next game opens.</p>
   </div>
 `;
-const GW_REPORT_GW_ID = "GW1"; // always show GW1 report
+// ✅ Report card should follow the current GW by default
+const GW_REPORT_GW_ID = null;          // null = use currentGwId
 
 
 /*******************************
@@ -452,18 +456,35 @@ async function refreshGwReportCount_(gwId) {
   lastGwReportCountFetchAt = now;
 
   try {
-    const rows = await fetchGwReportRows_(gwId); // you already have this
-    const count = Array.isArray(rows) ? rows.length : 0;
+    // 1) get report rows
+    let rows = await fetchGwReportRows_(gwId);
+    rows = Array.isArray(rows) ? rows : [];
+
+    // 2) filter to alive only (same logic as modal)
+    try {
+      const entries = await api({ action: "getEntries", gwId });
+      const aliveEmails = new Set(
+        (entries.users || [])
+          .filter(u => u && u.alive)
+          .map(u => String(u.email || "").toLowerCase())
+      );
+
+      rows = rows.filter(r => aliveEmails.has(String(r.email || "").toLowerCase()));
+    } catch {
+      // if entries call fails, fall back to counting all rows
+    }
+
+    const count = rows.length;
 
     // ✅ only update cache if changed (prevents flicker)
     if (lastGwReportCountGwId !== gwId || lastGwReportCount !== count) {
       lastGwReportCountGwId = gwId;
       lastGwReportCount = count;
 
-      const cardTitle = document.getElementById("gwReportCardTitle");
-      if (cardTitle) {
-        cardTitle.textContent = `${gwLabelShort(gwId)} - Player selections (${count})`;
-      }
+      const countEl = document.getElementById("gwReportCardCount");
+      const dotsEl = document.getElementById("gwReportCardDots");
+      if (countEl) countEl.textContent = String(count);
+      if (dotsEl) dotsEl.style.display = "none";
     }
   } catch {
     // do nothing; importantly, do NOT clear the existing count
@@ -471,6 +492,7 @@ async function refreshGwReportCount_(gwId) {
     gwReportCountLoading = false;
   }
 }
+
 
 
 async function openGwReportModal_(gwId) {
@@ -481,7 +503,7 @@ async function openGwReportModal_(gwId) {
 
   // Header title (same format as card)
   titleEl.innerHTML = `
-    ${escapeHtml(gwLabelShort(gwId))} - Player selections:
+    ${escapeHtml(gwLabelLong(gwId))} - Selections
     <span class="muted" id="gwReportModalCountDots">
       <span class="dots" aria-label="Loading"></span>
     </span>
@@ -512,12 +534,27 @@ async function openGwReportModal_(gwId) {
 
   openModal(modal);
 
-  let rows = [];
+    let rows = [];
   try {
     rows = await fetchGwReportRows_(gwId);
   } catch {
     rows = [];
   }
+
+  // ✅ Filter to ONLY alive players
+  try {
+    const entries = await api({ action: "getEntries", gwId });
+    const aliveEmails = new Set(
+      (entries.users || [])
+        .filter(u => u && u.alive)
+        .map(u => String(u.email || "").toLowerCase())
+    );
+
+    rows = (rows || []).filter(r => aliveEmails.has(String(r.email || "").toLowerCase()));
+  } catch {
+    // if entries call fails, fall back to showing all rows
+  }
+
 
   const totalSelections = rows.length;
 
@@ -561,7 +598,7 @@ async function renderGwReportCard_() {
   const card = document.getElementById("gwReportCard");
   if (!card) return;
 
-  const gwId = (DEBUG_REPORT_GW_ID || GW_REPORT_GW_ID); // ✅ force GW1
+  const gwId = (DEBUG_REPORT_GW_ID || GW_REPORT_GW_ID || currentGwId);
   if (!gwId) {
     card.classList.add("hidden");
     return;
@@ -593,7 +630,7 @@ async function renderGwReportCard_() {
         <div style="min-width:0;">
           <div style="font-weight:900; display:flex; align-items:baseline; gap:6px; min-width:0;">
             <span id="gwReportCardPrefix" style="white-space:nowrap;">
-              ${escapeHtml(gwLabelShort(gwId))} - Player selections:
+              ${escapeHtml(gwLabelLong(gwId))} - Selections
             </span>
             <span id="gwReportCardDots" class="muted" style="display:inline-flex;">
               <span class="dots" aria-label="Loading"></span>
@@ -609,7 +646,7 @@ async function renderGwReportCard_() {
 
   // ✅ keep prefix correct
   const prefixEl = document.getElementById("gwReportCardPrefix");
-  if (prefixEl) prefixEl.textContent = `${gwLabelShort(gwId)} - Player selections:`;
+  if (prefixEl) prefixEl.textContent = `${gwLabelLong(gwId)} - Selections`;
 
   const dotsEl = document.getElementById("gwReportCardDots");
   const countEl = document.getElementById("gwReportCardCount");
@@ -1620,6 +1657,11 @@ async function computePlacingForEmail_(targetEmail, gwIdForRank) {
 function gwLabelShort(gwId) {
   const m = String(gwId || "").match(/^GW(\d+)$/i);
   return m ? `GW${Number(m[1])}` : gwId;
+}
+
+function gwLabelLong(gwId) {
+  const n = gwNumFromId(gwId);
+  return n ? `Gameweek ${n}` : String(gwId || "");
 }
 
 
