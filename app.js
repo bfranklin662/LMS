@@ -444,6 +444,93 @@ function simplifyClub_(club) {
   return club || "—";
 }
 
+function startOfDayUTC(d) {
+  const x = new Date(d);
+  x.setUTCHours(0, 0, 0, 0);
+  return x;
+}
+
+function buildGameweeks(fixturesArr) {
+  const map = new Map();
+
+  for (const f of fixturesArr) {
+    if (!map.has(f.gwId)) map.set(f.gwId, { id: f.gwId, fixtures: [] });
+    map.get(f.gwId).fixtures.push(f);
+  }
+
+  const startOfDayUTC = (d) => {
+    const x = new Date(d);
+    x.setUTCHours(0, 0, 0, 0);
+    return x;
+  };
+
+  const gws = Array.from(map.values()).map(gw => {
+    gw.fixtures.sort((a, b) => a.kickoff - b.kickoff);
+
+    const firstKickoff = gw.fixtures[0].kickoff;
+    const lastKickoff = gw.fixtures[gw.fixtures.length - 1].kickoff;
+
+    const start = startOfDayUTC(firstKickoff);
+    const deadline = new Date(firstKickoff.getTime() - DEADLINE_HOURS_BEFORE_FIRST_FIXTURE * 3600 * 1000);
+
+    const endDay = startOfDayUTC(lastKickoff);
+    const endCutoff = new Date(endDay.getTime() + 24 * 3600 * 1000);
+
+    const num = gwNumFromId(gw.id);
+
+    return {
+      ...gw,
+      num: num ?? gw.id,
+      start,
+      firstKickoff,
+      lastKickoff,
+      deadline,
+      endDay,
+      endCutoff,
+    };
+  });
+
+  gws.sort((a, b) => {
+    const an = typeof a.num === "number" ? a.num : 999999;
+    const bn = typeof b.num === "number" ? b.num : 999999;
+    if (an !== bn) return an - bn;
+    return a.start - b.start;
+  });
+
+  return gws;
+}
+
+
+function getGwIdForSelectionsCard_() {
+  // Manual override still wins
+  if (DEBUG_REPORT_GW_ID) return DEBUG_REPORT_GW_ID;
+  if (GW_REPORT_GW_ID) return GW_REPORT_GW_ID;
+
+  const nowMs = Date.now();
+
+  // Find all gameweeks where the deadline has passed
+  const locked = (gameweeks || []).filter(g => g && g.deadline && nowMs >= g.deadline.getTime());
+  if (!locked.length) return null;
+
+  // Pick the latest locked GW (by gw.num if numeric, otherwise by deadline time)
+  locked.sort((a, b) => {
+    const an = (typeof a.num === "number") ? a.num : -1;
+    const bn = (typeof b.num === "number") ? b.num : -1;
+    if (an !== bn) return bn - an;
+    return b.deadline.getTime() - a.deadline.getTime();
+  });
+
+  const gw = locked[0];
+
+  // ✅ Keep it visible until end of the gameweek fixture window
+  if (gw.endCutoff && nowMs < gw.endCutoff.getTime()) return gw.id;
+
+  // Past the end of the GW -> hide
+  return null;
+}
+
+
+
 async function refreshGwReportCount_(gwId) {
   if (!gwId) return;
   const now = Date.now();
@@ -463,15 +550,15 @@ async function refreshGwReportCount_(gwId) {
     // 2) filter to alive only (same logic as modal)
     try {
       const entries = await api({ action: "getEntries", gwId });
-      const aliveEmails = new Set(
+      const includeEmails = new Set(
         (entries.users || [])
-          .filter(u => u && u.alive)
+          .filter(u => u && (u.alive || String(u.knockedOutGw || "").toUpperCase() === String(gwId).toUpperCase()))
           .map(u => String(u.email || "").toLowerCase())
       );
 
-      rows = rows.filter(r => aliveEmails.has(String(r.email || "").toLowerCase()));
+      rows = (rows || []).filter(r => includeEmails.has(String(r.email || "").toLowerCase()));
     } catch {
-      // if entries call fails, fall back to counting all rows
+      // fall back to showing all rows
     }
 
     const count = rows.length;
@@ -534,7 +621,7 @@ async function openGwReportModal_(gwId) {
 
   openModal(modal);
 
-    let rows = [];
+  let rows = [];
   try {
     rows = await fetchGwReportRows_(gwId);
   } catch {
@@ -544,16 +631,17 @@ async function openGwReportModal_(gwId) {
   // ✅ Filter to ONLY alive players
   try {
     const entries = await api({ action: "getEntries", gwId });
-    const aliveEmails = new Set(
+    const includeEmails = new Set(
       (entries.users || [])
-        .filter(u => u && u.alive)
+        .filter(u => u && (u.alive || String(u.knockedOutGw || "").toUpperCase() === String(gwId).toUpperCase()))
         .map(u => String(u.email || "").toLowerCase())
     );
 
-    rows = (rows || []).filter(r => aliveEmails.has(String(r.email || "").toLowerCase()));
+    rows = (rows || []).filter(r => includeEmails.has(String(r.email || "").toLowerCase()));
   } catch {
-    // if entries call fails, fall back to showing all rows
+    // fall back to showing all rows
   }
+
 
 
   const totalSelections = rows.length;
@@ -598,17 +686,12 @@ async function renderGwReportCard_() {
   const card = document.getElementById("gwReportCard");
   if (!card) return;
 
-  const gwId = (DEBUG_REPORT_GW_ID || GW_REPORT_GW_ID || currentGwId);
+  // ✅ if debug is on, pick *some* gwId even if none are locked
+  const gwId = DEBUG_FORCE_GW_REPORT
+    ? (DEBUG_REPORT_GW_ID || currentGwId || gameweeks?.[0]?.id)
+    : getGwIdForSelectionsCard_();
+
   if (!gwId) {
-    card.classList.add("hidden");
-    return;
-  }
-
-  // ✅ show only once GW1 deadline has passed (unless debug)
-  const locked = isGwLockedById_(gwId);
-  const shouldShow = DEBUG_FORCE_GW_REPORT || locked;
-
-  if (!shouldShow) {
     card.classList.add("hidden");
     return;
   }
@@ -616,11 +699,13 @@ async function renderGwReportCard_() {
   card.classList.remove("hidden");
   card.classList.add("gw-report-card");
 
-  // ✅ bind click once
+  // ✅ bind click once, but always read the current gwId
+  card.dataset.gwId = gwId;
   if (!card.dataset.bound) {
     card.dataset.bound = "1";
-    card.addEventListener("click", () => openGwReportModal_(gwId));
+    card.addEventListener("click", () => openGwReportModal_(card.dataset.gwId));
   }
+
 
   // ✅ build instantly (so it appears immediately)
   if (!card.dataset.built) {
@@ -877,7 +962,7 @@ function renderSuggestions() {
   }
 
   teamSuggest.innerHTML = hits.map(t => `
-  <button type = "button" class="suggest-item" data-team="${escapeAttr(t)}" > ${ escapeHtml(t) }</button >
+  <button type = "button" class="suggest-item" data-team="${escapeAttr(t)}" > ${escapeHtml(t)}</button >
     `).join("");
 
   teamSuggest.classList.remove("hidden");
@@ -905,13 +990,13 @@ function setGwLabelFromSelected() {
   const gw = gameweeks.find(g => g.id === currentGwId);
   if (!gw) return;
 
-  const title = `Gameweek ${ gw.num } `;
+  const title = `Gameweek ${gw.num} `;
 
   const lastKickoff = gw.fixtures[gw.fixtures.length - 1]?.kickoff || gw.firstKickoff;
   const endDay = startOfDay(lastKickoff);
 
   // 🔁 CHANGE THIS LINE
-  const range = `${ formatDateWithOrdinalShortUK(gw.start) } - ${ formatDateWithOrdinalShortUK(endDay) } `;
+  const range = `${formatDateWithOrdinalShortUK(gw.start)} - ${formatDateWithOrdinalShortUK(endDay)} `;
 
   if (gwTitleEl) gwTitleEl.textContent = title;
   if (gwRangeEl) gwRangeEl.textContent = range;
@@ -957,7 +1042,7 @@ function formatDateWithOrdinalShortUK(d) {
         (dayNum % 10 === 2) ? "nd" :
           (dayNum % 10 === 3) ? "rd" : "th";
 
-  return `${ weekday } ${ dayNum }${ suffix } ${ month } `;
+  return `${weekday} ${dayNum}${suffix} ${month} `;
 }
 
 
@@ -965,7 +1050,7 @@ function formatKickoffLineUK(d) {
   // "Sat 31 Jan, 15:00"
   const day = formatDateUK(d);
   const time = formatTimeUK(d);
-  return `${ day }, ${ time } `;
+  return `${day}, ${time} `;
 }
 
 function handleAccountStateChange_() {
@@ -981,7 +1066,7 @@ function handleAccountStateChange_() {
 
   // pending -> approved
   if (approvedNow && lastApprovedState === false) {
-    const k = `session_seen_verified::${ emailKey } `;
+    const k = `session_seen_verified::${emailKey} `;
     if (sessionStorage.getItem(k) !== "1") {
       sessionStorage.setItem(k, "1");
       showVerifiedModalNow_();
@@ -1842,7 +1927,7 @@ function secondsToHMS(totalSeconds) {
   const hh = String(Math.floor(s / 3600)).padStart(2, "0");
   const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
   const ss = String(s % 60).padStart(2, "0");
-  return `${ hh }:${ mm }:${ ss } `;
+  return `${hh}:${mm}:${ss} `;
 }
 
 function startOfWeekFriday(date) {
@@ -1867,7 +1952,7 @@ function toGwId(fridayDate) {
   const y = fridayDate.getFullYear();
   const m = String(fridayDate.getMonth() + 1).padStart(2, "0");
   const da = String(fridayDate.getDate()).padStart(2, "0");
-  return `GW - ${ y } -${ m } -${ da } `;
+  return `GW - ${y} -${m} -${da} `;
 }
 
 function escapeHtml(str) {
@@ -1919,18 +2004,16 @@ function renderTopUIOnly() {
  * FIXTURES: LOAD + NORMALIZE
  *******************************/
 function detectGwId(raw) {
-  // 1) Prefer explicit gwId in JSON
   const direct = String(raw.gwId || "").trim();
   if (direct) return direct.toUpperCase(); // "GW1"
 
-  // 2) Try round like "GW1" or "Gameweek 1"
   const round = String(raw.round || "").trim();
   const m = round.match(/GW\s*([0-9]+)/i) || round.match(/Gameweek\s*([0-9]+)/i);
-  if (m) return `GW${ Number(m[1]) } `;
+  if (m) return `GW${Number(m[1])}`; // ✅ NO trailing space
 
-  // 3) No gwId available
   return null;
 }
+
 
 function parseKickoffUK(dateStr, timeStr) {
   // Treat your JSON date/time as UK local clock time.
@@ -1962,7 +2045,7 @@ function normalizeFixture(raw, leagueName) {
   if (!kickoff) return null;
 
   return {
-    gwId,
+    gwId: String(gwId).trim().toUpperCase(),
     league: leagueName,
     kickoff,
     kickoffHasTime: !!hasTime,
@@ -1979,18 +2062,18 @@ async function loadAllFixtures() {
   for (const source of FIXTURE_SOURCES) {
     try {
       const res = await fetch(source.url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`${ source.url } returned ${ res.status } `);
+      if (!res.ok) throw new Error(`${source.url} returned ${res.status} `);
 
       const data = await res.json();
       const arr = Array.isArray(data.matches) ? data.matches : null;
-      if (!arr) throw new Error(`${ source.url } has no matches array`);
+      if (!arr) throw new Error(`${source.url} has no matches array`);
 
       for (const item of arr) {
         const n = normalizeFixture(item, source.league);
         if (n) loaded.push(n);
       }
     } catch (e) {
-      errors.push(`${ source.league }: ${ e.message || e } `);
+      errors.push(`${source.league}: ${e.message || e} `);
     }
   }
 
@@ -2019,7 +2102,7 @@ async function loadAllFixtures() {
   // 4) UI message
   if (!fixtures.length) {
     const msg = errors.length
-      ? `No fixtures loaded.\n\n${ errors.join("\n") } `
+      ? `No fixtures loaded.\n\n${errors.join("\n")} `
       : "No fixtures loaded. Check your JSON files/paths.";
     showFixturesMessage(msg, "bad");
   } else {
@@ -2110,44 +2193,6 @@ function startOfDay(d) {
   return x;
 }
 
-function buildGameweeks(fixturesArr) {
-  const map = new Map();
-
-  for (const f of fixturesArr) {
-    if (!map.has(f.gwId)) map.set(f.gwId, { id: f.gwId, fixtures: [] });
-    map.get(f.gwId).fixtures.push(f);
-  }
-
-  const gws = Array.from(map.values()).map(gw => {
-    gw.fixtures.sort((a, b) => a.kickoff - b.kickoff);
-
-    const firstKickoff = gw.fixtures[0].kickoff;
-    const start = startOfDay(firstKickoff);
-
-    const deadline = new Date(firstKickoff.getTime() - DEADLINE_HOURS_BEFORE_FIRST_FIXTURE * 3600 * 1000);
-
-    const num = gwNumFromId(gw.id);
-
-    return {
-      ...gw,
-      num: num ?? gw.id, // fallback if someone uses GW-A etc
-      start,
-      firstKickoff,
-      deadline
-    };
-  });
-
-  // sort by numeric GW where possible, else by date
-  gws.sort((a, b) => {
-    const an = typeof a.num === "number" ? a.num : 999999;
-    const bn = typeof b.num === "number" ? b.num : 999999;
-    if (an !== bn) return an - bn;
-    return a.start - b.start;
-  });
-
-  return gws;
-}
-
 async function loadDeadlines() {
   const res = await fetch("gameweek-deadlines.json", { cache: "no-store" });
   if (!res.ok) return new Map();
@@ -2162,7 +2207,7 @@ async function loadDeadlines() {
     if (!gwId || !date || !time) continue;
 
     // Treat as UTC, consistent with your fixture parsing that also uses "Z"
-    map.set(gwId, `${ date }T${ time }:00Z`);
+    map.set(gwId, `${date}T${time}:00Z`);
   }
 
   return map;
@@ -2360,7 +2405,7 @@ function renderFixturesTab() {
 
       const summary = document.createElement("summary");
       summary.className = "league-summary";
-      summary.textContent = `${ leagueName } (${ list.length })`;
+      summary.textContent = `${leagueName} (${list.length})`;
       details.appendChild(summary);
 
 
@@ -2372,16 +2417,16 @@ function renderFixturesTab() {
         row.className = "fixture-row";
 
         const timeHtml = f.kickoffHasTime
-          ? `<div class="fixture-time muted" > ${ formatTimeUK(f.kickoff) }</div > `
+          ? `<div class="fixture-time muted" > ${formatTimeUK(f.kickoff)}</div > `
           : "";
 
         const dateLine = f.kickoffHasTime
-          ? `${ escapeHtml(formatDateUK(f.kickoff)) } · ${ escapeHtml(formatTimeUK(f.kickoff)) } `
-          : `${ escapeHtml(formatDateUK(f.kickoff)) } `;
+          ? `${escapeHtml(formatDateUK(f.kickoff))} · ${escapeHtml(formatTimeUK(f.kickoff))} `
+          : `${escapeHtml(formatDateUK(f.kickoff))} `;
 
         row.innerHTML = `
   <div class="fixture-main" >
-    ${ fixtureTeamsHtml_(f.home, f.away) }
+    ${fixtureTeamsHtml_(f.home, f.away)}
 <div class="fixture-datetime muted">${dateLine}</div>
           </div >
   `;
@@ -2408,7 +2453,7 @@ function parseGwDate(gwId) {
   // expects GW-YYYY-MM-DD
   const m = String(gwId || "").match(/^GW-(\d{4})-(\d{2})-(\d{2})$/);
   if (!m) return null;
-  return new Date(`${ m[1] } -${ m[2] } -${ m[3] } T00:00:00`);
+  return new Date(`${m[1]} -${m[2]} -${m[3]} T00:00:00`);
 }
 
 async function renderEntriesTab() {
@@ -2518,7 +2563,7 @@ async function renderEntriesTab() {
     const rightHtml = rightUsers.map(u => {
       if (started) {
         // Out list uses KO line
-        const koLine = `${ u.knockedOutGw || "—" } - ${ u.knockedOutTeam || "—" } `;
+        const koLine = `${u.knockedOutGw || "—"} - ${u.knockedOutTeam || "—"} `;
         return `
   <div class="list-item row-loss player-row-out" data-email="${escapeAttr(u.email)}" style = "cursor:pointer;" >
             <div class="list-left">
@@ -2544,8 +2589,8 @@ async function renderEntriesTab() {
     }).join("");
 
     // Paint HTML
-    aliveList.innerHTML = leftHtml || `<div class="muted" > ${ started ? "No alive players." : "No approved players." }</div > `;
-    outList.innerHTML = rightHtml || `<div class="muted" > ${ started ? "No knocked out players." : "No pending approvals." }</div > `;
+    aliveList.innerHTML = leftHtml || `<div class="muted" > ${started ? "No alive players." : "No approved players."}</div > `;
+    outList.innerHTML = rightHtml || `<div class="muted" > ${started ? "No knocked out players." : "No pending approvals."}</div > `;
 
     // Bind Left clicks
     aliveList.querySelectorAll("[data-email]").forEach(rowEl => {
@@ -2606,12 +2651,12 @@ function renderPickCardState() {
 function renderProfileTab() {
   if (!sessionUser) return;
 
-  profileName.textContent = `${ sessionUser.firstName } ${ sessionUser.lastName } `;
-  profileMeta.textContent = `${ sessionUser.email } • ${ sessionUser.clubTeam } • ${ sessionUser.phone } `;
+  profileName.textContent = `${sessionUser.firstName} ${sessionUser.lastName} `;
+  profileMeta.textContent = `${sessionUser.email} • ${sessionUser.clubTeam} • ${sessionUser.phone} `;
 
   profileStatus.textContent = sessionUser.alive
     ? `Status: Still Alive`
-    : `Status: Knocked Out(${ sessionUser.knockedOutGw || "—" })`;
+    : `Status: Knocked Out(${sessionUser.knockedOutGw || "—"})`;
 
   profileSelections.innerHTML = "";
 
@@ -2627,7 +2672,7 @@ function renderProfileTab() {
 
     let line = "Result: Pending";
     if (p.fixture) {
-      line = `${ p.fixture.team1 } ${ p.fixture.score1 } vs ${ p.fixture.score2 } ${ p.fixture.team2 } `;
+      line = `${p.fixture.team1} ${p.fixture.score1} vs ${p.fixture.score2} ${p.fixture.team2} `;
     }
 
     const div = document.createElement("div");
@@ -2684,7 +2729,7 @@ async function savePick(team) {
 
     // ✅ Show confirmation modal (use your single modal function)
     showSystemModal_(
-      `${ gwLabelShort(gwId) } selection confirmed: `,
+      `${gwLabelShort(gwId)} selection confirmed: `,
       `
   <div style = "margin-top:12px;" >
           <div class="status-row pending" style="margin:0;">
@@ -2793,7 +2838,7 @@ function renderCurrentPickBlock() {
       if (gwPickTitle) {
         gwPickTitle.innerHTML = `
   <span class="pick-title-inline" >
-    ${ teamInlineHtml_(team, { size: 20 }) }
+    ${teamInlineHtml_(team, { size: 20 })}
             <span class="dash">—</span>
             <span class="muted">In progress</span>
           </span >
@@ -2812,7 +2857,7 @@ function renderCurrentPickBlock() {
           const when = fx.kickoffHasTime ? formatKickoffLineUK(fx.kickoff) : formatDateUK(fx.kickoff);
           submittedMeta.innerHTML = `
   <div class="fixture-main fixture-main--compact" >
-    ${ fixtureTeamsHtml_(fx.home, fx.away) }
+    ${fixtureTeamsHtml_(fx.home, fx.away)}
 <div class="fixture-datetime muted">${escapeHtml(when)}</div>
             </div >
   `;
@@ -2848,14 +2893,14 @@ function renderCurrentPickBlock() {
   // - Before deadline: DO NOT show “- In progress” for pending
   // - Keep “Won/Lost” if resolved (shouldn’t happen while alive+picking, but safe)
   if (outcome === "WIN") {
-    if (gwPickTitle) gwPickTitle.textContent = `${ gwLabelShort(pick.gwId) } - ${ team } - Won`;
+    if (gwPickTitle) gwPickTitle.textContent = `${gwLabelShort(pick.gwId)} - ${team} - Won`;
     if (gwPickIcon) {
       gwPickIcon.textContent = "✓";
       gwPickIcon.className = "state good";
     }
     if (editPickBtn) editPickBtn.disabled = true;
   } else if (outcome === "LOSS") {
-    if (gwPickTitle) gwPickTitle.textContent = `${ gwLabelShort(pick.gwId) } - ${ team } - Lost`;
+    if (gwPickTitle) gwPickTitle.textContent = `${gwLabelShort(pick.gwId)} - ${team} - Lost`;
     if (gwPickIcon) {
       gwPickIcon.textContent = "✕";
       gwPickIcon.className = "state bad";
@@ -2869,7 +2914,7 @@ function renderCurrentPickBlock() {
     if (gwPickTitle) {
       gwPickTitle.innerHTML = `
   <span class="pick-title-inline" >
-    ${ teamInlineHtml_(team, { size: 20 }) }
+    ${teamInlineHtml_(team, { size: 20 })}
         </span >
   `;
     }
@@ -2886,8 +2931,8 @@ function renderCurrentPickBlock() {
     if (fx) {
       const when = fx.kickoffHasTime ? formatKickoffLineUK(fx.kickoff) : formatDateUK(fx.kickoff);
       const whenLine = fx.kickoffHasTime
-        ? `${ formatDateUK(fx.kickoff) } · ${ formatTimeUK(fx.kickoff) } `
-        : `${ formatDateUK(fx.kickoff) } `;
+        ? `${formatDateUK(fx.kickoff)} · ${formatTimeUK(fx.kickoff)} `
+        : `${formatDateUK(fx.kickoff)} `;
 
       submittedMeta.innerHTML = `
   <div class="fixture-row" >
@@ -2947,7 +2992,7 @@ function renderGwResultBanner() {
   <div class="result-left" >
     <div class="result-title"><strong>${escapeHtml(gwLabelShort(p.gwId))} - ${escapeHtml(p.team)} - ${isWin ? "Won" : "Lost"}</strong></div>
     </div >
-  <div class="state ${isWin ? " good" : "bad"}" > ${ isWin ? "✓" : "✕" }</div >
+  <div class="state ${isWin ? " good" : "bad"}" > ${isWin ? "✓" : "✕"}</div >
     `;
 }
 
@@ -3028,8 +3073,8 @@ function renderResultsBox() {
     .filter(p => p.team)
     .map(p => {
       const o = String(p.outcome || "PENDING").toUpperCase();
-      const label = `${ gwLabelShort(p.gwId) } ${ stepIcon(o) } `;
-      return `<span class="step-pill ${stepClass(o)}" > ${ escapeHtml(label) }</span > `;
+      const label = `${gwLabelShort(p.gwId)} ${stepIcon(o)} `;
+      return `<span class="step-pill ${stepClass(o)}" > ${escapeHtml(label)}</span > `;
     })
     .join("");
 
@@ -3043,10 +3088,10 @@ function renderResultsBox() {
     const last = picksAsc[picksAsc.length - 1];
     const koGw = sessionUser.knockedOutGw || last?.gwId || "—";
     const koTeam = sessionUser.knockedOutTeam || last?.team || "—";
-    title = `${ gwLabelShort(koGw) } - ${ koTeam } - Lost`;
+    title = `${gwLabelShort(koGw)} - ${koTeam} - Lost`;
   } else if (curPick?.team) {
     const label = formatOutcomeLabel(curPick.outcome);
-    title = `${ gwLabelShort(curPick.gwId) } - ${ curPick.team } - ${ label } `;
+    title = `${gwLabelShort(curPick.gwId)} - ${curPick.team} - ${label} `;
 
     const out = String(curPick.outcome || "PENDING").toUpperCase();
     // allow edit only if pending + not locked
@@ -3057,8 +3102,8 @@ function renderResultsBox() {
   box.innerHTML = `
   <div class="results-left" >
     <div class="results-title">${escapeHtml(title)}</div>
-      ${ stepsHtml ? `<div class="results-steps">${stepsHtml}</div>` : `` }
-      ${ meta ? `<div class="results-meta">${escapeHtml(meta)}</div>` : `` }
+      ${stepsHtml ? `<div class="results-steps">${stepsHtml}</div>` : ``}
+      ${meta ? `<div class="results-meta">${escapeHtml(meta)}</div>` : ``}
 <div id="finishLine" class="results-meta"></div>
     </div >
   <div class="results-actions">
@@ -3169,7 +3214,7 @@ function renderLastWinBox() {
   const last = wins[0];
 
   box.innerHTML = `
-  <div > ${ escapeHtml(last.gwId) } - ${ escapeHtml(last.team) }</div >
+  <div > ${escapeHtml(last.gwId)} - ${escapeHtml(last.team)}</div >
     <div class="state good">✓</div>
 `;
   box.classList.remove("hidden");
@@ -3328,8 +3373,8 @@ registerForm.addEventListener("submit", async (e) => {
       showPaymentDetailsModal_({ context: "register" });
     }, 0);
 
-    localStorage.removeItem(`lms_verified_seen::${ emailLower } `);
-    sessionStorage.removeItem(`session_seen_verified::${ emailLower } `);
+    localStorage.removeItem(`lms_verified_seen::${emailLower} `);
+    sessionStorage.removeItem(`session_seen_verified::${emailLower} `);
 
     showAuthMessage("Registered! Now pay £10 — your entry will be approved after payment.", "good");
     registerForm.reset();
@@ -3542,19 +3587,19 @@ function formatTimeLeft(ms) {
   const mins = Math.floor((total % 3600) / 60);
   const secs = total % 60;
 
-  const plural = (n, word) => `${ n } ${ word }${ n === 1 ? "" : "s" } `;
+  const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"} `;
 
   // Days away -> "X days Y hours"
-  if (days > 0) return `${ plural(days, "day") } ${ plural(hours, "hour") } `;
+  if (days > 0) return `${plural(days, "day")} ${plural(hours, "hour")} `;
 
   // Hours away -> "X hours Y minutes"
-  if (hours > 0) return `${ plural(hours, "hour") } ${ plural(mins, "minute") } `;
+  if (hours > 0) return `${plural(hours, "hour")} ${plural(mins, "minute")} `;
 
   // Minutes away -> "X minutes Y seconds"
-  if (mins > 0) return `${ plural(mins, "minute") } ${ plural(secs, "second") } `;
+  if (mins > 0) return `${plural(mins, "minute")} ${plural(secs, "second")} `;
 
   // Seconds only -> "X seconds"
-  return `${ plural(secs, "second") } `;
+  return `${plural(secs, "second")} `;
 }
 
 
@@ -3621,8 +3666,8 @@ function enterApp_() {
   logoutBtnApp?.classList.remove("hidden");
 
   setTab2("selection");
-renderGwReportCard_(); // ✅ immediate render on first load
-startProfilePolling();
+  renderGwReportCard_(); // ✅ immediate render on first load
+  startProfilePolling();
 }
 
 function exitApp_() {
@@ -3647,7 +3692,7 @@ function renderGameweekSelect() {
   for (const gw of gameweeks) {
     const opt = document.createElement("option");
     opt.value = gw.id;
-    opt.textContent = `${ gw.id } (${ formatDateUK(gw.start) })`;
+    opt.textContent = `${gw.id} (${formatDateUK(gw.start)})`;
     gameweekSelect.appendChild(opt);
   }
 
