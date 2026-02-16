@@ -3,7 +3,7 @@
     { "gwId": "GW1", "date": "2026-01-30", "deadline": "20:00" },
     { "gwId": "GW2", "date": "2026-02-06", "deadline": "20:00" },
     { "gwId": "GW3", "date": "2026-02-10", "deadline": "19:30" },
-    { "gwId": "GW4", "date": "2026-02-20", "deadline": "20:00" },
+    { "gwId": "GW4", "date": "2026-02-17", "deadline": "19:45" },
     { "gwId": "GW5", "date": "2026-02-27", "deadline": "19:45" },
     { "gwId": "GW6", "date": "2026-03-03", "deadline": "19:30" },
     { "gwId": "GW7", "date": "2026-03-13", "deadline": "19:45" },
