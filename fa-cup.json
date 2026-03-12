@@ -1,0 +1,33 @@
+{
+  "name": "FA Cup 2026",
+  "matches": [
+    {
+      "gwId": "GW11",
+      "date": "2026-04-04",
+      "team1": "Man City",
+      "team2": "Liverpool",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-04-04",
+      "team1": "Chelsea",
+      "team2": "Port Vale",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-04-04",
+      "team1": "Southampton",
+      "team2": "Arsenal",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW11",
+      "date": "2026-04-04",
+      "team1": "West Ham",
+      "team2": "Leeds United",
+      "time": "TBD"
+    }
+  ]
+}
