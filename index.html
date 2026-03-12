@@ -31,7 +31,7 @@
     <!-- AUTH -->
     <main id="authView" class="view">
       <div class="card">
-        <div class="brand auth-brand reg-brand">
+        <div class="brand auth-brand reg-brand" id="homeBrandBtn" style="cursor:pointer;">
           <img class="brand-logo" src="images/lmsSquare5.jpg" alt="Polytechnic FC" />
           <div class="brand-text">
             <div class="brand-title">Last Man Standing</div>
@@ -124,7 +124,7 @@
 
           <button class="btn btn-primary" type="submit">Create account</button>
           <p class="muted">
-            Register to submit your weekly picks. Once your £10 entry is paid, your entry can be approved.
+            Create your account, then enter a game from the lobby. 
           </p>
         </form>
 
@@ -147,6 +147,10 @@
       </div>
     </main>
 
+
+    <!-- LOBBY -->
+    <div id="lobbyView" class="hidden"></div>
+
     <!-- APP -->
     <div id="appView" class="hidden">
       <div class="phone">
@@ -161,11 +165,7 @@
           </div>
 
           <div class="top-actions">
-            <div id="statusPill" class="pill">Alive</div>
-
-            <button id="infoBtn" class="icon-btn" type="button" title="Info">i</button>
             <button id="profileBtn" class="icon-btn" type="button" title="Profile">👤</button>
-
           </div>
         </header>
 
@@ -173,6 +173,43 @@
 
         <main class="content">
           <div class="main-card">
+
+            <div id="gameTitleBox" class="game-hero-card">
+              <div class="game-hero-banner">
+                <img class="game-hero-banner-img" src="images/game-banners/default.png" alt="Competition banner" />
+
+                <button id="infoBtn" class="icon-btn" type="button" title="Info">i</button>
+
+                <div class="game-hero-banner-bottom">
+                  <div class="game-hero-banner-left">
+                    <div id="gameTitlePlayersBadge" class="game-hero-badge hidden">👤 —</div>
+                    <div id="gameTitlePrizeBadge" class="game-hero-badge hidden">💰 £—</div>
+                  </div>
+
+                  <div class="game-hero-banner-right">
+                    <div id="gameTitleStatusPill" class="game-status-pill hidden"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="game-hero-info">
+                <div class="lobby-bottom-top">
+                  <div id="gameTitlePlayerName" class="game-hero-player-name">—</div>
+
+                  <button type="button" id="gameCompetitionsBtn" class="text-link-btn lobby-competitions-link">
+                    Competitions
+                  </button>
+                </div>
+
+                <div id="gameTitleBoxMeta" class="game-hero-meta"></div>
+              </div>
+            </div>
+
+            <div id="gameLoadingCard" class="fixtures-card game-loading-card hidden">
+              <div class="game-loading-inner">
+                <div class="splash-ball" aria-label="Loading">⚽</div>
+                <div class="muted small">Loading game…</div>
+              </div>
+            </div>
 
             <!-- TOP TABS -->
             <div class="seg-tabs">
@@ -184,9 +221,6 @@
             <!-- SELECTION PANEL -->
             <section id="panel-selection">
 
-              <div id="paymentDetailsCard" class="fixtures-card payment-card hidden"
-                style="margin-top:15px; cursor:pointer;"></div>
-
               <div id="gwReportCard" class="fixtures-card hidden" style="margin-top:12px; cursor:pointer;"></div>
 
               <div id="statusBox" class="status-box"></div>
@@ -194,15 +228,54 @@
               <div class="card pick-card" id="pickCard">
 
                 <div class="pick-head">
-                  <div class="pick-headline">
+                  <div class="pick-head-top">
                     <div class="pick-head-left">
                       <div id="gwTitle" class="pick-gw">Gameweek —</div>
-                      <div id="gwRange" class="pick-date muted small">—</div>
                     </div>
 
                     <div class="pick-head-right">
-                      <div class="muted small">Submission deadline</div>
-                      <div id="timeLeftText" class="pick-deadline">—</div>
+                      <button id="pickCompetitionsBtn" class="text-link-btn lobby-competitions-link" type="button">
+                        Games
+                      </button>
+                    </div>
+                  </div>
+
+                  <div id="gwRange" class="pick-date muted small">—</div>
+
+                  <div class="pick-deadline-block">
+                    <div id="pickCountdownWrap"
+                      class="lobby-deadline-panel lobby-deadline-panel--red pick-deadline-panel hidden"
+                      data-countdown="">
+                      <div class="lobby-deadline-panel-head">
+                        <div class="lobby-deadline-panel-line">
+                          <span class="lobby-deadline-panel-label">Submission deadline:</span>
+                        </div>
+                      </div>
+
+                      <div class="cool-countdown cool-countdown--compact" aria-label="Submission deadline countdown">
+                        <div class="cool-countdown-group">
+                          <span class="cool-digit" data-unit="days-h">0</span>
+                          <span class="cool-digit" data-unit="days-l">0</span>
+                        </div>
+                        <span class="cool-sep">:</span>
+
+                        <div class="cool-countdown-group">
+                          <span class="cool-digit" data-unit="hours-h">0</span>
+                          <span class="cool-digit" data-unit="hours-l">0</span>
+                        </div>
+                        <span class="cool-sep">:</span>
+
+                        <div class="cool-countdown-group">
+                          <span class="cool-digit" data-unit="mins-h">0</span>
+                          <span class="cool-digit" data-unit="mins-l">0</span>
+                        </div>
+                        <span class="cool-sep">:</span>
+
+                        <div class="cool-countdown-group">
+                          <span class="cool-digit" data-unit="secs-h">0</span>
+                          <span class="cool-digit" data-unit="secs-l">0</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -226,7 +299,6 @@
                   </div>
 
                   <div id="pickModeSubmitted" class="hidden">
-
                     <div class="pick-divider"></div>
 
                     <div class="submitted-top">
@@ -245,7 +317,6 @@
 
                     <div id="submittedMeta" class="submitted-meta">—</div>
                   </div>
-
                 </div>
               </div>
             </section>
@@ -286,6 +357,9 @@
                 </div>
               </details>
             </section>
+            <div class="bottom-back-wrap">
+              <button id="backToLobbyBtn" class="btn btn-ghost" type="button">← Back to lobby</button>
+            </div>
           </div>
         </main>
       </div>
@@ -398,22 +472,11 @@
 
           <button class="modal-x" type="button" data-close-modal="infoModal">✕</button>
         </div>
+
         <hr class="modal-divider">
 
         <div class="modal-title">How to play</div>
-        <div style="margin-top: 12px" class="modal-body fixtures-card">
-          <ul class="muted">
-            <li>Pick a team from one of the top 4 English leagues each gameweek.</li>
-            <li>If your team wins: you’re through.</li>
-            <li>If your team loses or draws: you’re out.</li>
-            <li>You can’t reuse the same team twice.</li>
-            <li>Submission deadline is the kick off of the first game.</li>
-            <li>
-              The prize pot distribution is: 60% to the winner, 35% to the club (fundraising), and 5% to administration.
-            </li>
-            <li>Last man standing wins the prize money.</li>
-          </ul>
-        </div>
+        <div class="modal-body fixtures-card" style="margin-top:12px;"></div>
       </div>
     </div>
 
