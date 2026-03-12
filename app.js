@@ -10,9 +10,8 @@ const FIXTURE_SOURCES = [
   { league: "Championship", url: "championship.json" },
   { league: "League One", url: "league-one.json" },
   { league: "League Two", url: "league-two.json" },
+  { league: "FA Cup", url: "fa-cup.json" },
 ];
-
-const GAME_START_DATE = new Date("2026-01-01T00:00:00Z");
 
 
 const DEADLINE_HOURS_BEFORE_FIRST_FIXTURE = 1;
@@ -32,7 +31,7 @@ const DEBUG_REPORT_GW_ID = null;       // e.g. "GW2" to force a specific GW, or 
 
 
 // ✅ Registration lock
-const REGISTRATION_OPEN = false; // set true when you open entries again
+const REGISTRATION_OPEN = true; // set true when you open entries again
 
 const REGISTRATION_CLOSED_HTML = `
   <div style="line-height:1.5;">
@@ -142,21 +141,28 @@ const loginBtn = loginForm?.querySelector('button[type="submit"]');
 const authMsg = document.getElementById("authMsg");
 const teamsDatalist = document.getElementById("teamsDatalist");
 const gwLabel = document.getElementById("gwLabel");
-const gwDateLabel = document.getElementById("gwDateLabel");
 const clearPickBtn = document.getElementById("clearPickBtn");
 
 const clubTeamEl = document.getElementById("clubTeam"); // or whatever your select id is
 const connectionWrap = document.getElementById("connectionWrap");
 const connectionInput = document.getElementById("connectionInput");
+const lobbyView = document.getElementById("lobbyView");
 
 const daySelect = document.getElementById("daySelect");
 let selectedDayKey = "ALL";
 
 let entriesReqId = 0;
+let remainingReqId = 0;
 let activeTab2 = "fixtures"; // track current tab
 
 let entriesLoading = false;
 let lastEntriesSig = "";
+
+let activeGameId = null;   // which game the user is currently in
+let gamesList = [];        // from API
+
+let myEntries = [];          // entries for this account across games
+let activeEntry = null;
 
 const tabButtons = document.querySelectorAll(".tab2");
 const fixturesPanel = document.getElementById("panel-fixtures");
@@ -198,14 +204,12 @@ const gameweekSelect = document.getElementById("gameweekSelect");
 const submitPickBtn = document.getElementById("submitPickBtn");
 const gwTitleEl = document.getElementById("gwTitle");
 const gwRangeEl = document.getElementById("gwRange");
-const deadlineValueEl = document.getElementById("deadlineValue");
+
 
 
 const gwTitle = document.getElementById("gwTitle");
-const gwDeadline = document.getElementById("gwDeadline");
-const deadlineTimer = document.getElementById("deadlineTimer");
-const userStatusPill = document.getElementById("userStatusPill");
-const usedTeamsPill = document.getElementById("usedTeamsPill");
+
+
 
 const aliveList = document.getElementById("aliveList");
 const outList = document.getElementById("outList");
@@ -232,14 +236,37 @@ playerModal?.addEventListener("pointerdown", (e) => {
 });
 playerModal?.querySelector(".modal-card")?.addEventListener("pointerdown", (e) => e.stopPropagation());
 
+// ----------------------------
+// STORAGE KEYS (NO TRAILING SPACES)
+// ----------------------------
+const KEY_VERIFIED_SEEN = (email) => `lms_verified_seen::${String(email || "").trim().toLowerCase()}`;
+const KEY_SESSION_SEEN_VERIFIED = (email) => `session_seen_verified::${String(email || "").trim().toLowerCase()}`;
+const KEY_WINNER_SEEN = (email) => `lms_winner_seen::${String(email || "").trim().toLowerCase()}`;
+const KEY_SEEN_OUTCOME_SIG = (email) => `seen_outcome_sig_session::${String(email || "").trim().toLowerCase()}`;
+
+// one-time cleanup of the old buggy keys with trailing spaces
+(function cleanupOldTrailingSpaceKeys_() {
+  try {
+    const sess = (() => {
+      try { return JSON.parse(localStorage.getItem(LS_SESSION) || "null"); } catch { return null; }
+    })();
+    const email = String(sess?.email || "").trim().toLowerCase();
+    if (!email) return;
+
+    // remove old forms that accidentally had trailing spaces
+    localStorage.removeItem(`lms_verified_seen::${email} `);
+    sessionStorage.removeItem(`session_seen_verified::${email} `);
+  } catch { }
+})();
+
 
 /*******************************
  * STATE
  *******************************/
 let fixtures = [];
 let gameweeks = [];
-let selectedGwId = null;
-let pendingPick = null;
+let deadlinesByGw = new Map();
+
 let deadlineInterval = null;
 
 let sessionEmail = null;
@@ -270,6 +297,17 @@ let lastGwReportCountGwId = null;
 let gwReportCountLoading = false;
 let lastGwReportCountFetchAt = 0;
 
+let competitionOver = false;
+let winnerEmail = null;
+let lastRemainingFetchAt = 0; // throttle for polling
+
+let lobbyCountsByGame = {};
+let lobbyCountsLoading = {};
+
+let lobbyPoll = null;
+let lastEntryApprovedByGame = {};
+
+let lastLobbyRenderSig = "";
 
 
 /*******************************
@@ -305,6 +343,276 @@ function getTeamLogo_(teamName) {
   const key = normTeamKey_(teamName);
   return TEAM_LOGO_MAP.get(key) || DEFAULT_TEAM_LOGO;
 }
+
+async function fetchGames_() {
+  const data = await api({ action: "getGames" });
+  gamesList = Array.isArray(data.games) ? data.games : [];
+}
+
+async function fetchMyEntries_() {
+  if (!sessionEmail) return;
+  const data = await api({ action: "getMyEntries", email: sessionEmail });
+  myEntries = Array.isArray(data.entries) ? data.entries : [];
+}
+
+function getMyEntryForGame_(gameId) {
+  const gid = String(gameId || "");
+  return (myEntries || []).find(e => String(e.gameId || "") === gid) || null;
+}
+
+async function handleLobbyApprovalChanges_() {
+  let newlyApprovedEntry = null;
+
+  for (const entry of (myEntries || [])) {
+    const gameId = String(entry?.gameId || "");
+    if (!gameId) continue;
+
+    const approvedNow = isApproved_(entry);
+    const approvedBefore = lastEntryApprovedByGame[gameId];
+
+    if (approvedBefore === false && approvedNow === true) {
+      newlyApprovedEntry = entry;
+      break;
+    }
+  }
+
+  if (!newlyApprovedEntry) return false;
+
+  const gameId = String(newlyApprovedEntry.gameId || "");
+  const game = (gamesList || []).find(g => String(g.id || "") === gameId);
+  const gameTitle = String(game?.title || "this game").trim();
+
+  for (const entry of (myEntries || [])) {
+    const gid = String(entry?.gameId || "");
+    if (!gid) continue;
+    lastEntryApprovedByGame[gid] = isApproved_(entry);
+  }
+
+  showSplash(true);
+
+  try {
+    await fetchGames_();
+    await refreshLobbyCounts_();
+    renderLobby_();
+
+    await enterGame_(gameId);
+
+    showSystemModal_(
+      "Registration approved ✅",
+      `
+        <div style="line-height:1.5;">
+          <p style="margin:0 0 10px;"><strong>You have been approved for ${escapeHtml(gameTitle)}.</strong></p>
+          <p style="margin:0;">You can now make your first selection.</p>
+        </div>
+      `,
+      { showActions: false }
+    );
+
+    return true;
+  } catch (err) {
+    console.warn("Lobby approval transition failed", err);
+    return false;
+  } finally {
+    showSplash(false);
+  }
+}
+
+function startLobbyPolling_() {
+  if (!sessionEmail) return;
+
+  if (lobbyPoll) {
+    clearInterval(lobbyPoll);
+    lobbyPoll = null;
+  }
+
+  lobbyPoll = setInterval(async () => {
+    try {
+      const hadSnapshot = Object.keys(lastEntryApprovedByGame || {}).length > 0;
+
+      await fetchMyEntries_();
+
+      if (!hadSnapshot) {
+        snapshotLobbyApprovalStates_();
+        refreshLobbyCounts_().catch(() => { });
+        return;
+      }
+
+      const changed = await handleLobbyApprovalChanges_();
+      if (changed) return;
+
+      snapshotLobbyApprovalStates_();
+      refreshLobbyCounts_().catch(() => { });
+    } catch (err) {
+      console.warn("Lobby polling failed", err);
+    }
+  }, 8000);
+}
+
+function stopLobbyPolling_() {
+  if (lobbyPoll) {
+    clearInterval(lobbyPoll);
+    lobbyPoll = null;
+  }
+}
+
+function openInfoModalForGame_(gameId) {
+  const modal = document.getElementById("infoModal");
+  if (!modal) return;
+
+  const titleEl = modal.querySelector(".modal-title");
+  const bodyEl = modal.querySelector(".modal-body");
+
+  if (!titleEl || !bodyEl) {
+    console.warn("Info modal title/body not found");
+    return;
+  }
+
+  const game = (gamesList || []).find(g => String(g.id || "") === String(gameId || ""));
+  const title = String(game?.title || "Competition").trim();
+  const competitions = getGameCompetitions_(game);
+  const entryFee = Number(game?.entryFee || 0);
+
+  titleEl.textContent = `${title} - How to play`;
+
+  bodyEl.innerHTML = `
+    <div style="line-height:1.55;">
+      <p><strong>Competitions included:</strong> ${escapeHtml(competitions.join(", "))}</p>
+
+      <p>Pick <strong>one team</strong> each gameweek.</p>
+
+      <p>If your team <strong>wins</strong>, you go through to the next gameweek.</p>
+
+      <p>If your team <strong>draws or loses</strong>, you are out.</p>
+
+      <p>You can only use each team <strong>once</strong> during the competition.</p>
+
+      <p>Your selection must be submitted before the deadline shown in the app.</p>
+
+      <p><strong>Entry fee:</strong> £${entryFee}</p>
+
+      <p><strong>Prize split:</strong> roughly 60% winner, 30% fundraising, 10% admin.</p>
+
+      <p><strong>Last player remaining wins.</strong></p>
+    </div>
+  `;
+
+  openModal(modal);
+}
+
+function convertFixtureGwToGameGw_(fixtureGwId, game) {
+  const startGw = String(game?.startGw || "GW1").toUpperCase();
+
+  const startNum = Number(startGw.replace("GW", ""));
+  const fixtureNum = Number(String(fixtureGwId).replace("GW", ""));
+
+  const gameNum = fixtureNum - startNum + 1;
+
+  return `GW${gameNum}`;
+}
+
+function getGameBannerUrl_(gameId) {
+  return `images/game-banners/${String(gameId || "").trim()}.png`;
+}
+
+function getGameStartGwNum_(game = getActiveGame_()) {
+  const n = gwNumFromId(game?.startGw);
+  return Number.isFinite(n) ? n : 1;
+}
+
+function getDisplayGwNumForGame_(actualGwId, game = getActiveGame_()) {
+  const actualNum = gwNumFromId(actualGwId);
+  const startNum = getGameStartGwNum_(game);
+
+  if (!Number.isFinite(actualNum) || !Number.isFinite(startNum)) return actualNum;
+  return actualNum - startNum + 1;
+}
+
+function getDisplayGwIdForGame_(actualGwId, game = getActiveGame_()) {
+  const n = getDisplayGwNumForGame_(actualGwId, game);
+  return Number.isFinite(n) && n > 0 ? `GW${n}` : actualGwId;
+}
+
+function getActualGwIdForDisplayGw_(displayGwId, game = getActiveGame_()) {
+  const displayNum = gwNumFromId(displayGwId);
+  const startNum = getGameStartGwNum_(game);
+
+  if (!Number.isFinite(displayNum) || !Number.isFinite(startNum)) return displayGwId;
+  return `GW${startNum + displayNum - 1}`;
+}
+
+async function refreshLobbyCounts_() {
+  const targetGames = (gamesList || []).filter(g => {
+    const s = String(g.status || "").toUpperCase();
+    return s === "OPEN" || s === "RUNNING" || s === "FINISHED";
+  });
+
+  await Promise.all(targetGames.map(async (g) => {
+    const gameId = String(g.id || "");
+    if (!gameId) return;
+
+    lobbyCountsLoading[gameId] = true;
+
+    try {
+      const gwId = String(g.startGw || "GW1").toUpperCase();
+      const data = await api({ action: "getEntries", gameId, gwId });
+      const users = Array.isArray(data.users) ? data.users : [];
+
+      const approvedUsers = users.filter(u => isApproved_(u));
+      const pendingUsers = users.filter(u => !isApproved_(u));
+      const aliveApprovedUsers = approvedUsers.filter(u => u.alive);
+
+      lobbyCountsByGame[gameId] = {
+        registered: users.length || 0,
+        approved: approvedUsers.length || 0,
+        pending: pendingUsers.length || 0,
+        remaining: aliveApprovedUsers.length || 0,
+        total: users.length || 0
+      };
+    } catch (err) {
+      console.warn("Lobby counts failed for", gameId, err);
+    } finally {
+      lobbyCountsLoading[gameId] = false;
+    }
+  }));
+
+  renderLobby_();
+}
+
+function getCompetitionLogo_(name) {
+  const key = String(name || "").trim().toLowerCase();
+
+  const map = {
+    "premier league": "images/competitions/premier-league.png",
+    "championship": "images/competitions/championship.png",
+    "league one": "images/competitions/league-one.png",
+    "league two": "images/competitions/league-two.png",
+    "fa cup": "images/competitions/fa-cup.png",
+  };
+
+  return map[key] || "images/competitions/default.png";
+}
+
+
+
+function parseCompetitions_(value) {
+  return String(value || "")
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function getGameCompetitions_(game = getActiveGame_()) {
+  const comps = parseCompetitions_(game?.competitions);
+  return comps.length
+    ? comps
+    : ["Premier League", "Championship", "League One", "League Two"];
+}
+
+function gameIncludesLeague_(leagueName, game = getActiveGame_()) {
+  const comps = getGameCompetitions_(game).map(x => x.toLowerCase());
+  return comps.includes(String(leagueName || "").trim().toLowerCase());
+}
+
 
 // Small reusable HTML renderer
 
@@ -393,29 +701,6 @@ function isApproved_(u) {
   return false;
 }
 
-function hasPickForGw_(u, gwId) {
-  // preferred: your API already provides this
-  if (u?.submittedForGw === true) return true;
-
-  // fallback: if API provides picks
-  const picks = Array.isArray(u?.picks) ? u.picks : [];
-  const gwKey = String(gwId || "").toUpperCase();
-  return picks.some(p => String(p?.gwId || "").toUpperCase() === gwKey && String(p?.team || "").trim());
-}
-
-function outcomeLabel_(o) {
-  const out = String(o || "PENDING").toUpperCase();
-  if (out === "WIN") return "Won";
-  if (out === "LOSS") return "Lost";
-  return "TBC";
-}
-
-function outcomeCls_(o) {
-  const out = String(o || "PENDING").toUpperCase();
-  if (out === "WIN") return "good";
-  if (out === "LOSS") return "bad";
-  return "muted";
-}
 
 function outcomeLabel_(outcome) {
   const o = String(outcome || "").trim().toUpperCase();
@@ -433,7 +718,7 @@ function outcomeCls_(outcome) {
 
 
 async function fetchGwReportRows_(gwId) {
-  const data = await api({ action: "getGwReport", gwId });
+  const data = await api({ action: "getGwReport", gameId: activeGameId, gwId });
   return Array.isArray(data.rows) ? data.rows : [];
 }
 
@@ -450,19 +735,18 @@ function startOfDayUTC(d) {
   return x;
 }
 
-function buildGameweeks(fixturesArr) {
+function buildGameweeks(fixturesArr, game) {
   const map = new Map();
+  const startGwNum = getGameStartGwNum_(game);
 
   for (const f of fixturesArr) {
+    const actualNum = gwNumFromId(f.gwId);
+    if (!Number.isFinite(actualNum)) continue;
+    if (actualNum < startGwNum) continue;
+
     if (!map.has(f.gwId)) map.set(f.gwId, { id: f.gwId, fixtures: [] });
     map.get(f.gwId).fixtures.push(f);
   }
-
-  const startOfDayUTC = (d) => {
-    const x = new Date(d);
-    x.setUTCHours(0, 0, 0, 0);
-    return x;
-  };
 
   const gws = Array.from(map.values()).map(gw => {
     gw.fixtures.sort((a, b) => a.kickoff - b.kickoff);
@@ -471,35 +755,74 @@ function buildGameweeks(fixturesArr) {
     const lastKickoff = gw.fixtures[gw.fixtures.length - 1].kickoff;
 
     const start = startOfDayUTC(firstKickoff);
-    const deadline = new Date(firstKickoff.getTime() - DEADLINE_HOURS_BEFORE_FIRST_FIXTURE * 3600 * 1000);
+    const fallbackDeadline = new Date(firstKickoff.getTime() - DEADLINE_HOURS_BEFORE_FIRST_FIXTURE * 3600 * 1000);
+    const fallbackLateDeadline = new Date(lastKickoff.getTime());
 
     const endDay = startOfDayUTC(lastKickoff);
-    const endCutoff = new Date(endDay.getTime() + 24 * 3600 * 1000);
+    const endCutoff = new Date(lastKickoff.getTime());
 
-    const num = gwNumFromId(gw.id);
+    const actualNum = gwNumFromId(gw.id);
+    const displayNum = actualNum - startGwNum + 1;
 
     return {
       ...gw,
-      num: num ?? gw.id,
+      actualGwId: gw.id,
+      displayGwId: `GW${displayNum}`,
+      num: displayNum,
+      actualNum,
       start,
       firstKickoff,
       lastKickoff,
-      deadline,
+      deadline: fallbackDeadline,
+      lateDeadline: fallbackLateDeadline,
       endDay,
-      endCutoff,
+      endCutoff
     };
   });
 
-  gws.sort((a, b) => {
-    const an = typeof a.num === "number" ? a.num : 999999;
-    const bn = typeof b.num === "number" ? b.num : 999999;
-    if (an !== bn) return an - bn;
-    return a.start - b.start;
-  });
-
+  gws.sort((a, b) => a.actualNum - b.actualNum);
   return gws;
 }
 
+function applyDeadlinesToGameweeks_(gws) {
+  return (gws || []).map(gw => {
+    const row = deadlinesByGw.get(String(gw.id || "").toUpperCase());
+    if (!row) return gw;
+
+    return {
+      ...gw,
+      deadline: row.normalDeadlineIso ? new Date(row.normalDeadlineIso) : gw.deadline,
+      lateDeadline: row.lateDeadlineIso ? new Date(row.lateDeadlineIso) : gw.lateDeadline,
+      firstKickoff: row.firstKickoffIso ? new Date(row.firstKickoffIso) : gw.firstKickoff,
+      lastKickoff: row.lastKickoffIso ? new Date(row.lastKickoffIso) : gw.lastKickoff,
+      endCutoff: row.lateDeadlineIso ? new Date(row.lateDeadlineIso) : gw.endCutoff
+    };
+  });
+}
+
+function getGameweeksForGame_(game) {
+  if (!game || !fixtures.length) return [];
+  return applyDeadlinesToGameweeks_(buildGameweeks(fixtures, game));
+}
+
+function shouldShowGwReportRow_(row, gwId) {
+  const rowGwId = String(row?.gwId || gwId || "").toUpperCase();
+  const targetGwId = String(gwId || "").toUpperCase();
+
+  if (rowGwId && rowGwId !== targetGwId) return false;
+
+  const hasSelection = !!String(row?.selection || "").trim();
+  const outcome = String(row?.outcome || "").trim().toUpperCase();
+
+  // show:
+  // - normal submitted rows
+  // - missed submit rows once they become LOSS
+  // - explicit pending rows
+  if (hasSelection) return true;
+  if (outcome === "WIN" || outcome === "LOSS" || outcome === "PENDING") return true;
+
+  return false;
+}
 
 function getGwIdForSelectionsCard_() {
   // Manual override still wins
@@ -529,13 +852,38 @@ function getGwIdForSelectionsCard_() {
   return null;
 }
 
+function getRunningStatusText_() {
+  const game = getActiveGame_();
+  const status = String(game?.status || "").toUpperCase();
 
+  if (status !== "RUNNING") return status || "—";
+
+  const counts = lobbyCountsByGame[String(activeGameId || "")] || {};
+  const remaining = Number(counts.remaining || 0);
+
+  if (remaining <= 1) {
+    const lastStartedGw = getLastStartedActualGwIdForGame_(game) || game?.startGw;
+    return `Complete: ${getDisplayGwIdForGame_(lastStartedGw, game)}`;
+  }
+
+  const gwId = getCurrentActualGwIdForGame_(game) || viewingGwId || currentGwId || game?.startGw;
+  return gwId ? `Running: ${getDisplayGwIdForGame_(gwId, game)}` : "Running";
+}
+
+function snapshotLobbyApprovalStates_() {
+  lastEntryApprovedByGame = {};
+
+  (myEntries || []).forEach(entry => {
+    const gameId = String(entry?.gameId || "");
+    if (!gameId) return;
+    lastEntryApprovedByGame[gameId] = isApproved_(entry);
+  });
+}
 
 async function refreshGwReportCount_(gwId) {
   if (!gwId) return;
   const now = Date.now();
 
-  // throttle (e.g. 20s) so it’s not hammering
   if (gwReportCountLoading) return;
   if (lastGwReportCountGwId === gwId && (now - lastGwReportCountFetchAt) < 20000) return;
 
@@ -543,27 +891,12 @@ async function refreshGwReportCount_(gwId) {
   lastGwReportCountFetchAt = now;
 
   try {
-    // 1) get report rows
     let rows = await fetchGwReportRows_(gwId);
     rows = Array.isArray(rows) ? rows : [];
-
-    // 2) filter to alive only (same logic as modal)
-    try {
-      const entries = await api({ action: "getEntries", gwId });
-      const includeEmails = new Set(
-        (entries.users || [])
-          .filter(u => u && (u.alive || String(u.knockedOutGw || "").toUpperCase() === String(gwId).toUpperCase()))
-          .map(u => String(u.email || "").toLowerCase())
-      );
-
-      rows = (rows || []).filter(r => includeEmails.has(String(r.email || "").toLowerCase()));
-    } catch {
-      // fall back to showing all rows
-    }
+    rows = rows.filter(r => shouldShowGwReportRow_(r, gwId));
 
     const count = rows.length;
 
-    // ✅ only update cache if changed (prevents flicker)
     if (lastGwReportCountGwId !== gwId || lastGwReportCount !== count) {
       lastGwReportCountGwId = gwId;
       lastGwReportCount = count;
@@ -574,21 +907,19 @@ async function refreshGwReportCount_(gwId) {
       if (dotsEl) dotsEl.style.display = "none";
     }
   } catch {
-    // do nothing; importantly, do NOT clear the existing count
+    // leave existing UI as-is
   } finally {
     gwReportCountLoading = false;
   }
 }
 
 
-
 async function openGwReportModal_(gwId) {
   const modal = document.getElementById("gwReportModal");
   const titleEl = document.getElementById("gwReportModalTitle");
   const bodyEl = document.getElementById("gwReportModalBody");
-  if (!modal || !bodyEl) return;
+  if (!modal || !bodyEl || !titleEl) return;
 
-  // Header title (same format as card)
   titleEl.innerHTML = `
     ${escapeHtml(gwLabelLong(gwId))} - Selections
     <span class="muted" id="gwReportModalCountDots">
@@ -624,25 +955,12 @@ async function openGwReportModal_(gwId) {
   let rows = [];
   try {
     rows = await fetchGwReportRows_(gwId);
+    rows = Array.isArray(rows) ? rows : [];
   } catch {
     rows = [];
   }
 
-  // ✅ Filter to ONLY alive players
-  try {
-    const entries = await api({ action: "getEntries", gwId });
-    const includeEmails = new Set(
-      (entries.users || [])
-        .filter(u => u && (u.alive || String(u.knockedOutGw || "").toUpperCase() === String(gwId).toUpperCase()))
-        .map(u => String(u.email || "").toLowerCase())
-    );
-
-    rows = (rows || []).filter(r => includeEmails.has(String(r.email || "").toLowerCase()));
-  } catch {
-    // fall back to showing all rows
-  }
-
-
+  rows = rows.filter(r => String(r.selection || "").trim());
 
   const totalSelections = rows.length;
 
@@ -652,22 +970,19 @@ async function openGwReportModal_(gwId) {
   if (countEl) countEl.textContent = String(totalSelections);
   if (dotsEl) dotsEl.style.display = "none";
 
-  const tbodyHtml = (rows || []).map(r => {
+  const tbodyHtml = rows.map(r => {
     const name = r.name || r.email || "—";
     const club = simplifyClub_(r.clubTeam || "—");
     const sel = String(r.selection || "").trim();
-    const resLabel = outcomeLabel_(r.outcome); // TBC/Won/Lost
-    const resCls = outcomeCls_(r.outcome);     // muted/good/bad etc
+    const resLabel = outcomeLabel_(r.outcome);
+    const resCls = outcomeCls_(r.outcome);
 
     return `
       <tr>
         <td title="${escapeAttr(name)}">${escapeHtml(name)}</td>
         <td class="muted" title="${escapeAttr(club)}">${escapeHtml(club)}</td>
         <td class="gw-cell-selection">
-          ${sel
-        ? teamInlineHtml_(sel, { size: 12, logoPosition: "before" })
-        : `<span class="muted">Not submitted</span>`
-      }
+          ${teamInlineHtml_(sel, { size: 12, logoPosition: "before" })}
         </td>
         <td class="gw-cell-result">
           <span class="gw-result ${resCls}">${escapeHtml(resLabel)}</span>
@@ -676,79 +991,475 @@ async function openGwReportModal_(gwId) {
     `;
   }).join("");
 
-  // Replace tbody only (prevents layout jump / flicker)
   const tbody = bodyEl.querySelector(".gw-table tbody");
-  if (tbody) tbody.innerHTML = tbodyHtml || `<tr><td colspan="4" class="muted small" style="padding:10px 6px;">No selections.</td></tr>`;
+  if (tbody) {
+    tbody.innerHTML = tbodyHtml || `<tr><td colspan="4" class="muted small" style="padding:10px 6px;">No selections.</td></tr>`;
+  }
 }
 
+
+
+function showPickConfirmModal_(team, gwId) {
+  const gw = gameweeks.find(g => g.id === gwId);
+  if (!gw) {
+    setBtnLoading(submitPickBtn, false);
+    return;
+  }
+
+  const fx = findFixtureForTeam(gw, team);
+  if (!fx) {
+    setBtnLoading(submitPickBtn, false);
+    showFixturesMessage("Match not found for this gameweek.", "bad");
+    return;
+  }
+
+  const kickoffText = fx.kickoffHasTime
+    ? `${formatDateWithOrdinalShortUK(fx.kickoff)} - ${formatTimeUK(fx.kickoff)}`
+    : `${formatDateWithOrdinalShortUK(fx.kickoff)}`;
+
+  showConfirmModal_(
+    `<span class="">Confirm selection:</span> <strong>${escapeHtml(team)}?</strong>`,
+    `
+      <div style="margin-top:10px;">
+        <div class="fixture-row">
+          <div class="fixture-main">
+            ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: team })}
+            <div class="fixture-datetime muted">${escapeHtml(kickoffText)}</div>
+          </div>
+        </div>
+      </div>
+    `,
+    {
+      confirmText: "Confirm",
+      cancelText: "Cancel",
+      onConfirm: async () => {
+        await savePick(team);
+      }
+    }
+  );
+}
+
+function getActiveGame_() {
+  return (gamesList || []).find(g => String(g.id || "") === String(activeGameId || "")) || null;
+}
+
+
+
+function formatGameDeadlineText_(value) {
+  if (!value) return "—";
+
+  const raw = String(value).trim();
+
+  // If it's already plain text from sheets, return as-is
+  if (isNaN(Date.parse(raw)) && !raw.includes("T")) {
+    return raw;
+  }
+
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return raw;
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).formatToParts(d);
+
+  const weekday = parts.find(p => p.type === "weekday")?.value || "";
+  const dayNum = Number(parts.find(p => p.type === "day")?.value || "0");
+  const month = parts.find(p => p.type === "month")?.value || "";
+  const hour = parts.find(p => p.type === "hour")?.value || "";
+  const minute = parts.find(p => p.type === "minute")?.value || "00";
+  const dayPeriod = (parts.find(p => p.type === "dayPeriod")?.value || "").toLowerCase();
+
+  const suffix =
+    (dayNum % 100 >= 11 && dayNum % 100 <= 13) ? "th" :
+      (dayNum % 10 === 1) ? "st" :
+        (dayNum % 10 === 2) ? "nd" :
+          (dayNum % 10 === 3) ? "rd" : "th";
+
+  return `${weekday} ${dayNum}${suffix} ${month} - ${hour}:${minute}${dayPeriod}`;
+}
+
+function formatOrdinal_(n) {
+  const x = Number(n);
+  if (!isFinite(x)) return "";
+  const v = x % 100;
+  if (v >= 11 && v <= 13) return `${x}th`;
+  switch (x % 10) {
+    case 1: return `${x}st`;
+    case 2: return `${x}nd`;
+    case 3: return `${x}rd`;
+    default: return `${x}th`;
+  }
+}
+
+function getWinnerLineHtml_(winner, remainingCount) {
+  const winnerText = String(winner || "").trim();
+  const remaining = Number(remainingCount || 0);
+
+  if (winnerText) {
+    return `Winner: <strong>${escapeHtml(winnerText)}</strong>`;
+  }
+
+  if (remaining === 0) {
+    return `No winner - <strong>prize rollover</strong>`;
+  }
+
+  return "";
+}
+
+function getCurrentActualGwIdForGame_(game) {
+  const relevantGameweeks = getGameweeksForGame_(game);
+  if (!relevantGameweeks.length) return null;
+
+  const nowMs = Date.now();
+
+  const inProgress = relevantGameweeks.find(gw =>
+    nowMs >= gw.deadline.getTime() && nowMs < gw.endCutoff.getTime()
+  );
+  if (inProgress) return inProgress.id;
+
+  const upcoming = relevantGameweeks.find(gw => nowMs < gw.deadline.getTime());
+  if (upcoming) return upcoming.id;
+
+  return relevantGameweeks[relevantGameweeks.length - 1]?.id || null;
+}
+
+function getLastStartedActualGwIdForGame_(game) {
+  const relevantGameweeks = getGameweeksForGame_(game);
+  if (!relevantGameweeks.length) return null;
+
+  const nowMs = Date.now();
+  const started = relevantGameweeks.filter(gw => nowMs >= gw.deadline.getTime());
+
+  if (!started.length) return relevantGameweeks[0]?.id || null;
+  return started[started.length - 1]?.id || null;
+}
+
+function getFinishedGwIdForGame_(game) {
+  const explicit = String(
+    game?.endGw || game?.finishedGw || game?.lastGw || ""
+  ).trim().toUpperCase();
+
+  if (explicit) return explicit;
+
+  const relevantGameweeks = getGameweeksForGame_(game);
+  if (!relevantGameweeks.length) {
+    return String(game?.startGw || "GW1").toUpperCase();
+  }
+
+  const nowMs = Date.now();
+
+  const completed = relevantGameweeks.filter(gw =>
+    nowMs >= gw.endCutoff.getTime()
+  );
+  if (completed.length) return completed[completed.length - 1].id;
+
+  const started = relevantGameweeks.filter(gw =>
+    nowMs >= gw.deadline.getTime()
+  );
+  if (started.length) return started[started.length - 1].id;
+
+  return relevantGameweeks[0].id;
+}
+
+function getLobbyRunningStatusText_(game) {
+  const gameId = String(game?.id || "");
+  const remaining = Number(lobbyCountsByGame[gameId]?.remaining || 0);
+
+  if (remaining <= 1) {
+    const finishedGwId = getFinishedGwIdForGame_(game);
+    return `Finished: ${getDisplayGwIdForGame_(finishedGwId, game)}`;
+  }
+
+  const actualGwId = getCurrentActualGwIdForGame_(game) || game?.startGw || "GW1";
+  return `Running: ${getDisplayGwIdForGame_(actualGwId, game)}`;
+}
+
+function getGameBannerStatusText_(game, entry) {
+  const rawStatus = String(game?.status || "").toUpperCase();
+  const firstGw = getGameFirstGw_(game);
+  const nowMs = Date.now();
+
+  const firstDeadlinePassed = !!firstGw && nowMs >= firstGw.deadline.getTime();
+  const registrationOpenNow = isGameRegistrationOpenNow_(game);
+  const lateRegistrationOpen = isGameLateRegistrationOpen_(game);
+
+  if (rawStatus === "FINISHED") {
+    return `Finished: ${getDisplayGwIdForGame_(getFinishedGwIdForGame_(game), game)}`;
+  }
+
+  if (entry && !entry.approved) {
+    return "Pending";
+  }
+
+  if (entry && entry.approved) {
+    if (firstDeadlinePassed) {
+      return getLobbyRunningStatusText_(game);
+    }
+    return "Registered";
+  }
+
+  if (!entry) {
+    if (lateRegistrationOpen) return "Late registration";
+    if (registrationOpenNow) return "Registration open";
+    if (firstDeadlinePassed) return "Registration closed";
+    return "Registration open";
+  }
+
+  return "Registration open";
+}
+
+function getGameBannerStatusClass_(game, entry) {
+  const text = getGameBannerStatusText_(game, entry);
+
+  if (text === "Pending") return "game-status-pill--running";
+  if (text.startsWith("Running:")) return "game-status-pill--running";
+  if (text.startsWith("Finished:")) return "game-status-pill--finished";
+  if (text === "Registration closed") return "game-status-pill--finished";
+
+  return "game-status-pill--open";
+}
+
+function getPlayersBadgeHtml_(game, counts) {
+  const status = String(game?.status || "").toUpperCase();
+  const registered = Number(counts?.registered || counts?.total || 0);
+  const remaining = Number(counts?.remaining || 0);
+  const total = Number(counts?.total || 0);
+
+  if (status === "RUNNING") {
+    return `
+      <span class="hero-pill-tooltip" data-tooltip="Remaining players">
+        <span class="pill-emoji">👤</span> ${remaining}/${total}
+      </span>
+    `;
+  }
+
+  if (status === "FINISHED") {
+    return `
+      <span class="hero-pill-tooltip" data-tooltip="Players">
+        <span class="pill-emoji">👤</span> ${total}
+      </span>
+    `;
+  }
+
+  return `
+    <span class="hero-pill-tooltip" data-tooltip="Players">
+      <span class="pill-emoji">👤</span> ${registered}
+    </span>
+  `;
+}
+
+
+
+function renderGameTitleBox_() {
+  const game = getActiveGame_();
+  const entry = getMyEntryForGame_(activeGameId);
+
+  const counts = lobbyCountsByGame[String(activeGameId || "")] || {};
+
+  const remainingCount = Number(counts.remaining || 0);
+  const totalCount = Number(counts.total || 0);
+  const isWinner = isEntryWinner_(entry, remainingCount);
+
+  const playerNameEl = document.getElementById("gameTitlePlayerName");
+  const metaEl = document.getElementById("gameTitleBoxMeta");
+  const statusPillEl = document.getElementById("gameTitleStatusPill");
+  const playersBadgeEl = document.getElementById("gameTitlePlayersBadge");
+  const prizeBadgeEl = document.getElementById("gameTitlePrizeBadge");
+
+  if (!playerNameEl || !metaEl || !statusPillEl || !playersBadgeEl || !prizeBadgeEl) return;
+
+  if (!game) {
+    playerNameEl.innerHTML = dotsHtml_();
+    metaEl.innerHTML = `<div class="game-hero-meta-row">${dotsHtml_()}</div>`;
+    statusPillEl.className = "game-status-pill hidden";
+    playersBadgeEl.classList.add("hidden");
+    prizeBadgeEl.classList.add("hidden");
+    return;
+  }
+
+  const gameId = String(game.id || "").trim();
+  const title = String(game.title || gameId || "Competition");
+  const status = String(game.status || "OPEN").toUpperCase();
+  const prize = Number(game.prize || 0);
+  const hasPrize = Number.isFinite(prize) && prize > 0;
+  const entryFee = Number(game.entryFee || 0);
+  const winner = String(game.winner || "").trim();
+
+  // EXACT same deadline logic as lobby
+  const firstGw = getGameFirstGw_(game);
+  const lateRegistrationOpen = isGameLateRegistrationOpen_(game);
+  const deadlineIso = lateRegistrationOpen
+    ? (firstGw?.lateDeadline ? firstGw.lateDeadline.toISOString() : "")
+    : (firstGw?.deadline ? firstGw.deadline.toISOString() : "");
+  const showCountdown = status === "OPEN" && !!deadlineIso;
+
+  // EXACT same image method as lobby
+  const bannerImg = document.querySelector("#gameTitleBox .game-hero-banner-img");
+  if (bannerImg) {
+    bannerImg.src = getGameBannerUrl_(gameId);
+    bannerImg.alt = `${title} banner`;
+    bannerImg.onerror = function () {
+      this.onerror = null;
+      this.src = "images/game-banners/default.png";
+    };
+  }
+
+  playerNameEl.textContent = title;
+
+  statusPillEl.className = "game-status-pill";
+  statusPillEl.innerHTML = `
+    <span class="hero-pill-tooltip" data-tooltip="Status">
+      ${escapeHtml(getGameBannerStatusText_(game, entry))}
+    </span>
+  `;
+
+  statusPillEl.classList.remove(
+    "game-status-pill--open",
+    "game-status-pill--running",
+    "game-status-pill--finished"
+  );
+
+  statusPillEl.classList.add(getGameBannerStatusClass_(game, entry));
+
+  // EXACT same top-left badge behaviour as lobby
+  playersBadgeEl.innerHTML = getPlayersBadgeHtml_(game, counts);
+  playersBadgeEl.classList.remove("hidden");
+
+  // top-right badge
+  if (status === "OPEN") {
+    prizeBadgeEl.innerHTML = `
+      <span class="hero-pill-tooltip" data-tooltip="Entry fee">
+        <span class="pill-emoji">🎟️</span> £${entryFee}
+      </span>
+    `;
+    prizeBadgeEl.classList.remove("hidden");
+  } else if (hasPrize) {
+    prizeBadgeEl.innerHTML = `
+      <span class="hero-pill-tooltip" data-tooltip="1st prize">
+        <span class="pill-emoji">💰</span> £${prize}
+      </span>
+    `;
+    prizeBadgeEl.classList.remove("hidden");
+  } else {
+    prizeBadgeEl.innerHTML = "";
+    prizeBadgeEl.classList.add("hidden");
+  }
+
+  const statusText = !entry
+    ? ""
+    : status === "OPEN"
+      ? (entry.approved ? "Registered" : "Pending")
+      : isWinner
+        ? "Winner"
+        : entry.alive === false
+          ? "Dead"
+          : "Alive";
+
+  const statusStateClass = !entry
+    ? "muted"
+    : status === "OPEN"
+      ? (entry.approved ? "good" : "warn")
+      : isWinner
+        ? "good"
+        : entry.alive === false
+          ? "bad"
+          : "good";
+
+  const statusIcon = !entry
+    ? "—"
+    : status === "OPEN"
+      ? (entry.approved ? "✓" : "…")
+      : isWinner
+        ? "🏆"
+        : entry.alive === false
+          ? "✕"
+          : "✓";
+
+  const finishedLine =
+    status === "RUNNING" && entry?.alive === false && lastMyPlacing && lastMyTotalPlayers
+      ? `<div class="lobby-meta-line">Finished: <strong>${lastMyPlacing}${ordinalSuffix_(lastMyPlacing)}</strong> of <strong>${lastMyTotalPlayers}</strong></div>`
+      : "";
+
+  if (status === "OPEN") {
+    const playerUi = getPlayerStatusUi_(game, entry);
+    const showGwReportBtn = hasCurrentGwPick_();
+
+    metaEl.innerHTML = `
+      <div class="lobby-status-actions-row" style="margin-top:12px;">
+        ${entry ? `
+          <div class="lobby-meta-line" style="margin:0;">
+            <span class="lobby-meta-key">Your status:</span>
+            <span class="player-status-pill ${playerUi.pillClass}">
+              <span>${playerUi.text}</span>
+              <span class="state ${playerUi.stateClass}">${playerUi.icon}</span>
+            </span>
+          </div>
+        ` : `<div></div>`}
+
+        <div class="lobby-card-actions" style="margin:0;">
+          ${!entry || entry.approved ? `` : `
+            <button id="gameTitlePayBtn" class="btn btn-primary" type="button">Payment details</button>
+          `}
+        </div>
+      </div>
+    `;
+
+    document.getElementById("gameTitlePayBtn")?.addEventListener("click", () => {
+      showPaymentDetailsModal_();
+    });
+
+    return;
+  }
+
+  if (status === "RUNNING") {
+    const playerUi = getPlayerStatusUi_(game, entry);
+    const showGwReportBtn = hasCurrentGwPick_();
+
+    metaEl.innerHTML = `
+      <div class="lobby-status-actions-row" style="margin-top:12px;">
+        ${entry ? `
+          <div class="lobby-meta-line" style="margin:0;">
+            <span class="lobby-meta-key">Your status:</span>
+            <span class="player-status-pill ${playerUi.pillClass}">
+              <span>${playerUi.text}</span>
+              <span class="state ${playerUi.stateClass}">${playerUi.icon}</span>
+            </span>
+          </div>
+        ` : `<div></div>`}
+      </div>
+    `;
+
+    return;
+  }
+
+  if (status === "FINISHED") {
+    metaEl.innerHTML = `
+      <div class="lobby-bottom-main">
+        <div class="lobby-fit">
+          <div class="lobby-fit-left">
+            ${getWinnerLineHtml_(winner, counts?.remaining)
+        ? `<div class="lobby-meta-line">${getWinnerLineHtml_(winner, counts?.remaining)}</div>`
+        : ``
+      }
+          </div>
+        </div>
+      </div>
+    `;
+    return;
+  }
+}
 
 async function renderGwReportCard_() {
   const card = document.getElementById("gwReportCard");
   if (!card) return;
-
-  // ✅ if debug is on, pick *some* gwId even if none are locked
-  const gwId = DEBUG_FORCE_GW_REPORT
-    ? (DEBUG_REPORT_GW_ID || currentGwId || gameweeks?.[0]?.id)
-    : getGwIdForSelectionsCard_();
-
-  if (!gwId) {
-    card.classList.add("hidden");
-    return;
-  }
-
-  card.classList.remove("hidden");
-  card.classList.add("gw-report-card");
-
-  // ✅ bind click once, but always read the current gwId
-  card.dataset.gwId = gwId;
-  if (!card.dataset.bound) {
-    card.dataset.bound = "1";
-    card.addEventListener("click", () => openGwReportModal_(card.dataset.gwId));
-  }
-
-
-  // ✅ build instantly (so it appears immediately)
-  if (!card.dataset.built) {
-    card.dataset.built = "1";
-    card.innerHTML = `
-      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-        <div style="min-width:0;">
-          <div style="font-weight:900; display:flex; align-items:baseline; gap:6px; min-width:0;">
-            <span id="gwReportCardPrefix" style="white-space:nowrap;">
-              ${escapeHtml(gwLabelLong(gwId))} - Selections
-            </span>
-            <span id="gwReportCardDots" class="muted" style="display:inline-flex;">
-              <span class="dots" aria-label="Loading"></span>
-            </span>
-            <span id="gwReportCardCount" style="white-space:nowrap;"></span>
-          </div>
-          <div class="muted small gw-modal-text">Tap to expand</div>
-        </div>
-        <div class="state muted">›</div>
-      </div>
-    `;
-  }
-
-  // ✅ keep prefix correct
-  const prefixEl = document.getElementById("gwReportCardPrefix");
-  if (prefixEl) prefixEl.textContent = `${gwLabelLong(gwId)} - Selections`;
-
-  const dotsEl = document.getElementById("gwReportCardDots");
-  const countEl = document.getElementById("gwReportCardCount");
-
-  // ✅ stable display (no flicker)
-  if (lastGwReportCountGwId === gwId && typeof lastGwReportCount === "number") {
-    if (countEl) countEl.textContent = String(lastGwReportCount);
-    if (dotsEl) dotsEl.style.display = "none";
-  } else {
-    if (countEl) countEl.textContent = "";
-    if (dotsEl) dotsEl.style.display = "inline-flex";
-  }
-
-  refreshGwReportCount_(gwId);
+  card.classList.add("hidden");
 }
-
-
 
 async function refreshMyPlacingIfDead_() {
   // only relevant if player is dead + we have an email
@@ -773,13 +1484,24 @@ async function refreshMyPlacingIfDead_() {
 }
 
 function hasCompetitionStarted_() {
-  // GW1 is locked = competition started
-  return isGwLockedById_("GW1");
+  const firstGw = gameweeks[0];
+  if (!firstGw) return false;
+  return isGwLockedById_(firstGw.id);
 }
 
-function setSession(email) {
-  sessionEmail = email;
-  localStorage.setItem(LS_SESSION, JSON.stringify({ email }));
+function setSession(userOrEmail) {
+  const payload = typeof userOrEmail === "string"
+    ? { email: userOrEmail }
+    : {
+      email: userOrEmail?.email || "",
+      firstName: userOrEmail?.firstName || "",
+      lastName: userOrEmail?.lastName || "",
+      phone: userOrEmail?.phone || "",
+      clubTeam: userOrEmail?.clubTeam || "",
+    };
+
+  sessionEmail = payload.email || null;
+  localStorage.setItem(LS_SESSION, JSON.stringify(payload));
 }
 
 function getSession() {
@@ -796,6 +1518,11 @@ function clearSession() {
   sessionUser = null;
   sessionPicks = [];
   usedTeams = new Set();
+
+  myEntries = [];
+  activeEntry = null;
+  lastEntryApprovedByGame = {};
+
   localStorage.removeItem(LS_SESSION);
 }
 
@@ -803,19 +1530,7 @@ function now() {
   return new Date();
 }
 
-function setIconBtnLoadingReplace(btn, loading) {
-  if (!btn) return;
-  if (loading) {
-    if (!btn.dataset.originalHtml) btn.dataset.originalHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.classList.add("icon-loading");
-    btn.innerHTML = `<span class="icon-spinner" aria - hidden="true" ></span > `;
-  } else {
-    btn.disabled = false;
-    btn.classList.remove("icon-loading");
-    btn.innerHTML = btn.dataset.originalHtml || "✏️";
-  }
-}
+
 
 const TEAM_NAME_ALIAS = {
   "manchester united": "Man United",
@@ -878,7 +1593,101 @@ function showPlayerModal_(title, html, { status = null, approved = true } = {}) 
   openModal(playerModal);
 }
 
+function hasGameStartedForUi_(game) {
+  const firstGw = getGameFirstGw_(game);
+  if (!firstGw?.deadline) return false;
+  return Date.now() >= firstGw.deadline.getTime();
+}
 
+
+
+function getPlayerStatusUi_(game, entry) {
+  const status = String(game?.status || "").toUpperCase();
+  const counts = lobbyCountsByGame[String(game?.id || "")] || {};
+  const remainingCount = Number(counts.remaining || 0);
+
+  if (!entry) {
+    return {
+      text: "—",
+      pillClass: "",
+      stateClass: "muted",
+      icon: "—"
+    };
+  }
+
+  const approved = !!entry.approved;
+  const dead = entry.alive === false;
+  const winner = isEntryWinner_(entry, remainingCount);
+
+  if (status === "OPEN") {
+    return approved
+      ? {
+        text: "Registered",
+        pillClass: "alive",
+        stateClass: "good",
+        icon: "✓"
+      }
+      : {
+        text: "Pending",
+        pillClass: "",
+        stateClass: "warn",
+        icon: "…"
+      };
+  }
+
+  if (winner) {
+    return {
+      text: "Winner",
+      pillClass: "alive",
+      stateClass: "good",
+      icon: "🏆"
+    };
+  }
+
+  if (dead) {
+    return {
+      text: "Dead",
+      pillClass: "dead",
+      stateClass: "bad",
+      icon: "✕"
+    };
+  }
+
+  return {
+    text: "Alive",
+    pillClass: "alive",
+    stateClass: "good",
+    icon: "✓"
+  };
+}
+
+function hasCurrentGwPick_() {
+  const p = getPickForGw(currentGwId);
+  return !!String(p?.team || "").trim();
+}
+
+async function goToLobby_() {
+  if (deadlineInterval) {
+    clearInterval(deadlineInterval);
+    deadlineInterval = null;
+  }
+
+  if (profilePoll) {
+    clearInterval(profilePoll);
+    profilePoll = null;
+  }
+
+  activeGameId = null;
+  activeEntry = null;
+
+  showLobby_();
+  renderLobby_();
+  refreshLobbyCounts_().catch(() => { });
+}
+
+function dotsHtml_() {
+  return `<span class="dots" aria-label="Loading"></span>`;
+}
 
 
 (function bindPrivacyModalOnce() {
@@ -914,15 +1723,25 @@ function upsertLocalPick(gwId, team) {
 }
 
 
-
 function getTeamsForSelectedGw() {
   const gw = gameweeks.find(g => g.id === currentGwId);
   if (!gw) return [];
+
+  const pick = getPickForGw(currentGwId);
+  if (pick?.team) return [];
+
+  if (canLateSubmitCurrentGw_()) {
+    return getUnstartedTeamsForGw_(currentGwId);
+  }
+
+  if (currentGwLocked()) return [];
+
   const teams = new Set();
   for (const f of gw.fixtures) {
     teams.add(f.home);
     teams.add(f.away);
   }
+
   return Array.from(teams).sort((a, b) => a.localeCompare(b));
 }
 
@@ -983,6 +1802,21 @@ document.addEventListener("click", (e) => {
   if (!teamSuggest) return;
   if (e.target === teamSearch || teamSuggest.contains(e.target)) return;
   teamSuggest.classList.add("hidden");
+});
+
+document.addEventListener("click", e => {
+  const pill = e.target.closest(".hero-pill-tooltip");
+
+  document.querySelectorAll(".hero-pill-tooltip.active")
+    .forEach(p => p.classList.remove("active"));
+
+  if (pill) {
+    pill.classList.add("active");
+
+    setTimeout(() => {
+      pill.classList.remove("active");
+    }, 2000);
+  }
 });
 
 
@@ -1066,10 +1900,31 @@ function handleAccountStateChange_() {
 
   // pending -> approved
   if (approvedNow && lastApprovedState === false) {
-    const k = `session_seen_verified::${emailKey} `;
+    const k = KEY_SESSION_SEEN_VERIFIED(emailKey);
     if (sessionStorage.getItem(k) !== "1") {
       sessionStorage.setItem(k, "1");
-      showVerifiedModalNow_();
+
+      const approvedEntry = (myEntries || []).find(e => !!e?.approved);
+      const approvedGame = (gamesList || []).find(g =>
+        String(g.id || "") === String(approvedEntry?.gameId || "")
+      );
+      const gameTitle = String(
+        approvedGame?.title || getActiveGame_()?.title || "this game"
+      ).trim();
+
+      showSystemModal_(
+        "Registration approved ✅",
+        `
+          <div style="line-height:1.5;">
+            <p style="margin-top: 18px;"><strong>You have been approved for the ${escapeHtml(gameTitle)} game.</strong></p>
+            <p style="margin:0;">You can now enter and make your first selection.</p>
+          </div>
+        `,
+        { showActions: false }
+      );
+
+      renderLobby_();
+      renderGameTitleBox_();
     }
   }
 
@@ -1139,6 +1994,50 @@ function setIconBtnLoading(btn, loading, loadingText = "Working…") {
   }
 }
 
+function isWinner_() {
+  if (!competitionOver || !winnerEmail || !sessionUser?.email) return false;
+  return String(sessionUser.email).toLowerCase() === String(winnerEmail).toLowerCase();
+}
+
+function applyWinConditionUi_() {
+  if (!isWinner_()) return;
+
+  // Disable pick controls
+  submitPickBtn && (submitPickBtn.disabled = true);
+  teamSearch && (teamSearch.disabled = true);
+  clearPickBtn && (clearPickBtn.disabled = true);
+
+  // Hide edit pencil + both pick modes (so it never prompts another team)
+  document.getElementById("editPickBtn")?.classList.add("hidden");
+  document.getElementById("pickModeInput")?.classList.add("hidden");
+  document.getElementById("pickModeSubmitted")?.classList.add("hidden");
+
+  // Make the deadline area read "Competition finished" (if present)
+  const timeLeftText = document.getElementById("timeLeftText");
+  if (timeLeftText) timeLeftText.textContent = "Competition finished";
+
+  // Show modal ONCE per device (or per browser session if you prefer sessionStorage)
+  const k = KEY_WINNER_SEEN(sessionUser.email);
+  if (localStorage.getItem(k) === "1") return;
+  localStorage.setItem(k, "1");
+
+  const game = getActiveGame_();
+  const rawPrize = String(game?.prize ?? "").trim();
+  const hasPrize = rawPrize !== "";
+  const prize = Number(rawPrize || 0);
+
+  showSystemModal_(
+    "Congratulations 🎉",
+    `
+      <div style="line-height:1.5;">
+        <p style="margin:0 0 10px;"><strong>You have won the game!</strong></p>
+        ${hasPrize ? `<p style="margin:0;">Prize money: <strong>£${prize}</strong></p>` : ``}
+      </div>
+    `,
+    { showActions: false }
+  );
+}
+
 function isDeadUi_() {
   if (sessionUser?.alive === false) return true;
   const sig = latestOutcomeSig_();
@@ -1153,49 +2052,62 @@ document.addEventListener("click", (e) => {
   if (modal) closeModal(modal);
 });
 
+let lastApprovedPlayers = null;
+let lastPendingPlayers = null;
 
 async function refreshRemainingPlayersCount() {
-  const myReq = ++entriesReqId;
+  const myReq = ++remainingReqId;
 
-  // Only show the loader if we have never loaded a number yet
   const firstLoad = (lastRemainingPlayers == null || lastTotalPlayers == null);
   remainingLoading = firstLoad;
 
-  if (firstLoad) renderStatusBox(); // show dots immediately only first time
+  if (firstLoad) renderStatusBox();
 
   try {
-    const data = await api({ action: "getEntries", gwId: currentGwId });
-    if (myReq !== entriesReqId) return;
+    const data = await api({ action: "getEntries", gameId: activeGameId, gwId: currentGwId });
+    if (myReq !== remainingReqId) return;
 
-    const users = data.users || [];
+    const users = Array.isArray(data.users) ? data.users : [];
 
-    const alive = users.filter(u => u.alive);
+    const approvedUsers = users.filter(u => isApproved_(u));
+    const pendingUsers = users.filter(u => !isApproved_(u));
+    const aliveApprovedUsers = approvedUsers.filter(u => u.alive);
 
-    lastRemainingPlayers = alive.length;
+    lastApprovedPlayers = approvedUsers.length;
+    lastPendingPlayers = pendingUsers.length;
+    lastRemainingPlayers = aliveApprovedUsers.length;
     lastTotalPlayers = users.length;
 
-    // If I'm dead, also compute my finishing position for footer
+    const alive = aliveApprovedUsers;
+
+    const started = hasCompetitionStarted_();
+    if (started && alive.length === 1) {
+      competitionOver = true;
+      winnerEmail = String(alive[0]?.email || "").toLowerCase() || null;
+    } else {
+      competitionOver = false;
+      winnerEmail = null;
+    }
+
     if (sessionUser?.alive === false) {
       await refreshMyPlacingIfDead_();
     }
-
   } catch {
     // ignore
   } finally {
     remainingLoading = false;
-    renderStatusBox(); // update display (number if we have it)
+    renderStatusBox();
+    renderGameTitleBox_();
+    applyWinConditionUi_();
   }
 }
 
-function payInstructionsHtml_() {
-  return `
-  <div class="pay-modal" >
-      <div class="muted" style="margin-bottom:12px;">
-        Please pay the £10 entry fee to verify your account.
-      </div>
 
+function payInstructionsHtml_(entryFee = 10) {
+  return `
+    <div class="pay-modal">
       <div class="pay-card">
-        <div><strong>Entry fee:</strong> £10</div>
+        <div><strong>Entry fee:</strong> £${entryFee}</div>
 
         <div class="pay-details" style="margin-top:8px;line-height:1.5;">
           <strong>Bank transfer details:</strong><br>
@@ -1205,70 +2117,83 @@ function payInstructionsHtml_() {
           Reference: <strong>Poly LMS</strong>
         </div>
       </div>
+      <div style="margin-top:14px;" class="muted small">
+        If you have already sent the money please be patient, your account will be approved as soon as possible.
+      </div>
     </div>
   `;
 }
 
-
-
-function showVerifiedModalIfNeeded() {
-  if (!sessionUser) return;
-  if (!sessionUser.approved) return;
-
-  const emailKey = String(sessionUser.email || "").toLowerCase();
-  const key = `lms_verified_seen::${emailKey}`;
-  if (localStorage.getItem(key) === "1") return;
-  localStorage.setItem(key, "1");
-
-  // ✅ Always use the dynamic getter + your working modal function
-  showSystemModal_(
-    "Verification complete ✅",
-    `
-      <div style="line-height:1.5;">
-        <p class="muted">Your account is now approved. You can now submit your first team selection.</p>
-      </div>
-    `, { showActions: false }
-  );
+function getGameFirstGw_(game) {
+  const gws = getGameweeksForGame_(game);
+  return gws[0] || null;
 }
 
+async function refreshAccountProfile_() {
+  const sess = getSession();
+  if (!sess?.email) return;
 
-function showVerifiedModalNow_() {
-  showSystemModal_(
-    "Verification complete ✅",
-    `
-      <div style="line-height:1.5;">
-        <p style="margin:0 0 10px;"><strong>Your account is now approved.</strong></p>
-        <p style="margin:0;">You can now submit your first team selection.</p>
-      </div>
-    `, { showActions: false }
-  );
+  // Use login-style identity from session email by asking my entries + account login state.
+  // For now we can just keep whatever login returned, but this helper prevents null issues.
+  if (!sessionUser) {
+    sessionUser = {
+      email: sess.email,
+      firstName: "",
+      lastName: "",
+      phone: "",
+      clubTeam: "",
+      approved: false,
+      alive: true
+    };
+  }
 }
 
 function showConfirmModal_(title, html, { confirmText = "Confirm", cancelText = "Cancel", onConfirm } = {}) {
-  if (!modalReady_()) return;
-
-  closeAllModals();
-
   const titleEl = document.getElementById("systemModalTitle");
   const bodyEl = document.getElementById("systemModalBody");
   const modalEl = document.getElementById("systemModal");
   const actionsEl = document.getElementById("systemModalActions");
 
-  titleEl.textContent = title;
-  bodyEl.innerHTML = html;
+  if (!titleEl || !bodyEl || !modalEl) {
+    setBtnLoading(submitPickBtn, false);
+    return;
+  }
 
-  if (actionsEl) {
-    actionsEl.innerHTML = `
+  closeAllModals();
+
+  titleEl.innerHTML = title || "";
+
+  bodyEl.innerHTML = `
+    ${html || ""}
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px;">
       <button class="btn btn-ghost" type="button" id="sysCancelBtn">${cancelText}</button>
       <button class="btn btn-primary" type="button" id="sysConfirmBtn">${confirmText}</button>
-    `;
+    </div>
+  `;
 
-    document.getElementById("sysCancelBtn")?.addEventListener("click", () => closeModal(modalEl));
-    document.getElementById("sysConfirmBtn")?.addEventListener("click", async () => {
-      closeModal(modalEl);
-      await onConfirm?.();
-    });
+  if (actionsEl) {
+    actionsEl.classList.add("hidden");
+    actionsEl.hidden = true;
+    actionsEl.style.display = "none";
+    actionsEl.innerHTML = "";
   }
+
+  document.getElementById("sysCancelBtn")?.addEventListener("click", () => {
+    closeModal(modalEl);
+    setBtnLoading(submitPickBtn, false);
+  }, { once: true });
+
+  document.getElementById("sysConfirmBtn")?.addEventListener("click", async () => {
+    closeModal(modalEl);
+    await onConfirm?.();
+  }, { once: true });
+
+  // If modal is closed by X or overlay, treat as cancel
+  const handleCancel = () => {
+    setBtnLoading(submitPickBtn, false);
+  };
+
+  modalEl.addEventListener("close", handleCancel, { once: true });
 
   openModal(modalEl);
 }
@@ -1279,15 +2204,24 @@ function showSystemModal_(title, html, { showActions = true } = {}) {
   const bodyEl = document.getElementById("systemModalBody");
   const actionsEl = document.getElementById("systemModalActions");
 
-  if (!systemModal || !titleEl || !bodyEl) return;
+  if (!systemModal || !titleEl || !bodyEl || !actionsEl) return;
 
-  closeAllModals?.();
+  closeAllModals();
 
   titleEl.textContent = title || "";
   bodyEl.innerHTML = html || "";
-  if (actionsEl) actionsEl.classList.toggle("hidden", !showActions);
 
-  // ✅ Use the same modal system everywhere
+  if (showActions) {
+    actionsEl.classList.remove("hidden");
+    actionsEl.hidden = false;
+    actionsEl.style.display = "flex";
+  } else {
+    actionsEl.classList.add("hidden");
+    actionsEl.hidden = true;
+    actionsEl.style.display = "none";
+    actionsEl.innerHTML = "";
+  }
+
   openModal(systemModal);
 }
 
@@ -1333,7 +2267,7 @@ function showWinModal_(pick) {
 
 function showLoseModal_() {
   // Try to use the latest resolved LOSS pick if we have it
-  const p = getLastResolvedPick?.();
+  const p = getLastResolvedPick();
 
   const gwId =
     p?.gwId ||
@@ -1387,21 +2321,40 @@ function applyOutcomeEffects_({ allowModal = true } = {}) {
   const sig = latestOutcomeSig_();
   if (!sig) return false;
 
-  const k = `seen_outcome_sig_session::${String(sessionUser.email).toLowerCase()}`;
-  if (sessionStorage.getItem(k) === sig) return false;
-  sessionStorage.setItem(k, sig);
-
   const [gwId, outcome] = sig.split("::");
   const pick = (sessionPicks || []).find(p => p.gwId === gwId);
 
-  if (outcome === "WIN" && pick) { showWinModal_(pick); return true; }
-  if (outcome === "LOSS") { showLoseModal_(); return true; }
+  // Don't show the WIN modal if the player has already submitted for the next GW
+  if (outcome === "WIN" && pick) {
+    const nextGwId = getNextGwId(gwId);
+    const alreadyPickedNextGw = !!(nextGwId && (sessionPicks || []).some(p =>
+      String(p.gwId || "").toUpperCase() === String(nextGwId).toUpperCase() &&
+      String(p.team || "").trim()
+    ));
+
+    if (alreadyPickedNextGw) {
+      const suppressKey = KEY_SEEN_OUTCOME_SIG(sessionUser.email);
+      sessionStorage.setItem(suppressKey, sig);
+      return false;
+    }
+  }
+
+  const k = KEY_SEEN_OUTCOME_SIG(sessionUser.email);
+  if (sessionStorage.getItem(k) === sig) return false;
+  sessionStorage.setItem(k, sig);
+
+  if (outcome === "WIN" && pick) {
+    showWinModal_(pick);
+    return true;
+  }
+
+  if (outcome === "LOSS") {
+    showLoseModal_();
+    return true;
+  }
 
   return false;
 }
-
-
-
 
 
 function setIconBtnBusyText_(btn, busy, busyText = "…") {
@@ -1419,20 +2372,17 @@ function setIconBtnBusyText_(btn, busy, busyText = "…") {
 }
 
 
-function showPaymentDetailsModal_({ context = "card" } = {}) {
-  const isRegister = context === "register";
-
+function showPaymentDetailsModal_() {
   showSystemModal_(
-    isRegister ? "Account created ✅" : "",
+    "",
     payInstructionsHtml_(),
     { showActions: true }
   );
 
-  if (!isRegister) {
-    const titleEl = document.getElementById("systemModalTitle");
-    if (titleEl) titleEl.textContent = "";
-  }
+  const titleEl = document.getElementById("systemModalTitle");
+  if (titleEl) titleEl.textContent = "";
 }
+
 
 
 function showVerifiedModalOnce_() {
@@ -1455,27 +2405,7 @@ function showVerifiedModalOnce_() {
 }
 
 function renderPaymentDetailsCard_() {
-  const el = document.getElementById("paymentDetailsCard");
-  if (!el) return;
-
-  const show = !!sessionUser && !sessionUser.approved;
-  el.classList.toggle("hidden", !show);
-  if (!show) return;
-
-  el.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
-      <div>
-        <div style="font-weight:900;">Payment details</div>
-        <div class="muted small">Tap to view bank transfer info</div>
-      </div>
-      <div class="state warn">…</div>
-    </div>
-  `;
-
-  if (!el.dataset.bound) {
-    el.dataset.bound = "1";
-    el.addEventListener("click", () => showPaymentDetailsModal_({ context: "card" }));
-  }
+  // removed - payment now lives in the title box button
 }
 
 function normalizeOutcome_(o) {
@@ -1483,21 +2413,6 @@ function normalizeOutcome_(o) {
   if (out === "WIN" || out === "WON") return "WIN";
   if (out === "LOSS" || out === "LOST" || out === "LOSE") return "LOSS";
   return "PENDING";
-}
-
-
-function outcomeIcon_(o) {
-  const out = String(o || "").toUpperCase();
-  if (out === "WIN") return { icon: "✓", cls: "good", label: "Won" };
-  if (out === "LOSS") return { icon: "✕", cls: "bad", label: "Lost" };
-  return { icon: "…", cls: "warn", label: "Pending" };
-}
-
-function userStatePill_(user) {
-  if (!user) return { label: "—", cls: "muted", icon: "—" };
-  if (!user.approved) return { label: "Pending", cls: "warn", icon: "…" };
-  if (user.alive === false) return { label: "Dead", cls: "bad", icon: "✕" };
-  return { label: "Alive", cls: "good", icon: "✓" };
 }
 
 /**
@@ -1598,7 +2513,7 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
 
   if (!picks.length && player.email) {
     try {
-      const resp = await api({ action: "getUserPicks", email: player.email });
+      const resp = await api({ action: "getUserPicks", email: player.email, gameId: activeGameId })
       if (Array.isArray(resp.picks)) picks = resp.picks;
     } catch {
       picks = [];
@@ -1667,7 +2582,7 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
       rowsHtml += `
         <div class="status-row fade-row ${p.outcome === "WIN" ? "win" : p.outcome === "LOSS" ? "loss" : "pending"}">
           <div>
-            ${escapeHtml(gwLabelShort(p.gwId))} - ${teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" })}
+            ${escapeHtml(gwLabelShort(convertFixtureGwToGameGw_(p.gwId, game)))} - ${teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" })}
           </div>
           <div class="state ${cls}">${icon}</div>
         </div>
@@ -1718,7 +2633,7 @@ async function computePlacingForEmail_(targetEmail, gwIdForRank) {
   // Pull all users so we can rank (same logic as your dead modal)
   let users = [];
   try {
-    const data = await api({ action: "getEntries", gwId: gwIdForRank });
+    const data = await api({ action: "getEntries", gameId: activeGameId, gwId: gwIdForRank });
     users = data.users || [];
   } catch {
     users = [];
@@ -1740,12 +2655,11 @@ async function computePlacingForEmail_(targetEmail, gwIdForRank) {
 
 
 function gwLabelShort(gwId) {
-  const m = String(gwId || "").match(/^GW(\d+)$/i);
-  return m ? `GW${Number(m[1])}` : gwId;
+  return getDisplayGwIdForGame_(gwId);
 }
 
 function gwLabelLong(gwId) {
-  const n = gwNumFromId(gwId);
+  const n = getDisplayGwNumForGame_(gwId);
   return n ? `Gameweek ${n}` : String(gwId || "");
 }
 
@@ -1771,96 +2685,172 @@ function renderStatusBox() {
   const box = document.getElementById("statusBox");
   if (!box || !sessionUser) return;
 
+  const game = getActiveGame_();
   const name = `${sessionUser.firstName || ""} ${sessionUser.lastName || ""}`.trim() || "Player";
 
   const isPending = !sessionUser.approved;
   const isDead = sessionUser.alive === false;
   const isAlive = !isPending && !isDead;
 
-  // clear all 3, then set the right one
   box.classList.remove("status-alive", "status-dead", "status-pending");
   if (isPending) box.classList.add("status-pending");
   else if (isDead) box.classList.add("status-dead");
   else box.classList.add("status-alive");
 
-  const picksAsc = sortPicksByGw(sessionPicks);
-  const curPick = picksAsc.find(p => p.gwId === currentGwId) || null;
+  const picksAsc = sortPicksByGw(sessionPicks || []);
+  const picksByGw = new Map(
+    picksAsc
+      .filter(p => p && p.gwId)
+      .map(p => [String(p.gwId).toUpperCase(), p])
+  );
+
+  const currentPick = picksByGw.get(String(currentGwId || "").toUpperCase()) || null;
+  const lateSubmittingNow = canLateSubmitCurrentGw_() && !currentPick?.team;
+
+  const maxGwId = getLastStartedActualGwIdForGame_(game) || currentGwId;
+  const maxGwIndex = findGwIndexById(maxGwId);
+
+  function canShowViewAllForGw_(gwId) {
+    const gw = gameweeks.find(g => g.id === gwId);
+    if (!gw) return false;
+
+    const started = Date.now() >= gw.deadline.getTime();
+    if (!started) return false;
+
+    if (String(gwId).toUpperCase() === String(currentGwId || "").toUpperCase() && lateSubmittingNow) {
+      return false;
+    }
+
+    return true;
+  }
+
+  function viewAllHtml_(gwId) {
+    if (!canShowViewAllForGw_(gwId)) return ``;
+
+    return `
+      <button
+        type="button"
+        class="text-link-btn status-view-all-link"
+        data-view-all-gw="${escapeAttr(gwId)}"
+      >
+        View all
+      </button>
+    `;
+  }
+
+  function stateHtml_(outcome, hasTeam) {
+    const o = String(outcome || "PENDING").toUpperCase();
+
+    if (!hasTeam) return ``;
+    if (o === "WIN") return `<div class="state good">✓</div>`;
+    if (o === "LOSS") return `<div class="state bad">✕</div>`;
+    return `<div class="state warn">…</div>`;
+  }
 
   let rowsHtml = "";
 
-  if (!picksAsc.length || !picksAsc.some(p => p.team)) {
-    const pendingLine = isPending
-      ? "Awaiting approval..."
-      : "Make a selection…";
-
+  if (isPending) {
     rowsHtml = `
-        <div class="status-row pending">
-          <div>${escapeHtml(gwLabelShort(currentGwId))} - ${escapeHtml(pendingLine)}</div>
-          <div class="state">…</div>
-        </div>
-      `;
-  } else {
-    rowsHtml = picksAsc
-      .filter(p => p.team)
-      .map(p => {
-        const o = String(p.outcome || "PENDING").toUpperCase();
-        return `
-          <div class="status-row ${rowClass(o)}">
-            <div>
-              ${escapeHtml(gwLabelShort(p.gwId))} - ${teamInlineHtml_(p.team, { size: 16, logoPosition: "before" })}
-            </div>
-            <div class="state ${o === "WIN" ? "good" : o === "LOSS" ? "bad" : "warn"}">${stepIcon(o)}</div>
+      <div class="status-row pending">
+        <div class="status-row-main">
+          <div class="status-row-left">
+            <span>${escapeHtml(gwLabelShort(currentGwId))} - Awaiting approval...</span>
           </div>
-        `;
-      })
-      .join("");
-
-    // Only prompt "make a selection" if approved+alive
-    if (!curPick && isAlive) {
-      rowsHtml += `
-        <div class="status-row neutral">
-          <div>${escapeHtml(gwLabelShort(currentGwId))} - Make a selection…</div>
-          <div class="state warn">…</div>
+          <div class="status-row-right">
+            <div class="state warn">…</div>
+          </div>
         </div>
-      `;
-    }
+      </div>
+    `;
+  } else {
+    const rows = [];
+
+    (gameweeks || []).forEach(gw => {
+      const gwId = String(gw.id || "").toUpperCase();
+      const gwIndex = findGwIndexById(gwId);
+
+      if (gwIndex < 0 || gwIndex > maxGwIndex) return;
+
+      const pick = picksByGw.get(gwId) || null;
+      const hasTeam = !!String(pick?.team || "").trim();
+      const outcome = String(pick?.outcome || "PENDING").toUpperCase();
+
+      const isCurrentNoPickAlive =
+        !hasTeam &&
+        isAlive &&
+        gwId === String(currentGwId || "").toUpperCase();
+
+      const isFutureNoPickAfterDead =
+        isDead &&
+        !hasTeam &&
+        gwIndex > findGwIndexById(String(sessionUser?.knockedOutGw || "").toUpperCase());
+
+      if (!hasTeam && !isCurrentNoPickAlive && !isFutureNoPickAfterDead) return;
+
+      let rowCls = "neutral";
+      let leftHtml = "";
+
+      if (hasTeam) {
+        rowCls = rowClass(outcome);
+        leftHtml = `
+          <span>${escapeHtml(gwLabelShort(gwId))} - </span>
+          ${teamInlineHtml_(pick.team, { size: 16, logoPosition: "before" })}
+        `;
+      } else {
+        rowCls = "neutral";
+        leftHtml = `<span>${escapeHtml(gwLabelShort(gwId))} - No selection</span>`;
+      }
+
+      rows.push(`
+        <div class="status-row ${rowCls}">
+          <div class="status-row-main">
+            <div class="status-row-left">
+              ${leftHtml}
+            </div>
+
+            <div class="status-row-right">
+              ${viewAllHtml_(gwId)}
+              ${stateHtml_(outcome, hasTeam)}
+            </div>
+          </div>
+        </div>
+      `);
+    });
+
+    rowsHtml = rows.join("") || `
+      <div class="status-row neutral">
+        <div class="status-row-main">
+          <div class="status-row-left">
+            <span>${escapeHtml(gwLabelShort(currentGwId))} - Make a selection...</span>
+          </div>
+          <div class="status-row-right">
+            <div class="state warn">…</div>
+          </div>
+        </div>
+      </div>
+    `;
   }
-
-  const hasCount = (lastRemainingPlayers != null && lastTotalPlayers != null);
-  const countText = hasCount
-    ? `${lastRemainingPlayers}/${lastTotalPlayers}`
-    : (remainingLoading ? `<span class="dots" aria-label="Loading"></span>` : "—");
-
-  const stateLabel = isPending ? "Pending" : isDead ? "Dead" : "Alive";
-  const stateClass = isPending ? "warn" : isDead ? "bad" : "good";
-  const stateIcon = isPending ? "…" : isDead ? "✕" : "✓";
-
-  const finishedText =
-    (sessionUser?.alive === false && lastMyPlacing && lastMyTotalPlayers)
-      ? `Finished: ${lastMyPlacing}${ordinalSuffix_(lastMyPlacing)} of ${lastMyTotalPlayers}`
-      : "";
 
   box.innerHTML = `
     <div class="status-head">
-      <div class="status-name">${escapeHtml(name)}</div>
-      <div class="status-state">
-        <span class="player-status-pill ${isAlive ? "alive" : isDead ? "dead" : ""}">
-          <span>${stateLabel}</span>
-          <span class="state ${stateClass}">${stateIcon}</span>
-        </span>
-      </div>
+      <div class="status-name">${escapeHtml(name)} - Selections</div>
     </div>
 
     <div class="status-rows">
       ${rowsHtml}
     </div>
+  `;
 
-    <div class="status-foot status-foot--split">
-      <div>Remaining players: ${countText}</div>
-      ${finishedText ? `<div class="status-finish">${escapeHtml(finishedText)}</div>` : ``}
-  </div>
-`;
+  box.querySelectorAll("[data-view-all-gw]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const gwId = btn.getAttribute("data-view-all-gw");
+      if (!gwId) return;
+      openGwReportModal_(gwId);
+    });
+  });
 }
+
+
 
 function bindConnectionToClubToggleOnce_() {
   if (!registerForm || registerForm.dataset.boundConn === "1") return;
@@ -1888,9 +2878,6 @@ function bindConnectionToClubToggleOnce_() {
 
 bindConnectionToClubToggleOnce_();
 
-
-
-
 async function editCurrentPickFlow() {
   if (!sessionEmail) return;
   if (currentGwLocked()) return;
@@ -1900,7 +2887,7 @@ async function editCurrentPickFlow() {
 
   try {
     // 1) clear on backend so polling cannot restore it
-    await api({ action: "clearPick", email: sessionEmail, gwId: currentGwId });
+    await api({ action: "clearPick", email: sessionEmail, gameId: activeGameId, gwId: currentGwId })
 
     // 3) open input
     openPickEditor();
@@ -1921,24 +2908,6 @@ async function editCurrentPickFlow() {
 }
 
 
-
-function secondsToHMS(totalSeconds) {
-  const s = Math.max(0, Math.floor(totalSeconds));
-  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
-  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-  const ss = String(s % 60).padStart(2, "0");
-  return `${hh}:${mm}:${ss} `;
-}
-
-function startOfWeekFriday(date) {
-  const d = new Date(date);
-  const day = d.getDay(); // Fri=5
-  const diffToFriday = (day - 5 + 7) % 7;
-  d.setDate(d.getDate() - diffToFriday);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 function hideFixturesMessage() {
   const el = document.getElementById("fixturesMsg");
   if (!el) return;
@@ -1947,13 +2916,6 @@ function hideFixturesMessage() {
   el.classList.remove("good", "bad");
 }
 
-
-function toGwId(fridayDate) {
-  const y = fridayDate.getFullYear();
-  const m = String(fridayDate.getMonth() + 1).padStart(2, "0");
-  const da = String(fridayDate.getDate()).padStart(2, "0");
-  return `GW - ${y} -${m} -${da} `;
-}
 
 function escapeHtml(str) {
   return String(str).replace(/[&<>"']/g, (m) => ({
@@ -1997,12 +2959,41 @@ function renderTopUIOnly() {
   startDeadlineTimer();
   updateTeamDatalist();
   renderGwReportCard_();
+  startCountdowns_();
 }
 
 
 /*******************************
  * FIXTURES: LOAD + NORMALIZE
  *******************************/
+async function loadAllFixtures() {
+  const all = [];
+
+  for (const source of FIXTURE_SOURCES) {
+    try {
+      const res = await fetch(source.url, { cache: "no-store" });
+      if (!res.ok) {
+        console.warn(`Failed to load fixture file: ${source.url} (${res.status})`);
+        continue;
+      }
+
+      const raw = await res.json();
+      const matches = Array.isArray(raw.matches) ? raw.matches : [];
+
+      for (const m of matches) {
+        const fx = normalizeFixture(m, source.league);
+        if (fx) all.push(fx);
+      }
+    } catch (err) {
+      console.warn(`Failed to load fixture file: ${source.url}`, err);
+    }
+  }
+
+  fixtures = all.sort((a, b) => a.kickoff - b.kickoff);
+  return fixtures;
+}
+
+
 function detectGwId(raw) {
   const direct = String(raw.gwId || "").trim();
   if (direct) return direct.toUpperCase(); // "GW1"
@@ -2055,61 +3046,6 @@ function normalizeFixture(raw, leagueName) {
   };
 }
 
-async function loadAllFixtures() {
-  const loaded = [];
-  const errors = [];
-
-  for (const source of FIXTURE_SOURCES) {
-    try {
-      const res = await fetch(source.url, { cache: "no-store" });
-      if (!res.ok) throw new Error(`${source.url} returned ${res.status} `);
-
-      const data = await res.json();
-      const arr = Array.isArray(data.matches) ? data.matches : null;
-      if (!arr) throw new Error(`${source.url} has no matches array`);
-
-      for (const item of arr) {
-        const n = normalizeFixture(item, source.league);
-        if (n) loaded.push(n);
-      }
-    } catch (e) {
-      errors.push(`${source.league}: ${e.message || e} `);
-    }
-  }
-
-  // 1) Filter + sort fixtures FIRST
-  fixtures = loaded
-    .filter(f => f.kickoff >= GAME_START_DATE)
-    .sort((a, b) => a.kickoff - b.kickoff);
-
-  // 2) Build gameweeks from fixtures
-  gameweeks = buildGameweeks(fixtures);
-
-  // 3) Apply manual deadlines AFTER gameweeks exist
-  const deadlineMap = await loadDeadlines();
-  if (deadlineMap.size) {
-    gameweeks = gameweeks.map(gw => {
-      const iso = deadlineMap.get(String(gw.id).toUpperCase());
-      if (!iso) return gw;
-
-      const manual = new Date(iso);
-      if (isNaN(manual.getTime())) return gw;
-
-      return { ...gw, deadline: manual };
-    });
-  }
-
-  // 4) UI message
-  if (!fixtures.length) {
-    const msg = errors.length
-      ? `No fixtures loaded.\n\n${errors.join("\n")} `
-      : "No fixtures loaded. Check your JSON files/paths.";
-    showFixturesMessage(msg, "bad");
-  } else {
-    if (fixturesMsg) fixturesMsg.classList.add("hidden");
-  }
-}
-
 
 function findGwIndexById(gwId) {
   return gameweeks.findIndex(g => g.id === gwId);
@@ -2121,38 +3057,46 @@ function getNextGwId(afterGwId) {
   return gameweeks[idx + 1]?.id || null;
 }
 
-function computeCurrentGwId() {
+function computePlayerGwId() {
   if (!gameweeks.length) return null;
 
-  // If eliminated, currentGwId can stay at last played (you can show eliminated UI)
   if (sessionUser && sessionUser.alive === false) {
-    // try to show the gw they were knocked out in, else last pick
     if (sessionUser.knockedOutGw) return sessionUser.knockedOutGw;
     const lastPick = sessionPicks[sessionPicks.length - 1];
     return lastPick?.gwId || gameweeks[0].id;
   }
 
-  // Get picks sorted by GW index
   const picksSorted = [...sessionPicks].sort((a, b) => findGwIndexById(a.gwId) - findGwIndexById(b.gwId));
   const lastPick = picksSorted.length ? picksSorted[picksSorted.length - 1] : null;
 
-
   if (!lastPick) {
-    // No picks yet -> next upcoming GW by deadline
-    const n = now();
-    return (gameweeks.find(g => g.deadline > n) || gameweeks[0]).id;
+    return computeDateGwId() || gameweeks[0].id;
   }
 
-  // If last pick is LOSS => eliminated (handled above)
   if (lastPick.outcome === "LOSS") return lastPick.gwId;
 
-  // If last pick is WIN => move to next gw (if exists), else stay
   if (lastPick.outcome === "WIN") {
     return getNextGwId(lastPick.gwId) || lastPick.gwId;
   }
 
-  // Otherwise pending: remain on the GW they picked
   return lastPick.gwId;
+}
+
+function computeDateGwId() {
+  if (!gameweeks.length) return null;
+
+  const n = now();
+
+  // 1) If a gameweek is currently in progress, stay on it
+  const inProgress = gameweeks.find(g => n >= g.deadline && n < g.endCutoff);
+  if (inProgress) return inProgress.id;
+
+  // 2) Otherwise, if a future gameweek hasn't started yet, show the next upcoming one
+  const upcoming = gameweeks.find(g => n < g.deadline);
+  if (upcoming) return upcoming.id;
+
+  // 3) If everything is finished, stay on the last one
+  return gameweeks[gameweeks.length - 1]?.id || null;
 }
 
 function sortPicksByGwAsc(picks) {
@@ -2193,6 +3137,67 @@ function startOfDay(d) {
   return x;
 }
 
+
+function isLateSubmissionOpenForGw_(gwId) {
+  const gw = gameweeks.find(g => g.id === gwId);
+  if (!gw || !gw.lateDeadline) return false;
+
+  const pick = getPickForGw(gwId);
+  if (pick?.team) return false;
+
+  const nowMs = Date.now();
+  return nowMs >= gw.deadline.getTime() && nowMs < gw.lateDeadline.getTime();
+}
+
+function canLateSubmitCurrentGw_() {
+  if (!sessionUser?.approved) return false;
+  if (sessionUser?.alive === false) return false;
+
+  const pick = getPickForGw(currentGwId);
+  if (pick?.team) return false;
+
+  return isLateSubmissionOpenForGw_(currentGwId);
+}
+
+function getUnstartedFixturesForGw_(gwId) {
+  const gw = gameweeks.find(g => g.id === gwId);
+  if (!gw) return [];
+
+  const nowMs = Date.now();
+  return gw.fixtures.filter(f => f.kickoff.getTime() > nowMs);
+}
+
+function getUnstartedTeamsForGw_(gwId) {
+  const teams = new Set();
+
+  getUnstartedFixturesForGw_(gwId).forEach(f => {
+    teams.add(f.home);
+    teams.add(f.away);
+  });
+
+  return Array.from(teams).sort((a, b) => a.localeCompare(b));
+}
+
+
+function isGameLateRegistrationOpen_(game) {
+  const firstGw = getGameFirstGw_(game);
+  if (!firstGw?.lateDeadline) return false;
+
+  const nowMs = Date.now();
+  return nowMs >= firstGw.deadline.getTime() && nowMs < firstGw.lateDeadline.getTime();
+}
+
+function isGameRegistrationOpenNow_(game) {
+  const status = String(game?.status || "").toUpperCase();
+  if (status !== "OPEN") return false;
+
+  const firstGw = getGameFirstGw_(game);
+  if (!firstGw?.lateDeadline) return false;
+
+  return Date.now() < firstGw.lateDeadline.getTime();
+}
+
+
 async function loadDeadlines() {
   const res = await fetch("gameweek-deadlines.json", { cache: "no-store" });
   if (!res.ok) return new Map();
@@ -2202,31 +3207,47 @@ async function loadDeadlines() {
 
   for (const d of (data.deadlines || [])) {
     const gwId = String(d.gwId || "").trim().toUpperCase();
-    const date = String(d.date || "").trim();       // "2026-01-31"
-    const time = String(d.deadline || "").trim();   // "14:00"
-    if (!gwId || !date || !time) continue;
+    if (!gwId) continue;
 
-    // Treat as UTC, consistent with your fixture parsing that also uses "Z"
-    map.set(gwId, `${date}T${time}:00Z`);
+    map.set(gwId, {
+      normalDeadlineIso: String(d.normalDeadlineIso || "").trim(),
+      lateDeadlineIso: String(d.lateDeadlineIso || "").trim(),
+      firstKickoffIso: String(d.firstKickoffIso || "").trim(),
+      lastKickoffIso: String(d.lastKickoffIso || "").trim()
+    });
   }
 
   return map;
 }
 
+async function loadFixturesAndDeadlines_() {
+  await loadAllFixtures();
+  deadlinesByGw = await loadDeadlines();
+
+  const activeGame = getActiveGame_();
+  gameweeks = activeGame ? getGameweeksForGame_(activeGame) : [];
+}
 
 
 /*******************************
  * DATA: LOAD USER PROFILE FROM API
  *******************************/
 async function refreshProfile() {
-  if (!sessionEmail) return;
+  if (!sessionEmail || !activeGameId) return;
 
-  const data = await api({ action: "getProfile", email: sessionEmail });
-  sessionUser = data.user;
+  const data = await api({
+    action: "getProfile",
+    email: sessionEmail,
+    gameId: activeGameId
+  });
+
+  sessionUser = {
+    ...(sessionUser || {}),
+    ...(data.user || {})
+  };
   sessionUser.approved = isApproved_(sessionUser);
   sessionPicks = Array.isArray(data.picks) ? data.picks : [];
 
-  // normalize outcomes + ids
   sessionPicks = sessionPicks.map(p => ({
     ...p,
     gwId: String(p.gwId || "").toUpperCase(),
@@ -2234,48 +3255,61 @@ async function refreshProfile() {
   }));
 
   usedTeams = new Set(sessionPicks.filter(p => p.outcome === "WIN").map(p => p.team));
+  renderGameTitleBox_();
 }
 
-
-
-
-
-
-
 function startDeadlineTimer() {
-  if (deadlineInterval) clearInterval(deadlineInterval);
-
   const timeLeftText = document.getElementById("timeLeftText");
+
+  if (isWinner_()) {
+    if (timeLeftText) timeLeftText.textContent = "Competition finished";
+    if (submitPickBtn) submitPickBtn.disabled = true;
+    return;
+  }
+
+  if (deadlineInterval) clearInterval(deadlineInterval);
 
   const tick = () => {
     const gw = gameweeks.find(g => g.id === currentGwId);
     if (!gw) return;
 
-    const diffMs = gw.deadline.getTime() - Date.now();
-    const locked = diffMs <= 0;
+    const hasPick = !!getPickForGw(currentGwId)?.team;
+    const lateSubmitOpen = canLateSubmitCurrentGw_();
+
+    const targetMs = lateSubmitOpen
+      ? gw.lateDeadline?.getTime()
+      : gw.deadline?.getTime();
+
+    if (!targetMs) return;
+
+    const diffMs = targetMs - Date.now();
+    const locked = diffMs <= 0 && !lateSubmitOpen;
 
     if (timeLeftText) {
-      if (locked) {
-        const gw = gameweeks.find(g => g.id === currentGwId);
-        const gwNum = gw?.num ?? gwLabelShort(currentGwId).replace(/^GW/i, "");
-        timeLeftText.textContent = `Submissions closed`;
-        timeLeftText.classList.remove("good");
-      } else {
-
+      if (hasPick) {
+        timeLeftText.textContent = "Selection submitted";
+      } else if (lateSubmitOpen) {
         timeLeftText.textContent = formatTimeLeft(diffMs);
-        timeLeftText.classList.remove("good");
+      } else if (diffMs <= 0) {
+        timeLeftText.textContent = "Submissions closed";
+      } else {
+        timeLeftText.textContent = formatTimeLeft(diffMs);
       }
+
+      timeLeftText.classList.remove("good");
     }
 
-    if (submitPickBtn) submitPickBtn.disabled = locked || !sessionUser?.approved;
+    if (submitPickBtn) {
+      submitPickBtn.disabled =
+        hasPick ||
+        !sessionUser?.approved ||
+        (diffMs <= 0 && !lateSubmitOpen);
+    }
   };
 
   tick();
   deadlineInterval = setInterval(tick, 1000);
 }
-
-
-
 
 function normTeam_(s) {
   return String(s || "").trim().toLowerCase();
@@ -2289,9 +3323,6 @@ function findFixtureForTeam(gw, team) {
     normTeam_(f.home) === t || normTeam_(f.away) === t
   ) || null;
 }
-
-
-
 
 /*******************************
  * RENDER: FIXTURES TAB
@@ -2395,7 +3426,9 @@ function renderFixturesTab() {
       leagueMap.get(f.league).push(f);
     }
 
-    for (const leagueName of ["Premier League", "Championship", "League One", "League Two"]) {
+    const allowedLeagues = getGameCompetitions_(getActiveGame_());
+
+    for (const leagueName of allowedLeagues) {
       const list = leagueMap.get(leagueName);
       if (!list || !list.length) continue;
 
@@ -2449,12 +3482,7 @@ function renderFixturesTab() {
 /*******************************
  * RENDER: ENTRIES TAB
  *******************************/
-function parseGwDate(gwId) {
-  // expects GW-YYYY-MM-DD
-  const m = String(gwId || "").match(/^GW-(\d{4})-(\d{2})-(\d{2})$/);
-  if (!m) return null;
-  return new Date(`${m[1]} -${m[2]} -${m[3]} T00:00:00`);
-}
+
 
 async function renderEntriesTab() {
   if (!aliveList || !outList) return;
@@ -2476,7 +3504,7 @@ async function renderEntriesTab() {
 
   try {
     const gwIdForEntries = currentGwId;
-    const data = await api({ action: "getEntries", gwId: gwIdForEntries });
+    const data = await api({ action: "getEntries", gameId: activeGameId, gwId: gwIdForEntries });
 
     if (myReq !== entriesReqId) return;
 
@@ -2620,9 +3648,673 @@ async function renderEntriesTab() {
 }
 
 
+function openCompetitionsModalForGame_(gameId) {
+  const game = (gamesList || []).find(g => String(g.id || "") === String(gameId || ""));
+  const competitions = getGameCompetitions_(game);
 
+  showSystemModal_(
+    "Competitions included",
+    `
+      <div style="line-height:1.55;">
+        <div class="game-competitions-modal-list">
+          ${competitions.map(name => `
+            <div class="competition-modal-row">
+              <img
+                class="competition-modal-logo"
+                src="${escapeAttr(getCompetitionLogo_(name))}"
+                alt="${escapeAttr(name)}"
+                onerror="this.onerror=null;this.src='images/competition-logos/default.png';"
+              />
+              <span>${escapeHtml(name)}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `,
+    { showActions: false }
+  );
+}
+
+function split2_(n) {
+  return String(Math.max(0, Number(n) || 0)).padStart(2, "0");
+}
+
+function getCountdownParts_(targetValue) {
+  const targetMs = new Date(targetValue).getTime();
+  if (!Number.isFinite(targetMs)) {
+    return {
+      days: "00",
+      hours: "00",
+      mins: "00",
+      secs: "00",
+      done: true
+    };
+  }
+
+  const nowMs = Date.now();
+  const diff = Math.max(0, Math.floor((targetMs - nowMs) / 1000));
+
+  const days = Math.floor(diff / 86400);
+  const hours = Math.floor((diff % 86400) / 3600);
+  const mins = Math.floor((diff % 3600) / 60);
+  const secs = diff % 60;
+
+  return {
+    days: split2_(Math.min(days, 99)),
+    hours: split2_(hours),
+    mins: split2_(mins),
+    secs: split2_(secs),
+    done: diff <= 0
+  };
+}
+
+
+function formatDeadlineDay_(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "—";
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "long",
+    day: "numeric",
+    month: "long"
+  }).formatToParts(d);
+
+  const weekday = parts.find(p => p.type === "weekday")?.value || "";
+  const dayNum = Number(parts.find(p => p.type === "day")?.value || "0");
+  const month = parts.find(p => p.type === "month")?.value || "";
+
+  const suffix =
+    (dayNum % 100 >= 11 && dayNum % 100 <= 13) ? "th" :
+      (dayNum % 10 === 1) ? "st" :
+        (dayNum % 10 === 2) ? "nd" :
+          (dayNum % 10 === 3) ? "rd" : "th";
+
+  return `${weekday} ${dayNum}${suffix} ${month}`;
+}
+
+function formatDeadlineTime_(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (isNaN(d.getTime())) return "—";
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true
+  }).formatToParts(d);
+
+  const hour = parts.find(p => p.type === "hour")?.value || "";
+  const minute = parts.find(p => p.type === "minute")?.value || "00";
+  const dayPeriod = (parts.find(p => p.type === "dayPeriod")?.value || "").toUpperCase();
+
+  return `${hour}:${minute}${dayPeriod}`;
+}
+
+function paintCountdownEl_(root, targetValue) {
+  if (!root || !targetValue) return;
+
+  const parts = getCountdownParts_(targetValue);
+
+  const nextMap = {
+    "days-h": parts.days[0],
+    "days-l": parts.days[1],
+    "hours-h": parts.hours[0],
+    "hours-l": parts.hours[1],
+    "mins-h": parts.mins[0],
+    "mins-l": parts.mins[1],
+    "secs-h": parts.secs[0],
+    "secs-l": parts.secs[1]
+  };
+
+  root.querySelectorAll(".cool-digit").forEach(el => {
+    const key = el.dataset.unit;
+    const next = nextMap[key] ?? "0";
+    const prev = el.textContent;
+
+    if (prev !== next) {
+      el.textContent = next;
+      el.classList.remove("is-tick");
+      void el.offsetWidth;
+      el.classList.add("is-tick");
+    }
+  });
+
+  if (parts.done) {
+    root.classList.add("is-complete");
+  } else {
+    root.classList.remove("is-complete");
+  }
+}
+
+let countdownTimer_ = null;
+
+function startCountdowns_() {
+  if (countdownTimer_) clearInterval(countdownTimer_);
+
+  const tick = () => {
+    document.querySelectorAll("[data-countdown]").forEach(el => {
+      paintCountdownEl_(el, el.getAttribute("data-countdown"));
+    });
+  };
+
+  tick();
+  countdownTimer_ = setInterval(tick, 1000);
+}
+
+function isEntryWinner_(entry, remainingCount) {
+  return !!entry && !!entry.approved && entry.alive !== false && Number(remainingCount || 0) === 1;
+}
+
+function renderLobby_() {
+  if (!lobbyView) return;
+
+  const lobbySig = JSON.stringify({
+    sessionEmail: sessionEmail || "",
+    games: (gamesList || []).map(g => ({
+      id: g.id,
+      status: g.status,
+      winner: g.winner,
+      counts: lobbyCountsByGame[String(g.id || "")] || null,
+      entry: getMyEntryForGame_(g.id) || null
+    }))
+  });
+
+  if (lobbySig === lastLobbyRenderSig) return;
+  lastLobbyRenderSig = lobbySig;
+
+  const cardsHtml = (gamesList || []).map(g => {
+    const gameId = String(g.id || "");
+    const title = String(g.title || gameId);
+    const status = String(g.status || "OPEN").toUpperCase();
+    const prize = Number(g.prize || 0);
+    const hasPrize = Number.isFinite(prize) && prize > 0;
+    const winner = String(g.winner || "").trim();
+    const entry = getMyEntryForGame_(gameId);
+
+    const counts = lobbyCountsByGame[gameId];
+
+    const entryFee = Number(g.entryFee || 0);
+
+    const isRegistered = !!entry;
+    const isApproved = !!entry?.approved;
+    const isDead = entry?.alive === false;
+    const isAlive = isRegistered && isApproved && !isDead;
+    const isWinner = isEntryWinner_(entry, counts?.remaining);
+
+    const firstGw = getGameFirstGw_(g);
+    const normalDeadlineIso = firstGw?.deadline ? firstGw.deadline.toISOString() : "";
+    const lateDeadlineIso = firstGw?.lateDeadline ? firstGw.lateDeadline.toISOString() : "";
+    const lateRegistrationOpen = isGameLateRegistrationOpen_(g);
+    const canRegisterNow = isGameRegistrationOpenNow_(g);
+
+    const deadlineIso = lateRegistrationOpen ? lateDeadlineIso : normalDeadlineIso;
+
+    const showLobbyCountdown = status === "OPEN" && !!deadlineIso && canRegisterNow;
+
+
+
+    let actionsHtml = "";
+
+    if (!sessionEmail) {
+      if (canRegisterNow || lateRegistrationOpen) {
+        actionsHtml = `<button class="btn btn-secondary" type="button" data-auth-required="1">Login to register</button>`;
+      } else {
+        actionsHtml = "";
+      }
+    } else if (!entry) {
+      if (canRegisterNow) {
+        actionsHtml = `<button class="btn btn-primary" type="button" data-join-game="${escapeAttr(gameId)}">${lateRegistrationOpen ? "Late register" : "Register now"}</button>`;
+      } else {
+        actionsHtml = "";
+      }
+    } else if (status === "OPEN" && !entry.approved) {
+      actionsHtml = `<button class="btn btn-primary" type="button" data-enter-game="${escapeAttr(gameId)}">Enter game →</button>`;
+    } else {
+      actionsHtml = entry?.alive === false
+        ? `<button class="btn btn-ghost" type="button" data-enter-game="${escapeAttr(gameId)}">View game →</button>`
+        : `<button class="btn btn-primary" type="button" data-enter-game="${escapeAttr(gameId)}">Enter game →</button>`;
+    }
+
+    return `
+      <div class="game-hero-card lobby-hero-card" style="margin-bottom:16px;">
+        <div class="game-hero-banner lobby-hero-banner">
+          <img
+            class="game-hero-banner-img"
+            src="${escapeAttr(getGameBannerUrl_(gameId))}"
+            alt="${escapeAttr(title)} banner"
+            onerror="this.onerror=null;this.src='images/game-banners/default.png';"
+          />
+
+          <div>
+            <button
+              class="hero-nav-btn"
+              type="button"
+              data-lobby-info="${escapeAttr(gameId)}"
+              aria-label="Competition info"
+            >i</button>
+          </div>
+
+          <div class="game-hero-banner-badges game-hero-banner-badges--left">
+            <span class="game-hero-badge">
+              ${getPlayersBadgeHtml_(g, counts)}
+            </span>
+
+            ${status === "OPEN" || status === "FINISHED"
+        ? `
+                  <span class="game-hero-badge">
+                    <span class="hero-pill-tooltip" data-tooltip="Entry fee">
+                      <span class="pill-emoji">🎟️</span> £${Number(g.entryFee || 0)}
+                    </span>
+                  </span>
+                `
+        : ``
+      }
+
+            ${hasPrize
+        ? `
+                  <span class="game-hero-badge">
+                    <span class="hero-pill-tooltip" data-tooltip="1st prize">
+                      <span class="pill-emoji">💰</span> £${prize}
+                    </span>
+                  </span>
+                `
+        : ``
+      }
+          </div>
+
+          <div class="game-hero-banner-badges game-hero-banner-badges--right">
+            <span class="game-status-pill ${getGameBannerStatusClass_(g, entry)}">
+              <span class="hero-pill-tooltip" data-tooltip="Status">
+                ${escapeHtml(getGameBannerStatusText_(g, entry))}
+              </span>
+            </span>
+          </div>
+        </div>
+        <div class="game-hero-info">
+          <div class="lobby-bottom-top">
+            <div class="game-hero-player-name">${escapeHtml(title)}</div>
+
+            <button
+              type="button"
+              class="text-link-btn lobby-competitions-link"
+              data-lobby-competitions="${escapeAttr(gameId)}"
+            >
+              Competitions
+            </button>
+          </div>
+
+          <div class="lobby-bottom-main">
+            <div class="lobby-fit">
+              <div class="lobby-fit-left">
+
+          ${status === "OPEN" && !entry && canRegisterNow
+        ? `
+                <div class="lobby-meta-line">
+                  <span class="lobby-meta-key">Entry fee:</span>
+                  <strong class="lobby-meta-key2">£${Number(g.entryFee || 0)}</strong>
+                </div>
+
+                <div class="lobby-meta-line">
+                  <span class="lobby-meta-key">${lateRegistrationOpen ? "Late entry deadline:" : "Entry deadline:"}</span>
+                  <div class="lobby-meta-key2">
+                    <strong>${escapeHtml(formatDeadlineDay_(deadlineIso))} · ${escapeHtml(formatDeadlineTime_(deadlineIso))}</strong>
+                  </div>
+                </div>
+              `
+        : status === "OPEN" && !entry && !canRegisterNow
+          ? `<div class="lobby-meta-line">Registration closed</div>`
+          : ``
+      }
+              </div>
+
+              
+            </div>
+          </div>
+
+          ${showLobbyCountdown && !entry ? `
+            
+            <div class="lobby-deadline-panel lobby-deadline-panel--red" data-countdown="${escapeAttr(deadlineIso)}">
+              <div class="lobby-deadline-panel-head">
+                <div class="lobby-deadline-panel-line">
+                  <span class="lobby-deadline-panel-label">${lateRegistrationOpen ? "Late entry closes in:" : "Game starts in:"}</span>
+                </div>
+              </div>
+
+              <div class="cool-countdown cool-countdown--compact" aria-label="Entry deadline countdown">
+                <div class="cool-countdown-group">
+                  <span class="cool-digit" data-unit="days-h">0</span>
+                  <span class="cool-digit" data-unit="days-l">0</span>
+                </div>
+                <span class="cool-sep">:</span>
+
+                <div class="cool-countdown-group">
+                  <span class="cool-digit" data-unit="hours-h">0</span>
+                  <span class="cool-digit" data-unit="hours-l">0</span>
+                </div>
+                <span class="cool-sep">:</span>
+
+                <div class="cool-countdown-group">
+                  <span class="cool-digit" data-unit="mins-h">0</span>
+                  <span class="cool-digit" data-unit="mins-l">0</span>
+                </div>
+                <span class="cool-sep">:</span>
+
+                <div class="cool-countdown-group">
+                  <span class="cool-digit" data-unit="secs-h">0</span>
+                  <span class="cool-digit" data-unit="secs-l">0</span>
+                </div>
+              </div>
+            </div>
+          ` : ``}
+            <div class="lobby-status-actions-row">
+              ${sessionEmail && entry ? `
+                  <div class="lobby-meta-line" style="margin:0;">
+                    <span class="lobby-meta-key">Your status:</span>
+                    <span class="player-status-pill ${getPlayerStatusUi_(g, entry).pillClass}">
+                      <span>${getPlayerStatusUi_(g, entry).text}</span>
+                      <span class="state ${getPlayerStatusUi_(g, entry).stateClass}">
+                        ${getPlayerStatusUi_(g, entry).icon}
+                      </span>
+                    </span>
+                  </div>
+                ` : `<div></div>`}
+
+                              ${actionsHtml ? `
+                                <div class="lobby-card-actions" style="margin:0;">
+                                  ${actionsHtml}
+                                </div>
+                              ` : ``}
+                            </div>
+                        </div>
+                      </div>
+                    `;
+  }).join("");
+
+  const profileDisplayName =
+    String(sessionUser?.firstName || "").trim() || "Profile";
+
+  const lobbyTopRightHtml = sessionEmail
+    ? `
+    <button id="lobbyProfileBtn" class="profile-chip-btn" type="button" title="Profile">
+      <span class="profile-chip-icon">👤</span>
+    </button>
+  `
+    : `<button id="lobbyAuthBtn" class="btn btn-secondary" type="button">Login/register</button>`;
+
+  lobbyView.innerHTML = `
+    <div class="phone">
+      <header class="topbar">
+        <div class="brand auth-brand">
+          <img class="brand-logo" src="images/lmsSquare5.jpg" alt="Polytechnic FC" />
+          <div class="brand-text">
+            <div class="brand-title">Last Man Standing</div>
+            <div class="brand-sub">Polytechnic FC</div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          ${lobbyTopRightHtml}
+        </div>
+      </header>
+
+      <hr class="auth-divider">
+
+      <main class="content">
+        <div class="main-card">
+          <div class="lobby-title">
+            LOBBY
+          </div>
+          ${cardsHtml || `<div class="muted">No games available.</div>`}
+        </div>
+      </main>
+    </div>
+  `;
+
+  document.getElementById("lobbyAuthBtn")?.addEventListener("click", async () => {
+    showSplash(true);
+
+    try {
+      showRegisterBtn?.classList.remove("active");
+      showLoginBtn?.classList.add("active");
+      registerForm?.classList.add("hidden");
+      loginForm?.classList.remove("hidden");
+      authMsg?.classList.add("hidden");
+
+      authView.classList.remove("hidden");
+      lobbyView?.classList.add("hidden");
+      appView.classList.add("hidden");
+    } finally {
+      showSplash(false);
+    }
+  });
+
+  lobbyView.querySelectorAll("[data-lobby-competitions]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const gameId = btn.getAttribute("data-lobby-competitions");
+      openCompetitionsModalForGame_(gameId);
+    });
+  });
+
+  lobbyView.querySelectorAll("[data-auth-required]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      authView.classList.remove("hidden");
+      lobbyView?.classList.add("hidden");
+      appView.classList.add("hidden");
+    });
+  });
+
+  lobbyView.querySelectorAll("[data-join-game]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const gameId = btn.getAttribute("data-join-game");
+      await joinGame_(gameId, btn);
+    });
+  });
+
+  lobbyView.querySelectorAll("[data-enter-game]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const gameId = btn.getAttribute("data-enter-game");
+      await enterGame_(gameId);
+    });
+  });
+
+  lobbyView.querySelectorAll("[data-pay-game]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      showPaymentDetailsModal_();
+    });
+  });
+
+  lobbyView.querySelectorAll("[data-lobby-info]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const gameId = btn.getAttribute("data-lobby-info");
+      openInfoModalForGame_(gameId);
+    });
+  });
+
+  document.getElementById("lobbyProfileBtn")?.addEventListener("click", () => {
+    const body = document.getElementById("profileModalBody");
+    if (!body) return;
+
+    body.innerHTML = `
+    <div style="margin-top:12px" class="fixtures-card">
+      <div class="muted small"><strong>Name</strong></div>
+      <div style="margin:4px 0;">${escapeHtml(`${sessionUser?.firstName || ""} ${sessionUser?.lastName || ""}`.trim() || "—")}</div>
+
+      <div style="margin-top:10px" class="muted small"><strong>Email</strong></div>
+      <div style="margin-top:4px;">${escapeHtml(sessionUser?.email || "—")}</div>
+
+      <div style="margin-top:10px" class="muted small"><strong>Phone</strong></div>
+      <div style="margin-top:4px;">${escapeHtml(sessionUser?.phone || "—")}</div>
+
+      <div style="margin-top:10px" class="muted small"><strong>Team / Connection</strong></div>
+      <div style="margin-top:4px;">${escapeHtml(sessionUser?.clubTeam || "—")}</div>
+    </div>
+  `;
+
+    openModal(profileModal);
+  });
+  startCountdowns_();
+}
+
+async function joinGame_(gameId, triggerBtn = null) {
+  if (!sessionEmail) {
+    showSplash(true);
+
+    try {
+      showRegisterBtn?.classList.add("active");
+      showLoginBtn?.classList.remove("active");
+      registerForm?.classList.remove("hidden");
+      loginForm?.classList.add("hidden");
+      authMsg?.classList.add("hidden");
+
+      authView.classList.remove("hidden");
+      lobbyView?.classList.add("hidden");
+      appView.classList.add("hidden");
+    } finally {
+      showSplash(false);
+    }
+    return;
+  }
+
+  const game = (gamesList || []).find(g => String(g.id) === String(gameId));
+  const entryFee = Number(game?.entryFee || 10);
+
+  setBtnLoading(triggerBtn, true);
+
+  try {
+    await api(
+      {
+        action: "joinGame",
+        email: sessionEmail,
+        gameId
+      },
+      { timeoutMs: 30000 }
+    );
+
+    showSystemModal_(
+      "Registration",
+      `
+        <div style="line-height:1.5;">
+          <p style="margin:0 0 10px;">
+            To register for the game please pay the registration fee.
+          </p>
+          <p style="margin:0 0 12px;">
+            Once approved you will be able to make your first selection.
+          </p>
+          ${payInstructionsHtml_(entryFee)}
+        </div>
+      `,
+      { showActions: false }
+    );
+
+    requestAnimationFrame(() => {
+      setBtnLoading(triggerBtn, false);
+    });
+
+    setTimeout(async () => {
+      try {
+        await fetchMyEntries_();
+        snapshotLobbyApprovalStates_();
+        renderLobby_();
+        refreshLobbyCounts_().catch(() => {});
+      } catch (err) {
+        console.warn("Post-join lobby refresh failed", err);
+      }
+    }, 50);
+
+  } catch (err) {
+    showSystemModal_(
+      "Registration",
+      `
+        <div style="line-height:1.5;">
+          <p style="margin:0;">${escapeHtml(String(err.message || err))}</p>
+        </div>
+      `,
+      { showActions: false }
+    );
+
+    requestAnimationFrame(() => {
+      setBtnLoading(triggerBtn, false);
+    });
+  }
+}
+
+function showGameView_() {
+  stopLobbyPolling_();
+
+  authView.classList.add("hidden");
+  lobbyView?.classList.add("hidden");
+  appView.classList.remove("hidden");
+
+  logoutBtnOuter?.classList.add("hidden");
+
+  if (sessionEmail) {
+    logoutBtnApp?.classList.remove("hidden");
+  } else {
+    logoutBtnApp?.classList.add("hidden");
+  }
+
+  renderGameHeaderAuth_();
+}
+
+async function enterGame_(gameId) {
+  activeGameId = String(gameId || "");
+  activeEntry = sessionEmail ? getMyEntryForGame_(activeGameId) || null : null;
+
+  showSplash(true);
+  showGameView_();
+
+  try {
+    await initDataAndRenderGame_({ allowOutcomeModal: !!sessionEmail });
+
+    // pending player -> open payment modal immediately
+    if (sessionUser && sessionUser.approved === false) {
+      showPaymentDetailsModal_();
+    }
+  } finally {
+    showSplash(false);
+  }
+}
+
+
+async function backToLobby_() {
+  if (deadlineInterval) {
+    clearInterval(deadlineInterval);
+    deadlineInterval = null;
+  }
+
+  if (profilePoll) {
+    clearInterval(profilePoll);
+    profilePoll = null;
+  }
+
+  activeGameId = null;
+  activeEntry = null;
+
+  showLobby_();
+
+  if (!gameweeks.length) {
+    await loadFixturesAndDeadlines_().catch(() => { });
+  }
+
+  renderLobby_();
+  refreshLobbyCounts_().catch(() => { });
+
+  fetchMyEntries_()
+    .then(() => {
+      renderLobby_();
+      return refreshLobbyCounts_();
+    })
+    .catch(() => { });
+}
 
 function renderPickCardState() {
+  if (isWinner_()) {
+    if (submitPickBtn) submitPickBtn.disabled = true;
+    return;
+  }
   if (isDeadUi_()) {
     if (submitPickBtn) submitPickBtn.disabled = true;
     return;
@@ -2641,74 +4333,49 @@ function renderPickCardState() {
   }
 }
 
-
-
-
-
-/*******************************
- * RENDER: PROFILE TAB
- *******************************/
-function renderProfileTab() {
-  if (!sessionUser) return;
-
-  profileName.textContent = `${sessionUser.firstName} ${sessionUser.lastName} `;
-  profileMeta.textContent = `${sessionUser.email} • ${sessionUser.clubTeam} • ${sessionUser.phone} `;
-
-  profileStatus.textContent = sessionUser.alive
-    ? `Status: Still Alive`
-    : `Status: Knocked Out(${sessionUser.knockedOutGw || "—"})`;
-
-  profileSelections.innerHTML = "";
-
-  if (!sessionPicks.length) {
-    profileSelections.innerHTML = `<div class="sel-card" > <div class="muted">No selections yet.</div></div > `;
-    return;
-  }
-
-  for (const p of sessionPicks) {
-    const outcome = p.outcome || "PENDING";
-    const icon = outcome === "WIN" ? "✓" : outcome === "LOSS" ? "✕" : "…";
-    const cls = outcome === "WIN" ? "good" : outcome === "LOSS" ? "bad" : "warn";
-
-    let line = "Result: Pending";
-    if (p.fixture) {
-      line = `${p.fixture.team1} ${p.fixture.score1} vs ${p.fixture.score2} ${p.fixture.team2} `;
-    }
-
-    const div = document.createElement("div");
-    div.className = "sel-card";
-    div.innerHTML = `
-  <div class="sel-top" >
-        <div class="sel-gw">${escapeHtml(p.gwId)}</div>
-        <div class="sel-pick">${escapeHtml(p.team)} <span class="state ${cls}">${icon}</span></div>
-      </div >
-  <div class="sel-meta">${escapeHtml(line)}</div>
-`;
-    profileSelections.appendChild(div);
-  }
-}
-
 /*******************************
  * PICK SUBMISSION
  *******************************/
 async function savePick(team) {
   const gwId = currentGwId;
   const gw = gameweeks.find(g => g.id === gwId);
-  if (!gw) return;
+  if (!gw) {
+    setBtnLoading(submitPickBtn, false);
+    return;
+  }
 
   if (!sessionUser?.approved) {
+    setBtnLoading(submitPickBtn, false);
     showFixturesMessage("You are not approved yet. Please pay entry fee and wait for approval.", "bad");
     return;
   }
-  if (now() >= gw.deadline) {
+  const isLateSubmit = canLateSubmitCurrentGw_();
+
+  if (now() >= gw.deadline && !isLateSubmit) {
+    setBtnLoading(submitPickBtn, false);
     showFixturesMessage("Deadline has passed for this gameweek.", "bad");
     return;
+  }
+
+  if (isLateSubmit) {
+    const allowedTeams = getUnstartedTeamsForGw_(gwId);
+    if (!allowedTeams.includes(team)) {
+      setBtnLoading(submitPickBtn, false);
+      showFixturesMessage("That team's match has already started.", "bad");
+      return;
+    }
   }
 
   setBtnLoading(submitPickBtn, true);
 
   try {
-    await api({ action: "submitPick", email: sessionEmail, gwId, team });
+    await api({
+      action: "submitPick",
+      email: sessionEmail,
+      gameId: activeGameId,
+      gwId: gwId,
+      team
+    });
 
     // ✅ Make sure we’re not stuck in editing mode after submit
     isEditingCurrentPick = false;
@@ -2764,23 +4431,69 @@ async function savePick(team) {
   }
 }
 
-
-
 let profilePoll = null;
 
 function renderCurrentPickBlock() {
-  // ----- DEAD UI (global “out” state) -----
+  if (!sessionEmail) {
+    const pickModeInput = document.getElementById("pickModeInput");
+    const pickModeSubmitted = document.getElementById("pickModeSubmitted");
+    const editPickBtn = document.getElementById("editPickBtn");
+    const submittedMeta = document.getElementById("submittedMeta");
+    const gwPickTitle = document.getElementById("gwPickTitle");
+    const gwPickIcon = document.getElementById("gwPickIcon");
+
+    showPickCardAndHideLossBox();
+    renderWinBox();
+
+    pickModeSubmitted?.classList.add("hidden");
+    pickModeInput?.classList.add("hidden");
+    editPickBtn?.classList.add("hidden");
+    document.getElementById("lateSubmitNote")?.remove();
+
+    if (gwPickTitle) gwPickTitle.textContent = `${gwLabelShort(currentGwId)} - Login to make a selection`;
+    if (gwPickIcon) {
+      gwPickIcon.textContent = "→";
+      gwPickIcon.className = "state muted";
+    }
+    if (submittedMeta) {
+      submittedMeta.innerHTML = `<div class="muted">Log in or register to join this game.</div>`;
+    }
+
+    if (submitPickBtn) submitPickBtn.disabled = true;
+    return;
+  }
+
   if (isDeadUi_()) {
-    renderWinBox(); // hides itself when dead
+    renderWinBox();
     renderLossBoxAndHidePickCard();
     return;
   }
 
-  // Always update header/pill
+  if (isWinner_()) {
+    showPickCardAndHideLossBox();
+    renderWinBox();
+
+    document.getElementById("pickModeInput")?.classList.add("hidden");
+    document.getElementById("pickModeSubmitted")?.classList.add("hidden");
+    document.getElementById("editPickBtn")?.classList.add("hidden");
+    document.getElementById("lateSubmitNote")?.remove();
+
+    if (submitPickBtn) submitPickBtn.disabled = true;
+
+    const pickDeadlineTextEl = document.getElementById("pickDeadlineText");
+    const pickCountdownWrapEl = document.getElementById("pickCountdownWrap");
+
+    if (pickDeadlineTextEl) pickDeadlineTextEl.textContent = "Competition finished";
+    if (pickCountdownWrapEl) pickCountdownWrapEl.classList.add("hidden");
+
+    applyWinConditionUi_();
+    return;
+  }
+
   setGwLabelFromSelected();
   renderStatusPill();
+  renderPickCardHeader_();
 
-  // If user is mid-edit flow, force input mode (but still respect locked later)
   if (isEditingCurrentPick) {
     const pickModeInput = document.getElementById("pickModeInput");
     const pickModeSubmitted = document.getElementById("pickModeSubmitted");
@@ -2789,18 +4502,15 @@ function renderCurrentPickBlock() {
     return;
   }
 
-  // DEAD: show loss container only + hide pick card
   if (sessionUser?.alive === false) {
-    renderWinBox(); // will hide itself when dead
+    renderWinBox();
     renderLossBoxAndHidePickCard();
     return;
   }
 
-  // ALIVE: normal UI
   showPickCardAndHideLossBox();
   renderWinBox();
 
-  // ----- CURRENT GW CONTEXT -----
   const curGw = gameweeks.find(g => g.id === currentGwId);
   if (!curGw) return;
 
@@ -2808,41 +4518,41 @@ function renderCurrentPickBlock() {
   const pickModeInput = document.getElementById("pickModeInput");
   const pickModeSubmitted = document.getElementById("pickModeSubmitted");
   const editPickBtn = document.getElementById("editPickBtn");
-
   const gwPickTitle = document.getElementById("gwPickTitle");
   const gwPickIcon = document.getElementById("gwPickIcon");
   const submittedMeta = document.getElementById("submittedMeta");
 
   const locked = currentGwLocked();
+  const lateSubmitOpen = canLateSubmitCurrentGw_();
 
-  // ✅ Always define these so they exist in every branch
   const team = String(pick?.team || "").trim();
   const outcome = String(pick?.outcome || "PENDING").toUpperCase();
   const hasPick = !!team;
 
-  // ✅ Deterministic view toggles (fixes “input still showing after submit”)
-  // Input should show only if NOT locked AND no pick exists
-  pickModeInput?.classList.toggle("hidden", locked || hasPick);
-  // Submitted panel shows only if a pick exists
+  const countdownBox = document.getElementById("pickCountdownWrap");
+  if (countdownBox) {
+    countdownBox.classList.toggle("hidden", hasPick);
+  }
+
+  const lateSubmitNoteHtml = lateSubmitOpen
+    ? `<div class="msg good" style="margin-bottom:10px;">Late submission — choose any team whose match has not started yet this gameweek.</div>`
+    : "";
+
+  pickModeInput?.classList.toggle("hidden", (locked && !lateSubmitOpen) || hasPick);
   pickModeSubmitted?.classList.toggle("hidden", !hasPick);
 
-  // ----- LOCKED (deadline hit): no input, no edit, show in-progress if pick exists -----
-  if (locked) {
-    // hide pencil entirely
+  if (locked && !lateSubmitOpen) {
     editPickBtn?.classList.add("hidden");
-    // disable submit
     if (submitPickBtn) submitPickBtn.disabled = true;
+    document.getElementById("lateSubmitNote")?.remove();
 
-    // If they have a pick, show “In progress” (as requested)
     if (hasPick) {
       if (gwPickTitle) {
         gwPickTitle.innerHTML = `
-  <span class="pick-title-inline" >
-    ${teamInlineHtml_(team, { size: 20 })}
-            <span class="dash">—</span>
-            <span class="muted">In progress</span>
-          </span >
-  `;
+      <span class="pick-title-inline">
+        ${teamInlineHtml_(team, { size: 20 })}
+      </span>
+    `;
       }
 
       if (gwPickIcon) {
@@ -2850,48 +4560,56 @@ function renderCurrentPickBlock() {
         gwPickIcon.className = "state warn";
       }
 
-      // Match info (still useful after lock)
       const fx = findFixtureForTeam(curGw, team);
       if (submittedMeta) {
         if (fx) {
           const when = fx.kickoffHasTime ? formatKickoffLineUK(fx.kickoff) : formatDateUK(fx.kickoff);
           submittedMeta.innerHTML = `
-  <div class="fixture-main fixture-main--compact" >
-    ${fixtureTeamsHtml_(fx.home, fx.away)}
-<div class="fixture-datetime muted">${escapeHtml(when)}</div>
-            </div >
-  `;
+        <div class="submitted-label muted" style="margin-bottom:8px;">Game:</div>
+        <div class="fixture-main fixture-main--compact">
+          ${fixtureTeamsHtml_(fx.home, fx.away)}
+          <div class="fixture-datetime muted">${escapeHtml(when)}</div>
+        </div>
+      `;
         } else {
           submittedMeta.textContent = "Match not found for this gameweek";
         }
       }
     } else {
-      // No pick and locked: clear submitted meta
       if (submittedMeta) submittedMeta.textContent = "";
     }
 
     return;
   }
 
-  // ----- UNLOCKED (before deadline): edit may be available -----
   editPickBtn?.classList.remove("hidden");
 
-  // No pick yet -> input mode only
   if (!hasPick) {
     if (editPickBtn) editPickBtn.disabled = true;
     if (submittedMeta) submittedMeta.textContent = "";
+
+    const existingNote = document.getElementById("lateSubmitNote");
+    if (existingNote) existingNote.remove();
+
+    if (pickModeInput) {
+      const label = pickModeInput.querySelector(".field");
+      if (lateSubmitNoteHtml && label) {
+        label.insertAdjacentHTML(
+          "beforebegin",
+          `<div id="lateSubmitNote">${lateSubmitNoteHtml}</div>`
+        );
+      }
+    }
+
     return;
   }
 
-  // Has pick: submitted view
-  // Default edit rule
+  document.getElementById("lateSubmitNote")?.remove();
+
   if (editPickBtn) {
     editPickBtn.disabled = !sessionUser?.approved || sessionUser?.alive === false || outcome !== "PENDING";
   }
 
-  // Copy rules:
-  // - Before deadline: DO NOT show “- In progress” for pending
-  // - Keep “Won/Lost” if resolved (shouldn’t happen while alive+picking, but safe)
   if (outcome === "WIN") {
     if (gwPickTitle) gwPickTitle.textContent = `${gwLabelShort(pick.gwId)} - ${team} - Won`;
     if (gwPickIcon) {
@@ -2905,18 +4623,17 @@ function renderCurrentPickBlock() {
       gwPickIcon.textContent = "✕";
       gwPickIcon.className = "state bad";
     }
-    if (submittedMeta) submittedMeta.innerHTML = `<div class="muted" > <strong>Lost — you are out!</strong></div > `;
+    if (submittedMeta) submittedMeta.innerHTML = `<div class="muted"><strong>Lost — you are out!</strong></div>`;
     if (editPickBtn) editPickBtn.disabled = true;
     if (submitPickBtn) submitPickBtn.disabled = true;
     return;
   } else {
-    // PENDING + unlocked: “Selection confirmed: …” (no “In progress”)
     if (gwPickTitle) {
       gwPickTitle.innerHTML = `
-  <span class="pick-title-inline" >
-    ${teamInlineHtml_(team, { size: 20 })}
-        </span >
-  `;
+        <span class="pick-title-inline">
+          ${teamInlineHtml_(team, { size: 20 })}
+        </span>
+      `;
     }
 
     if (gwPickIcon) {
@@ -2925,32 +4642,134 @@ function renderCurrentPickBlock() {
     }
   }
 
-  // Match info (works both pending/resolved)
   const fx = findFixtureForTeam(curGw, team);
   if (submittedMeta) {
     if (fx) {
-      const when = fx.kickoffHasTime ? formatKickoffLineUK(fx.kickoff) : formatDateUK(fx.kickoff);
       const whenLine = fx.kickoffHasTime
-        ? `${formatDateUK(fx.kickoff)} · ${formatTimeUK(fx.kickoff)} `
-        : `${formatDateUK(fx.kickoff)} `;
+        ? `${formatDateUK(fx.kickoff)} · ${formatTimeUK(fx.kickoff)}`
+        : `${formatDateUK(fx.kickoff)}`;
 
       submittedMeta.innerHTML = `
-  <div class="fixture-row" >
-    <div class="fixture-main">
-      ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: team })}
-      <div class="fixture-datetime muted">${escapeHtml(whenLine)}</div>
-    </div>
-        </div >
-  `;
-
+        <div class="fixture-row">
+          <div class="fixture-main">
+            ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: team })}
+            <div class="fixture-datetime muted">${escapeHtml(whenLine)}</div>
+          </div>
+        </div>
+      `;
     } else {
       submittedMeta.textContent = "Match not found for this gameweek";
     }
   }
+
   renderGwReportCard_();
 }
 
+function renderPickCardHeader_() {
+  const gw = gameweeks.find(g => g.id === currentGwId);
+  if (!gw) return;
 
+  const gwTitleEl = document.getElementById("gwTitle");
+  const gwRangeEl = document.getElementById("gwRange");
+  const pickCountdownWrapEl = document.getElementById("pickCountdownWrap");
+  const pickDeadlineTextEl = document.getElementById("pickDeadlineText");
+  const pickCompetitionsBtn = document.getElementById("pickCompetitionsBtn");
+  const countdownLabelEl = pickCountdownWrapEl?.querySelector(".lobby-deadline-panel-label");
+
+  if (gwTitleEl) {
+    gwTitleEl.textContent = `Gameweek ${gw.num}`;
+  }
+
+  if (gwRangeEl) {
+    const endDay = startOfDay(gw.lastKickoff || gw.firstKickoff);
+    gwRangeEl.textContent = `${formatDateWithOrdinalShortUK(gw.start)} - ${formatDateWithOrdinalShortUK(endDay)}`;
+  }
+
+  const isLate = canLateSubmitCurrentGw_();
+  const countdownTarget = isLate
+    ? (gw.lateDeadline ? gw.lateDeadline.toISOString() : "")
+    : (gw.deadline ? gw.deadline.toISOString() : "");
+
+  if (pickDeadlineTextEl) {
+    pickDeadlineTextEl.textContent = isLate
+      ? "Late submission:"
+      : formatGameDeadlineText_(gw.deadline);
+  }
+
+  if (countdownLabelEl) {
+    countdownLabelEl.textContent = isLate ? "Late submission:" : "Submit by:";
+  }
+
+  if (pickCountdownWrapEl) {
+    if (countdownTarget) {
+      pickCountdownWrapEl.setAttribute("data-countdown", countdownTarget);
+      pickCountdownWrapEl.classList.remove("hidden");
+    } else {
+      pickCountdownWrapEl.classList.add("hidden");
+    }
+  }
+
+  if (pickCompetitionsBtn && !pickCompetitionsBtn.dataset.bound) {
+    pickCompetitionsBtn.dataset.bound = "1";
+    pickCompetitionsBtn.addEventListener("click", () => {
+      openPickCompetitionsModal_();
+    });
+  }
+
+  startCountdowns_();
+}
+
+function openPickCompetitionsModal_() {
+  const game = getActiveGame_();
+  if (!game) return;
+
+  const competitions = getGameCompetitions_(game);
+  const gw = gameweeks.find(g => g.id === currentGwId);
+
+  const countsByLeague = {};
+  competitions.forEach(name => countsByLeague[name] = 0);
+
+  if (gw?.fixtures?.length) {
+    gw.fixtures.forEach(f => {
+      const league = String(f.league || "").trim();
+      if (countsByLeague[league] != null) countsByLeague[league] += 1;
+    });
+  }
+
+  showSystemModal_(
+    "Competitions",
+    `
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        ${competitions.map(name => `
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <img
+                src="${escapeAttr(getCompetitionLogo_(name))}"
+                alt="${escapeAttr(name)}"
+                style="width:22px;height:22px;object-fit:contain;"
+                onerror="this.onerror=null;this.src='images/competition-logos/default.png';"
+              />
+              <span>${escapeHtml(name)}</span>
+            </div>
+            <strong>(${countsByLeague[name] || 0})</strong>
+          </div>
+        `).join("")}
+
+        <div style="margin-top:8px;">
+          <button id="pickCompetitionsFixturesBtn" class="btn btn-ghost" type="button">Fixtures</button>
+        </div>
+      </div>
+    `,
+    { showActions: false }
+  );
+
+  setTimeout(() => {
+    document.getElementById("pickCompetitionsFixturesBtn")?.addEventListener("click", () => {
+      closeModal(systemModal);
+      setTab2("fixtures");
+    });
+  }, 0);
+}
 
 function getLastResolvedPick() {
   const resolved = sessionPicks.filter(p => {
@@ -2970,32 +4789,6 @@ function getLastWinPick() {
   return wins[0];
 }
 
-function renderGwResultBanner() {
-  const el = document.getElementById("gwResultBanner");
-  if (!el) return;
-
-  const p = getLastResolvedPick();
-  if (!p) {
-    el.classList.add("hidden");
-    el.innerHTML = "";
-    return;
-  }
-
-  const outcome = (p.outcome || "").toUpperCase();
-  const isWin = outcome === "WIN";
-
-  el.classList.remove("hidden");
-  el.classList.toggle("win", isWin);
-  el.classList.toggle("loss", !isWin);
-
-  el.innerHTML = `
-  <div class="result-left" >
-    <div class="result-title"><strong>${escapeHtml(gwLabelShort(p.gwId))} - ${escapeHtml(p.team)} - ${isWin ? "Won" : "Lost"}</strong></div>
-    </div >
-  <div class="state ${isWin ? " good" : "bad"}" > ${isWin ? "✓" : "✕"}</div >
-    `;
-}
-
 function renderWinBox() {
   const box = document.getElementById("lastWinBox");
   if (!box) return;
@@ -3011,7 +4804,7 @@ function renderWinBox() {
   box.classList.remove("hidden");
   box.classList.remove("loss"); // ensure green styling
   box.innerHTML = `
-    <div > <strong>${escapeHtml(gwLabelShort(p.gwId))} - ${escapeHtml(p.team)} - Won</strong></div >
+    <div > <strong>${escapeHtml(gwLabelShort(convertFixtureGwToGameGw_(p.gwId, game)))} - ${escapeHtml(p.team)} - Won</strong></div >
       <div class="state good">✓</div>
 `;
 }
@@ -3061,61 +4854,6 @@ function openPickEditor() {
   teamSearch?.focus();
 }
 
-function renderResultsBox() {
-  const box = document.getElementById("resultsBox");
-  if (!box) return;
-
-  const picksAsc = sortPicksByGwAsc(sessionPicks);
-  const curPick = picksAsc.find(p => p.gwId === currentGwId) || null;
-
-  // Build timeline pills from picks (only those with a team)
-  const stepsHtml = picksAsc
-    .filter(p => p.team)
-    .map(p => {
-      const o = String(p.outcome || "PENDING").toUpperCase();
-      const label = `${gwLabelShort(p.gwId)} ${stepIcon(o)} `;
-      return `<span class="step-pill ${stepClass(o)}" > ${escapeHtml(label)}</span > `;
-    })
-    .join("");
-
-  // Title logic
-  let title = "Make your first selection";
-  let meta = "";
-  let showPencil = false;
-
-  if (sessionUser?.alive === false) {
-    // dead: show last known KO info if available
-    const last = picksAsc[picksAsc.length - 1];
-    const koGw = sessionUser.knockedOutGw || last?.gwId || "—";
-    const koTeam = sessionUser.knockedOutTeam || last?.team || "—";
-    title = `${gwLabelShort(koGw)} - ${koTeam} - Lost`;
-  } else if (curPick?.team) {
-    const label = formatOutcomeLabel(curPick.outcome);
-    title = `${gwLabelShort(curPick.gwId)} - ${curPick.team} - ${label} `;
-
-    const out = String(curPick.outcome || "PENDING").toUpperCase();
-    // allow edit only if pending + not locked
-    if (out === "PENDING" && !currentGwLocked()) showPencil = true;
-  }
-
-  // If dead we’ll add position when we have it
-  box.innerHTML = `
-  <div class="results-left" >
-    <div class="results-title">${escapeHtml(title)}</div>
-      ${stepsHtml ? `<div class="results-steps">${stepsHtml}</div>` : ``}
-      ${meta ? `<div class="results-meta">${escapeHtml(meta)}</div>` : ``}
-<div id="finishLine" class="results-meta"></div>
-    </div >
-  <div class="results-actions">
-    ${showPencil ? `<button id="resultsEditBtn" class="icon-btn" type="button" title="Edit pick">✏️</button>` : ``}
-  </div>
-`;
-
-  // bind edit
-  const editBtn = document.getElementById("resultsEditBtn");
-  if (editBtn) editBtn.addEventListener("click", openPickEditor);
-}
-
 function gwIndexForRank_(gwId) {
   const idx = findGwIndexById(String(gwId || ""));
   return idx >= 0 ? idx : -9999;
@@ -3158,6 +4896,9 @@ async function startProfilePolling() {
 
     try {
       await refreshProfile();
+      handleAccountStateChange_();
+      await fetchMyEntries_();
+      snapshotLobbyApprovalStates_();
 
       const openedOutcomeModal = applyOutcomeEffects_({ allowModal: true });
 
@@ -3167,20 +4908,32 @@ async function startProfilePolling() {
       }
 
       // ✅ Move gameweek if needed (e.g. after a WIN)
-      const nextCurrent = computeCurrentGwId();
-      if (nextCurrent && nextCurrent !== currentGwId) {
-        currentGwId = nextCurrent;
-        viewingGwId = currentGwId;
+      const nextPlayerGw = computePlayerGwId();
+      const nextDateGw = computeDateGwId();
 
+      if (nextPlayerGw && nextPlayerGw !== currentGwId) {
+        currentGwId = nextPlayerGw;
         resetPickInputUi_();
-        renderGameweekSelect();
-        syncViewingToCurrent();
       }
+
+      if (!viewingGwId) {
+        viewingGwId = nextDateGw || currentGwId;
+      }
+
+      renderGameweekSelect();
+      syncViewingToCurrent();
 
       renderTopUIOnly();
 
       renderPaymentDetailsCard_();   // show/hide payment details card
       startDeadlineTimer();
+
+      // ✅ keep winner detection fresh (throttle 30s)
+      const tNow = Date.now();
+      if (tNow - lastRemainingFetchAt > 30000) {
+        lastRemainingFetchAt = tNow;
+        await refreshRemainingPlayersCount().catch(() => { });
+      }
 
       // ✅ Throttled entries refresh
       if (activeTab2 === "entries") {
@@ -3194,30 +4947,6 @@ async function startProfilePolling() {
       console.warn(err);
     }
   }, 8000);
-}
-
-
-
-function renderLastWinBox() {
-  const box = document.getElementById("lastWinBox");
-  if (!box) return;
-
-  // find latest WIN pick
-  const wins = sessionPicks.filter(p => p.outcome === "WIN");
-  if (!wins.length) {
-    box.classList.add("hidden");
-    box.innerHTML = "";
-    return;
-  }
-
-  wins.sort((a, b) => findGwIndexById(b.gwId) - findGwIndexById(a.gwId));
-  const last = wins[0];
-
-  box.innerHTML = `
-  <div > ${escapeHtml(last.gwId)} - ${escapeHtml(last.team)}</div >
-    <div class="state good">✓</div>
-`;
-  box.classList.remove("hidden");
 }
 
 /*******************************
@@ -3254,6 +4983,10 @@ document.addEventListener("click", (e) => {
   modal.classList.remove("hidden");
   modal.setAttribute("aria-hidden", "false");
   overlay.classList.remove("hidden");
+});
+
+document.getElementById("gameCompetitionsBtn")?.addEventListener("click", () => {
+  if (activeGameId) openCompetitionsModalForGame_(activeGameId);
 });
 
 
@@ -3318,8 +5051,7 @@ registerForm.addEventListener("submit", async (e) => {
       "Entries closed",
       `
   <div style = "line-height:1.5;" >
-          <p style="margin:0 0 10px;"><strong>Thank you for registering.</strong></p>
-          <p style="margin:0 0 10px;">However, the game is now closed to new entries.</p>
+          <p style="margin:0 0 10px;">The game is now currently closed to new entries.</p>
           <p style="margin:0;">We’ll notify you when the next game opens.</p>
         </div >
   `,
@@ -3365,18 +5097,39 @@ registerForm.addEventListener("submit", async (e) => {
 
     const emailLower = String(form.get("email") || "").trim().toLowerCase();
 
-    setSession(emailLower);
-    await initDataAndRender_();
-    enterApp_();
+    setSession({
+      email: emailLower,
+      firstName: String(form.get("firstName") || "").trim(),
+      lastName: String(form.get("lastName") || "").trim(),
+      phone: String(form.get("phone") || "").trim(),
+      clubTeam: String(form.get("clubTeam") || "").trim()
+    });
+
+    await refreshAccountProfile_();
+    await fetchGames_();
+    await fetchMyEntries_();
+    snapshotLobbyApprovalStates_();
+    showLobby_();
+    renderLobby_();
+    refreshLobbyCounts_().catch(() => { });
 
     setTimeout(() => {
-      showPaymentDetailsModal_({ context: "register" });
+      showSystemModal_(
+        "Account created ✅",
+        `
+          <div style="line-height:1.5;">
+            <p style="margin:0 0 10px;"><strong>Your account has been created successfully.</strong></p>
+            <p style="margin:0;">You can now enter the lobby and register for a game.</p>
+          </div>
+        `,
+        { showActions: false }
+      );
     }, 0);
 
-    localStorage.removeItem(`lms_verified_seen::${emailLower} `);
-    sessionStorage.removeItem(`session_seen_verified::${emailLower} `);
+    localStorage.removeItem(KEY_VERIFIED_SEEN(emailLower));
+    sessionStorage.removeItem(KEY_SESSION_SEEN_VERIFIED(emailLower));
 
-    showAuthMessage("Registered! Now pay £10 — your entry will be approved after payment.", "good");
+    showAuthMessage("Registered successfully.", "good");
     registerForm.reset();
   } catch (err) {
     showAuthMessage(String(err.message || err), "bad");
@@ -3401,11 +5154,31 @@ loginForm.addEventListener("submit", async (e) => {
       password: String(form.get("password") || "")
     });
 
-    setSession(data.user.email);
+    setSession(data.user);
     sessionUser = data.user;
 
-    await initDataAndRender_();
-    enterApp_();
+    await refreshAccountProfile_();
+    await fetchGames_();
+    await fetchMyEntries_();
+    snapshotLobbyApprovalStates_();
+    showLobby_();
+    renderLobby_();
+    refreshLobbyCounts_().catch(() => { });
+    startLobbyPolling_();
+
+    setTimeout(() => {
+      const firstName = String(sessionUser?.firstName || "").trim() || "there";
+      showSystemModal_(
+        `Welcome back ${firstName}!`,
+        `
+          <div style="line-height:1.5;">
+            <p style="margin:0;"></p>
+          </div>
+        `,
+        { showActions: false }
+      );
+    }, 0);
+
   } catch (err) {
     showAuthMessage(String(err.message || err), "bad");
   } finally {
@@ -3414,42 +5187,8 @@ loginForm.addEventListener("submit", async (e) => {
 });
 
 function renderStatusPill() {
-  const el = document.getElementById("statusPill");
-  if (!el || !sessionUser) return;
-
-  // assumes you have CSS classes: good, bad, warn
-  el.classList.remove("good", "bad", "warn");
-
-  const isPending = !sessionUser.approved;
-  const isDead = !isPending && sessionUser.alive === false;
-  const isAlive = !isPending && !isDead;
-
-  if (isPending) {
-    el.textContent = "Pending";
-    el.classList.add("warn");
-  } else if (isDead) {
-    el.textContent = "Dead";
-    el.classList.add("bad");
-  } else if (isAlive) {
-    el.textContent = "Alive";
-    el.classList.add("good");
-  }
+  // no-op now
 }
-
-function setBtnLoadingKeepHtml(btn, loading) {
-  if (!btn) return;
-  if (loading) {
-    btn.classList.add("btn-loading");
-    btn.disabled = true;
-  } else {
-    btn.classList.remove("btn-loading");
-    btn.disabled = false;
-  }
-}
-
-
-
-
 
 let lastFocusBeforeModal = null;
 
@@ -3473,6 +5212,7 @@ function closeModal(modalEl) {
   if (!modalEl) return;
 
   modalEl.classList.add("hidden");
+  setBtnLoading(submitPickBtn, false);
 
   const anyOpen = Array.from(document.querySelectorAll(".modal"))
     .some(m => !m.classList.contains("hidden"));
@@ -3489,7 +5229,22 @@ function closeModal(modalEl) {
   }
 }
 
+document.getElementById("homeBrandBtn")?.addEventListener("click", () => {
+  goToLobby_();
+});
 
+document.addEventListener("click", (e) => {
+  const brandHit = e.target.closest(".brand, .brand-logo, .brand-text, .brand-title, .brand-sub");
+  if (!brandHit) return;
+
+  if (sessionEmail) {
+    goToLobby_();
+  } else {
+    showLobby_();
+    renderLobby_();
+    refreshLobbyCounts_().catch(() => { });
+  }
+});
 
 
 document.querySelectorAll(".modal-card").forEach(card => {
@@ -3524,60 +5279,41 @@ document.getElementById("logoutBtnModal")?.addEventListener("click", () => {
 
 document.getElementById("profileBtn")?.addEventListener("click", () => {
   const body = document.getElementById("profileModalBody");
-  if (body && sessionUser) {
+  const sess = getSession();
 
-    const statusLabel = !sessionUser.approved
-      ? "Pending"
-      : (sessionUser.alive ? "Alive" : "Dead");
+  const profile = {
+    firstName: sessionUser?.firstName || sess?.firstName || "",
+    lastName: sessionUser?.lastName || sess?.lastName || "",
+    email: sessionUser?.email || sess?.email || "",
+    phone: sessionUser?.phone || sess?.phone || "—",
+    clubTeam: sessionUser?.clubTeam || sess?.clubTeam || "—"
+  };
 
-    const statusCls = !sessionUser.approved
-      ? "warn"
-      : (sessionUser.alive ? "good" : "bad");
-
-    const statusIcon = !sessionUser.approved
-      ? "…"
-      : (sessionUser.alive ? "✓" : "✕");
-
+  if (body) {
     body.innerHTML = `
-  <div style = "display:flex;justify-content:space-between;gap:6px;align-items:flex-start;" >
+      <div style="margin-top:12px" class="fixtures-card">
+        <div class="muted small"><strong>Name</strong></div>
+        <div style="margin:4px 0px;">${escapeHtml(profile.firstName)} ${escapeHtml(profile.lastName)}</div>
 
-      </div >
+        <div style="margin-top:10px" class="muted small"><strong>Email</strong></div>
+        <div style="margin-top:4px;">${escapeHtml(profile.email)}</div>
 
-  <div style="margin-top:12px" class="fixtures-card">
-    <div class="muted small"><strong>Name</strong></div>
-    <div style="margin:4px 0px;">${escapeHtml(sessionUser.firstName)} ${escapeHtml(sessionUser.lastName)}</div>
+        <div style="margin-top:10px" class="muted small"><strong>Phone</strong></div>
+        <div style="margin-top:4px;">${escapeHtml(profile.phone)}</div>
 
-    <div style="margin-top:10px" class="muted small"><strong>Email</strong></div>
-    <div style="margin-top:4px;">${escapeHtml(sessionUser.email || "")}</div>
-
-    <div style="margin-top:10px" class="muted small"><strong>Phone</strong></div>
-    <div style="margin-top:4px;">${escapeHtml(sessionUser.phone || "—")}</div>
-
-    <div style="margin-top:10px" class="muted small"><strong>Team / Connection</strong></div>
-    <div style="margin-top:4px;">${escapeHtml(sessionUser.clubTeam || "—")}</div>
-  </div>
-`;
+        <div style="margin-top:10px" class="muted small"><strong>Team / Connection</strong></div>
+        <div style="margin-top:4px;">${escapeHtml(profile.clubTeam)}</div>
+      </div>
+    `;
   }
+
   openModal(profileModal);
 });
 
 
 document.getElementById("infoBtn")?.addEventListener("click", () => {
-  openModal(infoModal);
+  openInfoModalForGame_(activeGameId);
 });
-
-function getAccountLabel_(user) {
-  if (!user) return "—";
-  if (!user.approved) return "Pending";
-  return user.alive ? "Alive" : "Dead";
-}
-
-function getAccountStateClass_(user) {
-  if (!user) return "state muted";
-  if (!user.approved) return "state warn"; // orange-ish
-  return user.alive ? "state good" : "state bad";
-}
-
 
 function formatTimeLeft(ms) {
   const total = Math.max(0, Math.floor(ms / 1000));
@@ -3602,7 +5338,22 @@ function formatTimeLeft(ms) {
   return `${plural(secs, "second")} `;
 }
 
+function renderGameHeaderAuth_() {
+  const profileBtn = document.getElementById("profileBtn");
+  const infoBtn = document.getElementById("infoBtn");
+  const logoutBtn = document.getElementById("logoutBtnApp");
+  const authBtn = document.getElementById("guestAuthBtn");
 
+  if (sessionEmail) {
+    profileBtn?.classList.remove("hidden");
+    logoutBtn?.classList.remove("hidden");
+    authBtn?.classList.add("hidden");
+  } else {
+    profileBtn?.classList.add("hidden");
+    logoutBtn?.classList.add("hidden");
+    authBtn?.classList.remove("hidden");
+  }
+}
 
 
 const splash = document.getElementById("splash");
@@ -3623,9 +5374,26 @@ function syncViewingToCurrent() {
 }
 
 
-function doLogout() {
+async function doLogout() {
+  stopLobbyPolling_();
   clearSession();
-  exitApp_();
+
+  activeGameId = null;
+  activeEntry = null;
+
+  if (deadlineInterval) {
+    clearInterval(deadlineInterval);
+    deadlineInterval = null;
+  }
+
+  if (profilePoll) {
+    clearInterval(profilePoll);
+    profilePoll = null;
+  }
+
+  showLobby_();
+  renderLobby_();
+  refreshLobbyCounts_().catch(() => { });
 }
 
 logoutBtnOuter?.addEventListener("click", doLogout);
@@ -3646,28 +5414,32 @@ submitPickBtn?.addEventListener("click", () => {
   const match = gwTeams.find(t => t.toLowerCase() === typed.toLowerCase());
   if (!match) return showFixturesMessage("That team is not in this gameweek’s fixtures.", "bad");
 
-  const existing = getPickForGw(currentGwId); // ✅
+  const existing = getPickForGw(currentGwId);
 
   if (usedTeams.has(match) && existing?.team !== match) {
     return showFixturesMessage("You already used that team in a previous gameweek.", "bad");
   }
-  savePick(match);
+
+  setBtnLoading(submitPickBtn, true);
+  showPickConfirmModal_(match, currentGwId);
 });
 
+document.getElementById("backToLobbyBtn")?.addEventListener("click", () => {
+  backToLobby_();
+});
 
 /*******************************
  * APP START/STOP
  *******************************/
-function enterApp_() {
+function showLobby_() {
   authView.classList.add("hidden");
-  appView.classList.remove("hidden");
+  appView.classList.add("hidden");
+  document.getElementById("lobbyView")?.classList.remove("hidden");
 
   logoutBtnOuter?.classList.add("hidden");
-  logoutBtnApp?.classList.remove("hidden");
+  logoutBtnApp?.classList.add("hidden");
 
-  setTab2("selection");
-  renderGwReportCard_(); // ✅ immediate render on first load
-  startProfilePolling();
+  if (sessionEmail) startLobbyPolling_();
 }
 
 function exitApp_() {
@@ -3692,7 +5464,7 @@ function renderGameweekSelect() {
   for (const gw of gameweeks) {
     const opt = document.createElement("option");
     opt.value = gw.id;
-    opt.textContent = `${gw.id} (${formatDateUK(gw.start)})`;
+    opt.textContent = `${gw.displayGwId} (${formatDateUK(gw.start)})`;
     gameweekSelect.appendChild(opt);
   }
 
@@ -3706,56 +5478,62 @@ function renderGameweekSelect() {
   gameweekSelect.value = viewingGwId;
 }
 
-async function initDataAndRender_({ allowOutcomeModal = true } = {}) {
+async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
+  if (!activeGameId) return;
+
   try {
     await loadTeamLogosOnce_();
   } catch (e) {
     console.warn("Team logos failed to load:", e);
   }
-  // 1) Fixtures + gameweeks
-  await loadAllFixtures();
+
+  await loadFixturesAndDeadlines_();
   if (!gameweeks.length) {
     if (fixturesList) fixturesList.innerHTML = "";
     return;
   }
 
-  // 2) Profile
-  await refreshProfile();
+  if (sessionEmail) {
+    await refreshProfile();
+    lastApprovedState = !!sessionUser?.approved;
+  } else {
+    sessionUser = null;
+    sessionPicks = [];
+    usedTeams = new Set();
+    lastApprovedState = null;
+  }
 
-  // Track approval transition state for polling
-  lastApprovedState = !!sessionUser?.approved;
+  const playerGwId = sessionEmail ? computePlayerGwId() : null;
+  const dateGwId = computeDateGwId();
 
-  // 3) Compute current + viewing
-  currentGwId = computeCurrentGwId();
+  currentGwId = playerGwId || dateGwId;
   if (!currentGwId || !gameweeks.some(g => g.id === currentGwId)) {
     currentGwId = gameweeks[0].id;
   }
 
-  viewingGwId = currentGwId;
+  viewingGwId = dateGwId || currentGwId;
   if (!viewingGwId || !gameweeks.some(g => g.id === viewingGwId)) {
     viewingGwId = gameweeks[0].id;
   }
 
-  // 4) Render dropdown + sync
   renderGameweekSelect();
   syncViewingToCurrent();
 
-  // 5) Render main UI (fast)
-  renderFixturesTab();          // this already calls renderCurrentPickBlock/status/pick state
-  renderPaymentDetailsCard_();  // show "Payment details" card if pending
+  renderFixturesTab();
+  renderGameTitleBox_();
+  renderPaymentDetailsCard_();
   startDeadlineTimer();
   updateTeamDatalist();
 
-  // 6) Async counts (non-blocking)
-  refreshRemainingPlayersCount();
-
-  // 7) One-time modals (never spam)
-  // - registration: only shown after register submit flow (you already do that)
-  // - verified: show once ever per account/device
   showVerifiedModalOnce_();
-
-  // 8) Outcome effects (UI then modal once per resolved sig per session)
   applyOutcomeEffects_({ allowModal: !!allowOutcomeModal });
+
+  setTab2("selection");
+
+  // from here on, these are secondary/background
+  refreshRemainingPlayersCount().catch(console.warn);
+  renderGwReportCard_().catch?.(console.warn);
+  startProfilePolling();
 }
 
 
@@ -3768,8 +5546,19 @@ async function initDataAndRender_({ allowOutcomeModal = true } = {}) {
 
   // No saved login -> show auth immediately, no splash
   if (!sess?.email) {
-    showSplash(false);
-    exitApp_();
+    sessionEmail = null;
+    sessionUser = null;
+
+    try {
+      await fetchGames_();
+      await loadFixturesAndDeadlines_();
+      showLobby_();
+      renderLobby_();
+      refreshLobbyCounts_().catch(() => { });
+      stopLobbyPolling_();
+    } finally {
+      showSplash(false);
+    }
     return;
   }
 
@@ -3779,9 +5568,15 @@ async function initDataAndRender_({ allowOutcomeModal = true } = {}) {
   try {
     sessionEmail = sess.email;
 
-    await initDataAndRender_();
-
-    enterApp_();
+    await refreshAccountProfile_();
+    await fetchGames_();
+    await fetchMyEntries_();
+    snapshotLobbyApprovalStates_();
+    await loadFixturesAndDeadlines_();
+    showLobby_();
+    renderLobby_();
+    refreshLobbyCounts_().catch(() => { });
+    startLobbyPolling_();
 
     // ✅ IMPORTANT: hide splash after successful init + enter
     showSplash(false);
@@ -3797,4 +5592,3 @@ async function initDataAndRender_({ allowOutcomeModal = true } = {}) {
     exitApp_();
   }
 })();
-
