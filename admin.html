@@ -63,6 +63,20 @@
         <!-- PANEL VIEW -->
         <section id="panelView" class="hidden">
 
+          <div class="fixtures-card" style="margin-bottom:12px;">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+              <div>
+                <div style="font-weight:900;">Selected game</div>
+              </div>
+
+              <div style="min-width:220px;flex:1;max-width:320px;">
+                <select id="adminGameSelect" class="input" style="width:100%;">
+                  <option value="">Loading games…</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
           <div class="seg-tabs">
             <button class="tab2 active" data-tab="approvals" type="button">Approvals</button>
             <button class="tab2" data-tab="submissions" type="button">Submissions</button>
@@ -108,41 +122,29 @@
               <button class="btn btn-primary" id="refreshSubsBtn" type="button">Refresh</button>
             </div>
 
-            <div class="fixtures-card">
-              <details class="collapse-card" open style="margin-bottom:12px;">
-                <summary class="collapse-summary">
-                  <h3>Pending <span id="subsPendingCount"></span></h3>
-                  <span class="caret">▸</span>
-                </summary>
-
-                <div style="margin-top:10px;">
-                  <div id="subsPendingList" class="list"></div>
-                </div>
-              </details>
-
-              <details class="collapse-card" open>
-                <summary class="collapse-summary">
-                  <h3>Resolved <span id="subsResolvedCount"></span></h3>
-                  <span class="caret">▸</span>
-                </summary>
-
-                <div style="margin-top:10px;">
-                  <div id="subsResolvedList" class="list"></div>
-                </div>
-              </details>
+            <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;" class="muted small">
             </div>
 
-
+            <div id="subsContainer"></div>
           </section>
-
-          <div id="subsContainer" class="hidden"></div>
-
-
         </section>
 
         <div id="adminMsg" class="msg hidden" style="margin-top:12px;"></div>
       </div>
     </main>
+  </div>
+
+  <!-- BULK RESOLVE MODAL -->
+  <div id="bulkResolveModal" class="modal hidden" aria-hidden="true">
+    <div class="modal-card">
+      <h3 id="bulkResolveModalTitle" style="margin-top:0;">Confirm</h3>
+      <div id="bulkResolveModalBody" class="muted" style="margin-top:10px;"></div>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+        <button id="bulkResolveCancelBtn" class="btn btn-ghost" type="button">Cancel</button>
+        <button id="bulkResolveConfirmBtn" class="btn btn-primary" type="button">Confirm</button>
+      </div>
+    </div>
   </div>
 
   <script src="admin.js"></script>
