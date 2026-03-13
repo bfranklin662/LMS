@@ -124,7 +124,7 @@
 
           <button class="btn btn-primary" type="submit">Create account</button>
           <p class="muted">
-            Create your account, then enter a game from the lobby. 
+            Create your account, then enter a game from the lobby.
           </p>
         </form>
 
@@ -132,15 +132,21 @@
         <form id="loginForm" class="form hidden">
           <label>
             <span>Email</span>
-            <input name="email" type="email" autocomplete="email" required />
+            <input type="email" name="email" autocomplete="email" required />
           </label>
 
           <label>
             <span>Password</span>
-            <input name="password" type="password" required />
+            <input type="password" name="password" autocomplete="current-password" required />
           </label>
 
-          <button class="btn btn-primary" type="submit">Login</button>
+          <div class="login-help-row">
+            <button type="button" id="forgotPasswordLink" class="text-link-btn">
+              Forgotten password?
+            </button>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Login</button>
         </form>
 
         <div id="authMsg" class="msg hidden"></div>
@@ -373,6 +379,26 @@
     </footer>
 
     <div id="modalOverlay" class="modal-overlay hidden"></div>
+
+    <!-- FORGOTTEN PASSWORD MODAL -->
+    <div id="forgotPasswordModal" class="modal hidden" aria-hidden="true">
+      <div class="modal-card">
+        <h3>Reset password</h3>
+
+        <form id="forgotPasswordForm" class="form">
+          <label>
+            <span>Email</span>
+            <input id="forgotPasswordEmail" type="email" required />
+          </label>
+
+          <button id="forgotPasswordSubmitBtn" type="submit" class="btn btn-primary">
+            Send reset email
+          </button>
+
+          <div id="forgotPasswordMsg" class="msg hidden"></div>
+        </form>
+      </div>
+    </div>
 
     <!-- PLAYER MODAL -->
     <div id="playerModal" class="modal hidden" aria-hidden="true">
