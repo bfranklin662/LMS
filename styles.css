@@ -3683,3 +3683,17 @@ button:disabled {
     transparent 100%
   );
 }
+
+.login-help-row {
+  display: flex;
+  justify-content: flex-end;
+  margin: 8px 0 14px;
+}
+
+.text-link-btn {
+  color: #f05c5c;
+}
+
+.text-link-btn:hover {
+  opacity: 0.85;
+}
