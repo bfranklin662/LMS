@@ -194,7 +194,6 @@ function setTab2(name) {
   }
 }
 
-
 tabButtons.forEach(b => b.addEventListener("click", () => setTab2(b.dataset.tab)));
 
 const fixturesList = document.getElementById("fixturesList");
@@ -205,11 +204,7 @@ const submitPickBtn = document.getElementById("submitPickBtn");
 const gwTitleEl = document.getElementById("gwTitle");
 const gwRangeEl = document.getElementById("gwRange");
 
-
-
 const gwTitle = document.getElementById("gwTitle");
-
-
 
 const aliveList = document.getElementById("aliveList");
 const outList = document.getElementById("outList");
@@ -228,7 +223,14 @@ const playerModalBody = document.getElementById("playerModalBody");
 
 const privacyModal = document.getElementById("privacyModal");
 
-const allModals = [systemModal, profileModal, infoModal, playerModal, privacyModal].filter(Boolean);
+const forgotPasswordModal = document.getElementById("forgotPasswordModal");
+const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+const forgotPasswordForm = document.getElementById("forgotPasswordForm");
+const forgotPasswordEmail = document.getElementById("forgotPasswordEmail");
+const forgotPasswordMsg = document.getElementById("forgotPasswordMsg");
+const forgotPasswordSubmitBtn = document.getElementById("forgotPasswordSubmitBtn");
+
+const allModals = [systemModal, profileModal, infoModal, playerModal, privacyModal, forgotPasswordModal].filter(Boolean);
 
 
 playerModal?.addEventListener("pointerdown", (e) => {
@@ -3674,6 +3676,67 @@ function openCompetitionsModalForGame_(gameId) {
     { showActions: false }
   );
 }
+
+if (forgotPasswordLink && forgotPasswordModal) {
+  forgotPasswordLink.addEventListener("click", (e) => {
+    e.preventDefault();
+
+    forgotPasswordForm?.reset();
+
+    if (forgotPasswordMsg) {
+      forgotPasswordMsg.textContent = "";
+      forgotPasswordMsg.classList.add("hidden");
+      forgotPasswordMsg.classList.remove("good", "bad");
+    }
+
+    openModal(forgotPasswordModal);
+    setTimeout(() => forgotPasswordEmail?.focus(), 0);
+  });
+}
+
+forgotPasswordForm?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = String(forgotPasswordEmail?.value || "").trim();
+
+  if (!forgotPasswordMsg) return;
+
+  forgotPasswordMsg.classList.add("hidden");
+  forgotPasswordMsg.classList.remove("good", "bad");
+  forgotPasswordMsg.textContent = "";
+
+  setBtnLoading(forgotPasswordSubmitBtn, true);
+
+  try {
+    const data = await api({
+      action: "requestPasswordReset",
+      email
+    });
+
+    setBtnLoading(forgotPasswordSubmitBtn, false);
+
+    forgotPasswordMsg.innerHTML = `
+      <span style="display:inline-flex;align-items:center;gap:8px;">
+        <span style="font-weight:700;">✓</span>
+        <span>${escapeHtml(data.message || "If an account exists for that email, a reset link has been sent.")}</span>
+      </span>
+    `;
+    forgotPasswordMsg.classList.remove("hidden");
+    forgotPasswordMsg.classList.add("good");
+
+  } catch (err) {
+    setBtnLoading(forgotPasswordSubmitBtn, false);
+
+    forgotPasswordMsg.innerHTML = `
+      <span style="display:inline-flex;align-items:center;gap:8px;">
+        <span style="font-weight:700;">✕</span>
+        <span>${escapeHtml(String(err.message || err))}</span>
+      </span>
+    `;
+    forgotPasswordMsg.classList.remove("hidden");
+    forgotPasswordMsg.classList.add("bad");
+  }
+});
 
 function split2_(n) {
   return String(Math.max(0, Number(n) || 0)).padStart(2, "0");
