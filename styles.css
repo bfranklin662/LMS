@@ -3130,6 +3130,7 @@ button:disabled {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  filter: brightness(0.85);
 }
 
 .game-competitions-row{
@@ -3690,9 +3691,7 @@ button:disabled {
   margin: 8px 0 14px;
 }
 
-.text-link-btn {
-  color: #f05c5c;
-}
+
 
 .text-link-btn:hover {
   opacity: 0.85;
