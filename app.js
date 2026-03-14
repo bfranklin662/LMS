@@ -492,7 +492,7 @@ function openInfoModalForGame_(gameId) {
 
       <p><strong>Entry fee:</strong> £${entryFee}</p>
 
-      <p><strong>Prize split:</strong> roughly 60% winner, 30% fundraising, 10% admin.</p>
+      <p><strong>Prize split:</strong> 50% winner, 40% fundraising, 10% admin.</p>
 
       <p><strong>Last player remaining wins.</strong></p>
     </div>
