@@ -522,20 +522,6 @@
     {
       "gwId": "GW9",
       "date": "2026-03-21",
-      "team1": "Wolves",
-      "team2": "Arsenal",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW9",
-      "date": "2026-03-21",
-      "team1": "Manchester City",
-      "team2": "Crystal Palace",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW9",
-      "date": "2026-03-21",
       "team1": "Everton",
       "team2": "Chelsea",
       "time": "17:30"
