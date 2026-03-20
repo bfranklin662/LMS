@@ -899,6 +899,43 @@ function getGwIdForSelectionsCard_() {
   return null;
 }
 
+function getCurrentGame_() {
+  const games = Array.isArray(gamesList) ? [...gamesList] : [];
+
+  if (!games.length) return null;
+
+  games.sort((a, b) => {
+    const as = Number(a?.sortOrder || 9999);
+    const bs = Number(b?.sortOrder || 9999);
+    if (as !== bs) return as - bs;
+    return String(a?.title || "").localeCompare(String(b?.title || ""));
+  });
+
+  const running = games.find(g => String(g?.status || "").toUpperCase() === "RUNNING");
+  if (running) return running;
+
+  const open = games.find(g => String(g?.status || "").toUpperCase() === "OPEN");
+  if (open) return open;
+
+  return null;
+}
+
+function getAutoEnterGameIdForSession_() {
+  if (!sessionEmail) return null;
+
+  const currentGame = getCurrentGame_();
+  if (!currentGame) return null;
+
+  const currentGameId = String(currentGame.id || "");
+  if (!currentGameId) return null;
+
+  const hasEntryForCurrentGame = (myEntries || []).some(
+    e => String(e?.gameId || "") === currentGameId
+  );
+
+  return hasEntryForCurrentGame ? currentGameId : null;
+}
+
 function getRunningStatusText_() {
   const game = getActiveGame_();
   const status = String(game?.status || "").toUpperCase();
@@ -5293,10 +5330,10 @@ loginForm.addEventListener("submit", async (e) => {
     await fetchMyEntries_();
     snapshotLobbyApprovalStates_();
 
-    const preferredGameId = getPreferredGameIdForSession_();
+    const autoEnterGameId = getAutoEnterGameIdForSession_();
 
-    if (preferredGameId) {
-      await enterGame_(preferredGameId);
+    if (autoEnterGameId) {
+      await enterGame_(autoEnterGameId);
     } else {
       showLobby_();
       renderLobby_();
@@ -5696,10 +5733,10 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
     snapshotLobbyApprovalStates_();
     await loadFixturesAndDeadlines_();
 
-    const preferredGameId = getPreferredGameIdForSession_();
+    const autoEnterGameId = getAutoEnterGameIdForSession_();
 
-    if (preferredGameId) {
-      await enterGame_(preferredGameId);
+    if (autoEnterGameId) {
+      await enterGame_(autoEnterGameId);
     } else {
       showLobby_();
       renderLobby_();
