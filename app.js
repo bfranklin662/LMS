@@ -419,6 +419,51 @@ async function handleLobbyApprovalChanges_() {
   }
 }
 
+function getGameStatusRank_(status) {
+  const s = String(status || "").toUpperCase();
+  if (s === "RUNNING") return 0;
+  if (s === "OPEN") return 1;
+  if (s === "FINISHED") return 2;
+  return 9;
+}
+
+function getPreferredGameIdForSession_() {
+  if (!sessionEmail || !Array.isArray(myEntries) || !myEntries.length) return null;
+
+  const ranked = myEntries
+    .map(entry => {
+      const game = (gamesList || []).find(g => String(g.id || "") === String(entry.gameId || ""));
+      const statusRank = getGameStatusRank_(game?.status);
+      const approved = !!entry?.approved;
+      const alive = entry?.alive !== false;
+
+      let priority = 99;
+
+      if (approved && alive && statusRank === 0) priority = 0;       // running + alive
+      else if (approved && statusRank === 0) priority = 1;           // running
+      else if (approved && statusRank === 1) priority = 2;           // open + approved
+      else if (statusRank === 1) priority = 3;                       // open + pending
+      else if (statusRank === 2) priority = 4;                       // finished
+      else priority = 9;
+
+      return {
+        gameId: String(entry.gameId || ""),
+        priority,
+        sortOrder: Number(game?.sortOrder || 9999)
+      };
+    })
+    .filter(x => x.gameId);
+
+  if (!ranked.length) return null;
+
+  ranked.sort((a, b) => {
+    if (a.priority !== b.priority) return a.priority - b.priority;
+    return a.sortOrder - b.sortOrder;
+  });
+
+  return ranked[0].gameId || null;
+}
+
 function startLobbyPolling_() {
   if (!sessionEmail) return;
 
@@ -553,6 +598,7 @@ async function refreshLobbyCounts_() {
     if (!gameId) return;
 
     lobbyCountsLoading[gameId] = true;
+    renderLobby_();
 
     try {
       const gwId = String(g.startGw || "GW1").toUpperCase();
@@ -574,10 +620,9 @@ async function refreshLobbyCounts_() {
       console.warn("Lobby counts failed for", gameId, err);
     } finally {
       lobbyCountsLoading[gameId] = false;
+      renderLobby_();
     }
   }));
-
-  renderLobby_();
 }
 
 function getCompetitionLogo_(name) {
@@ -1227,8 +1272,23 @@ function getGameBannerStatusClass_(game, entry) {
   return "game-status-pill--open";
 }
 
+
 function getPlayersBadgeHtml_(game, counts) {
+  const gameId = String(game?.id || "");
   const status = String(game?.status || "").toUpperCase();
+  const loading = !!lobbyCountsLoading[gameId] || !counts;
+
+  if (loading) {
+    const tooltip =
+      status === "RUNNING" ? "Remaining players" : "Players";
+
+    return `
+      <span class="hero-pill-tooltip" data-tooltip="${tooltip}">
+        <span class="pill-emoji">👤</span> ${dotsHtml_()}
+      </span>
+    `;
+  }
+
   const registered = Number(counts?.registered || counts?.total || 0);
   const remaining = Number(counts?.remaining || 0);
   const total = Number(counts?.total || 0);
@@ -1257,15 +1317,30 @@ function getPlayersBadgeHtml_(game, counts) {
 }
 
 
-
 function renderGameTitleBox_() {
   const game = getActiveGame_();
   const entry = getMyEntryForGame_(activeGameId);
 
-  const counts = lobbyCountsByGame[String(activeGameId || "")] || {};
+  const lobbyCounts = lobbyCountsByGame[String(activeGameId || "")];
 
-  const remainingCount = Number(counts.remaining || 0);
-  const totalCount = Number(counts.total || 0);
+  const counts = {
+    registered: lastTotalPlayers,
+    total: lastTotalPlayers,
+    remaining: lastRemainingPlayers,
+    approved: lastApprovedPlayers,
+    pending: lastPendingPlayers
+  };
+
+  const hasLocalCounts =
+    lastTotalPlayers != null ||
+    lastRemainingPlayers != null ||
+    lastApprovedPlayers != null ||
+    lastPendingPlayers != null;
+
+  const countsForBadge = hasLocalCounts ? counts : lobbyCounts;
+
+  const remainingCount = Number(counts?.remaining || 0);
+  const totalCount = Number(counts?.total || 0);
   const isWinner = isEntryWinner_(entry, remainingCount);
 
   const playerNameEl = document.getElementById("gameTitlePlayerName");
@@ -1293,7 +1368,6 @@ function renderGameTitleBox_() {
   const entryFee = Number(game.entryFee || 0);
   const winner = String(game.winner || "").trim();
 
-  // EXACT same deadline logic as lobby
   const firstGw = getGameFirstGw_(game);
   const lateRegistrationOpen = isGameLateRegistrationOpen_(game);
   const deadlineIso = lateRegistrationOpen
@@ -1301,7 +1375,6 @@ function renderGameTitleBox_() {
     : (firstGw?.deadline ? firstGw.deadline.toISOString() : "");
   const showCountdown = status === "OPEN" && !!deadlineIso;
 
-  // EXACT same image method as lobby
   const bannerImg = document.querySelector("#gameTitleBox .game-hero-banner-img");
   if (bannerImg) {
     bannerImg.src = getGameBannerUrl_(gameId);
@@ -1329,11 +1402,9 @@ function renderGameTitleBox_() {
 
   statusPillEl.classList.add(getGameBannerStatusClass_(game, entry));
 
-  // EXACT same top-left badge behaviour as lobby
-  playersBadgeEl.innerHTML = getPlayersBadgeHtml_(game, counts);
+  playersBadgeEl.innerHTML = getPlayersBadgeHtml_(game, countsForBadge);
   playersBadgeEl.classList.remove("hidden");
 
-  // top-right badge
   if (status === "OPEN") {
     prizeBadgeEl.innerHTML = `
       <span class="hero-pill-tooltip" data-tooltip="Entry fee">
@@ -4221,10 +4292,13 @@ function renderLobby_() {
   startCountdowns_();
 }
 
+let joinGameBusy = false;
+
 async function joinGame_(gameId, triggerBtn = null) {
+  if (joinGameBusy) return;
+
   if (!sessionEmail) {
     showSplash(true);
-
     try {
       showRegisterBtn?.classList.add("active");
       showLoginBtn?.classList.remove("active");
@@ -4244,7 +4318,9 @@ async function joinGame_(gameId, triggerBtn = null) {
   const game = (gamesList || []).find(g => String(g.id) === String(gameId));
   const entryFee = Number(game?.entryFee || 10);
 
+  joinGameBusy = true;
   setBtnLoading(triggerBtn, true);
+  showSplash(true);
 
   try {
     await api(
@@ -4255,6 +4331,11 @@ async function joinGame_(gameId, triggerBtn = null) {
       },
       { timeoutMs: 30000 }
     );
+
+    await fetchMyEntries_();
+    snapshotLobbyApprovalStates_();
+
+    await enterGame_(gameId);
 
     showSystemModal_(
       "Registration",
@@ -4272,22 +4353,10 @@ async function joinGame_(gameId, triggerBtn = null) {
       { showActions: false }
     );
 
-    requestAnimationFrame(() => {
-      setBtnLoading(triggerBtn, false);
-    });
-
-    setTimeout(async () => {
-      try {
-        await fetchMyEntries_();
-        snapshotLobbyApprovalStates_();
-        renderLobby_();
-        refreshLobbyCounts_().catch(() => {});
-      } catch (err) {
-        console.warn("Post-join lobby refresh failed", err);
-      }
-    }, 50);
-
+    refreshLobbyCounts_().catch(() => { });
   } catch (err) {
+    showSplash(false);
+
     showSystemModal_(
       "Registration",
       `
@@ -4297,10 +4366,9 @@ async function joinGame_(gameId, triggerBtn = null) {
       `,
       { showActions: false }
     );
-
-    requestAnimationFrame(() => {
-      setBtnLoading(triggerBtn, false);
-    });
+  } finally {
+    setBtnLoading(triggerBtn, false);
+    joinGameBusy = false;
   }
 }
 
@@ -5224,23 +5292,17 @@ loginForm.addEventListener("submit", async (e) => {
     await fetchGames_();
     await fetchMyEntries_();
     snapshotLobbyApprovalStates_();
-    showLobby_();
-    renderLobby_();
-    refreshLobbyCounts_().catch(() => { });
-    startLobbyPolling_();
 
-    setTimeout(() => {
-      const firstName = String(sessionUser?.firstName || "").trim() || "there";
-      showSystemModal_(
-        `Welcome back ${firstName}!`,
-        `
-          <div style="line-height:1.5;">
-            <p style="margin:0;"></p>
-          </div>
-        `,
-        { showActions: false }
-      );
-    }, 0);
+    const preferredGameId = getPreferredGameIdForSession_();
+
+    if (preferredGameId) {
+      await enterGame_(preferredGameId);
+    } else {
+      showLobby_();
+      renderLobby_();
+      refreshLobbyCounts_().catch(() => { });
+      startLobbyPolling_();
+    }
 
   } catch (err) {
     showAuthMessage(String(err.message || err), "bad");
@@ -5601,13 +5663,11 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
 
 
 (async function boot() {
-  // Start hidden until we decide where to go
   authView.classList.add("hidden");
   appView.classList.add("hidden");
 
   const sess = getSession();
 
-  // No saved login -> show auth immediately, no splash
   if (!sess?.email) {
     sessionEmail = null;
     sessionUser = null;
@@ -5625,7 +5685,6 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
     return;
   }
 
-  // Saved login -> show splash while we load
   showSplash(true);
 
   try {
@@ -5636,13 +5695,18 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
     await fetchMyEntries_();
     snapshotLobbyApprovalStates_();
     await loadFixturesAndDeadlines_();
-    showLobby_();
-    renderLobby_();
-    refreshLobbyCounts_().catch(() => { });
-    startLobbyPolling_();
 
-    // ✅ IMPORTANT: hide splash after successful init + enter
-    showSplash(false);
+    const preferredGameId = getPreferredGameIdForSession_();
+
+    if (preferredGameId) {
+      await enterGame_(preferredGameId);
+    } else {
+      showLobby_();
+      renderLobby_();
+      refreshLobbyCounts_().catch(() => { });
+      startLobbyPolling_();
+      showSplash(false);
+    }
   } catch (err) {
     console.error(err);
 
@@ -5650,7 +5714,6 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
       clearSession();
     }
 
-    // ✅ On any failure: hide splash AND show auth view
     showSplash(false);
     exitApp_();
   }
