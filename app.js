@@ -942,10 +942,17 @@ function getRunningStatusText_() {
 
   if (status !== "RUNNING") return status || "—";
 
-  const counts = lobbyCountsByGame[String(activeGameId || "")] || {};
-  const remaining = Number(counts.remaining || 0);
+  const counts = lobbyCountsByGame[String(activeGameId || "")];
 
-  if (remaining <= 1) {
+  const hasRealCounts =
+    counts &&
+    counts.remaining != null &&
+    counts.total != null;
+
+  const remaining = Number(counts?.remaining);
+  const total = Number(counts?.total);
+
+  if (hasRealCounts && total > 0 && remaining === 1) {
     const lastStartedGw = getLastStartedActualGwIdForGame_(game) || game?.startGw;
     return `Complete: ${getDisplayGwIdForGame_(lastStartedGw, game)}`;
   }
@@ -1253,9 +1260,17 @@ function getFinishedGwIdForGame_(game) {
 
 function getLobbyRunningStatusText_(game) {
   const gameId = String(game?.id || "");
-  const remaining = Number(lobbyCountsByGame[gameId]?.remaining || 0);
+  const counts = lobbyCountsByGame[gameId];
 
-  if (remaining <= 1) {
+  const hasRealCounts =
+    counts &&
+    counts.remaining != null &&
+    counts.total != null;
+
+  const remaining = Number(counts?.remaining);
+  const total = Number(counts?.total);
+
+  if (hasRealCounts && total > 0 && remaining === 1) {
     const finishedGwId = getFinishedGwIdForGame_(game);
     return `Finished: ${getDisplayGwIdForGame_(finishedGwId, game)}`;
   }
