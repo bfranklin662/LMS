@@ -65,9 +65,9 @@
     },
     {
       "gwId": "GW10",
-      "normalDeadlineIso": "2026-03-28T15:00:00.000Z",
+      "normalDeadlineIso": "2026-03-28T12:45:00.000Z",
       "lateDeadlineIso": "2026-03-28T15:00:00.000Z",
-      "firstKickoffIso": "2026-03-28T15:00:00.000Z",
+      "firstKickoffIso": "2026-03-28T12:45:00.000Z",
       "lastKickoffIso": "2026-03-28T15:00:00.000Z"
     },
     {
