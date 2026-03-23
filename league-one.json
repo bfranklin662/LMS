@@ -711,20 +711,6 @@
     {
       "gwId": "GW10",
       "date": "2026-03-28",
-      "team1": "Peterborough",
-      "team2": "Mansfield Town",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW10",
-      "date": "2026-03-28",
-      "team1": "Northampton Town",
-      "team2": "Barnsley",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW10",
-      "date": "2026-03-28",
       "team1": "Stockport",
       "team2": "AFC Wimbledon",
       "time": "15:00"
@@ -734,41 +720,6 @@
       "date": "2026-03-28",
       "team1": "Reading",
       "team2": "Wigan Athletic",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW10",
-      "date": "2026-03-28",
-      "team1": "Doncaster",
-      "team2": "Lincoln City",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW10",
-      "date": "2026-03-28",
-      "team1": "Bradford City",
-      "team2": "Plymouth",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW10",
-      "date": "2026-03-28",
-      "team1": "Rotherham",
-      "team2": "Luton Town",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW10",
-      "date": "2026-03-28",
-      "team1": "Huddersfield",
-      "team2": "Cardiff City",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW10",
-      "date": "2026-03-28",
-      "team1": "Bolton",
-      "team2": "Stevenage",
       "time": "15:00"
     },
     {
