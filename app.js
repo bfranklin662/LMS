@@ -1159,7 +1159,12 @@ function getActiveGame_() {
   return (gamesList || []).find(g => String(g.id || "") === String(activeGameId || "")) || null;
 }
 
+function getEntriesViewGwId_() {
+  const game = getActiveGame_();
+  if (!game) return currentGwId || null;
 
+  return getCurrentActualGwIdForGame_(game) || computeDateGwId() || currentGwId || null;
+}
 
 function formatGameDeadlineText_(value) {
   if (!value) return "—";
@@ -2569,11 +2574,10 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
 
   const isAlive = player.alive === true;
   const isDead = player.alive === false;
-
   const approved = isApproved_(player);
 
   const status = !approved
-    ? "pending"     // 👈 NEW
+    ? "pending"
     : isAlive
       ? "alive"
       : isDead
@@ -2581,37 +2585,32 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
         : null;
 
   function gwRowUi_(gwId, { submitted }) {
-    // (GW1 - Pending approval ...) red
     if (!approved) {
       return {
-        rowCls: "approval-pending",     // NEW red class
+        rowCls: "approval-pending",
         text: "Pending approval",
         stateCls: "bad",
         icon: "…"
       };
     }
 
-    // (GW1 - Team submitted ✓) orange
     if (submitted) {
       return {
-        rowCls: "pending",              // your existing orange styling
+        rowCls: "pending",
         text: "Team submitted",
         stateCls: "warn",
         icon: "✓"
       };
     }
 
-    // (GW1 - Not submitted …) grey
     return {
-      rowCls: "neutral",               // your existing grey styling
-      text: "Not submitted",
+      rowCls: "neutral",
+      text: "Not selected",
       stateCls: "muted",
       icon: "…"
     };
   }
 
-
-  // 1) show instantly (loading state)
   const loadingHtml = `
     <div class="muted small" style="margin-bottom:10px;">${escapeHtml(club)}</div>
     <div class="fixtures-card" style="padding:12px;">
@@ -2620,7 +2619,6 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
           <div>
             Fetching picks <span class="dots" aria-label="Loading"></span>
           </div>
-          <!-- no right-hand state icon while loading -->
         </div>
       </div>
     </div>
@@ -2628,7 +2626,6 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
 
   showPlayerModal_(fullName, loadingHtml, { status, approved });
 
-  // ranking line only for dead
   let positionLine = "";
   if (isDead) {
     try {
@@ -2637,104 +2634,96 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
           if (!!a.alive !== !!b.alive) return (b.alive ? 1 : 0) - (a.alive ? 1 : 0);
           return gwIndexForRank_(b.knockedOutGw) - gwIndexForRank_(a.knockedOutGw);
         });
+
         const idx = sorted.findIndex(u =>
           String(u.email || "").toLowerCase() === String(player.email || "").toLowerCase()
         );
+
         if (idx >= 0) {
           const placing = idx + 1;
           positionLine = `Finished: <strong>${placing}${ordinalSuffix_(placing)}</strong> of <strong>${sorted.length}</strong>`;
         }
       }
-    } catch { }
-  }
-
-  // 2) get picks
-  let picks = Array.isArray(player.picks) ? player.picks : [];
-
-  if (!picks.length && player.email) {
-    try {
-      const resp = await api({ action: "getUserPicks", email: player.email, gameId: activeGameId })
-      if (Array.isArray(resp.picks)) picks = resp.picks;
-    } catch {
-      picks = [];
+    } catch (err) {
+      console.warn("Position line failed", err);
     }
   }
 
-  const picksSorted = [...picks]
-    .map(p => ({
-      gwId: String(p.gwId || "").toUpperCase(),
-      team: String(p.team || "").trim(),
-      outcome: String(p.outcome || "PENDING").toUpperCase()
-    }))
-    .filter(p => p.gwId)
-    .sort((a, b) => {
-      const ai = findGwIndexById(a.gwId);
-      const bi = findGwIndexById(b.gwId);
-      if (ai >= 0 && bi >= 0) return ai - bi;
-      return String(a.gwId).localeCompare(String(b.gwId));
-    });
+  try {
+    let picks = Array.isArray(player.picks) ? player.picks : [];
 
-  const currentGwKey = String(gwIdForEntries || "").toUpperCase();
-  let rowsHtml = "";
+    if (!picks.length && player.email) {
+      const resp = await api({
+        action: "getUserPicks",
+        email: player.email,
+        gameId: activeGameId
+      });
+      picks = Array.isArray(resp.picks) ? resp.picks : [];
+    }
 
-  if (!picksSorted.length) {
-    if (isDead) {
-      rowsHtml = `
-        <div class="status-row loss">
-          <div>
-            ${escapeHtml(gwLabelShort(player.knockedOutGw || "—"))} - ${teamInlineHtml_(player.knockedOutTeam || "—", { size: 16, logoPosition: "before" })}
-          </div>
-          <div class="state bad">✕</div>
-        </div>
-      `;
-    } else {
+    const currentGwKey = String(getEntriesViewGwId_() || gwIdForEntries || "").toUpperCase();
+
+    const picksSorted = [...picks]
+      .map(p => ({
+        gwId: String(p.gwId || "").toUpperCase(),
+        team: String(p.team || "").trim(),
+        outcome: String(p.outcome || "PENDING").toUpperCase()
+      }))
+      .filter(p => p.gwId)
+      .sort((a, b) => {
+        const ai = findGwIndexById(a.gwId);
+        const bi = findGwIndexById(b.gwId);
+        if (ai >= 0 && bi >= 0) return ai - bi;
+        return String(a.gwId).localeCompare(String(b.gwId));
+      });
+
+    let rowsHtml = "";
+
+    if (!picksSorted.length) {
       const submitted = !!player.submittedForGw;
       const ui = gwRowUi_(currentGwKey, { submitted });
 
-      rowsHtml += `
+      rowsHtml = `
         <div class="status-row ${ui.rowCls}">
           <div>${escapeHtml(gwLabelShort(currentGwKey))} - ${ui.text}</div>
           <div class="state ${ui.stateCls}">${ui.icon}</div>
         </div>
       `;
-    }
-  } else {
-    for (const p of picksSorted) {
-      const isCurrent = p.gwId === currentGwKey;
+    } else {
+      for (const p of picksSorted) {
+        const displayGwId = getDisplayGwIdForGame_(p.gwId, getActiveGame_());
+        const isCurrent = String(p.gwId).toUpperCase() === currentGwKey;
 
-      // ✅ privacy: if alive + current gw + pending, never show team or “in progress”
-      if (isAlive && isCurrent && p.outcome === "PENDING") {
-        const submitted = !!player.submittedForGw;
-        const ui = gwRowUi_(currentGwKey, { submitted });
+        if (isAlive && isCurrent && p.outcome === "PENDING") {
+          const submitted = !!player.submittedForGw;
+          const ui = gwRowUi_(currentGwKey, { submitted });
+
+          rowsHtml += `
+            <div class="status-row ${ui.rowCls}">
+              <div>${escapeHtml(gwLabelShort(displayGwId))} - ${ui.text}</div>
+              <div class="state ${ui.stateCls}">${ui.icon}</div>
+            </div>
+          `;
+          continue;
+        }
+
+        const icon = p.outcome === "WIN" ? "✓" : p.outcome === "LOSS" ? "✕" : "…";
+        const cls = p.outcome === "WIN" ? "good" : p.outcome === "LOSS" ? "bad" : "warn";
+
         rowsHtml += `
-          <div class="status-row ${ui.rowCls}">
-            <div>${escapeHtml(gwLabelShort(currentGwKey))} - ${ui.text}</div>
-            <div class="state ${ui.stateCls}">${ui.icon}</div>
+          <div class="status-row fade-row ${p.outcome === "WIN" ? "win" : p.outcome === "LOSS" ? "loss" : "pending"}">
+            <div>
+              ${escapeHtml(gwLabelShort(displayGwId))} - ${teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" })}
+            </div>
+            <div class="state ${cls}">${icon}</div>
           </div>
         `;
-        continue;
       }
 
-      const icon = p.outcome === "WIN" ? "✓" : p.outcome === "LOSS" ? "✕" : "…";
-      const cls = p.outcome === "WIN" ? "good" : p.outcome === "LOSS" ? "bad" : "warn";
-      const label = p.outcome === "WIN" ? "Won" : p.outcome === "LOSS" ? "Lost" : "In progress";
+      const hasCurrent = picksSorted.some(p => String(p.gwId).toUpperCase() === currentGwKey);
 
-      rowsHtml += `
-        <div class="status-row fade-row ${p.outcome === "WIN" ? "win" : p.outcome === "LOSS" ? "loss" : "pending"}">
-          <div>
-            ${escapeHtml(gwLabelShort(convertFixtureGwToGameGw_(p.gwId, game)))} - ${teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" })}
-          </div>
-          <div class="state ${cls}">${icon}</div>
-        </div>
-      `;
-    }
-
-    // Ensure current GW line exists for alive players even if not present
-    if (isAlive && currentGwKey) {
-      const hasCurrent = picksSorted.some(p => p.gwId === currentGwKey);
       if (!hasCurrent) {
-        const submitted = !!player.submittedForGw;
-        const ui = gwRowUi_(currentGwKey, { submitted });
+        const ui = gwRowUi_(currentGwKey, { submitted: !!player.submittedForGw });
 
         rowsHtml += `
           <div class="status-row ${ui.rowCls}">
@@ -2744,28 +2733,40 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
         `;
       }
     }
+
+    const finalHtml = `
+      <div class="muted small" style="margin-bottom:10px;">${escapeHtml(club)}</div>
+      <div class="fixtures-card" style="padding:12px;">
+        <div class="status-rows">${rowsHtml}</div>
+        ${positionLine ? `<div class="muted small" style="margin-top:10px;">${positionLine}</div>` : ""}
+      </div>
+    `;
+
+    showPlayerModal_(fullName, finalHtml, { status, approved });
+
+    requestAnimationFrame(() => {
+      const rows = playerModalBody?.querySelectorAll(".fade-row") || [];
+      rows.forEach((el, i) => setTimeout(() => el.classList.add("is-in"), i * 60));
+    });
+
+  } catch (err) {
+    console.error("openPlayerPicksModal_ failed", err);
+
+    showPlayerModal_(
+      fullName,
+      `
+        <div class="muted small" style="margin-bottom:10px;">${escapeHtml(club)}</div>
+        <div class="fixtures-card" style="padding:12px;">
+          <div class="status-row neutral">
+            <div>Could not load picks</div>
+            <div class="state bad">✕</div>
+          </div>
+        </div>
+      `,
+      { status, approved }
+    );
   }
-
-  // 3) final render
-  const finalHtml = `
-    <div class="muted small" style="margin-bottom:10px;">${escapeHtml(club)}</div>
-
-    <div class="fixtures-card" style="padding:12px;">
-      <div class="status-rows">${rowsHtml}</div>
-      ${positionLine ? `<div class="muted small" style="margin-top:10px;">${positionLine}</div>` : ""}
-    </div>
-  `;
-
-
-  showPlayerModal_(fullName, finalHtml, { status, approved });
-
-  // animate rows in
-  requestAnimationFrame(() => {
-    const rows = playerModalBody?.querySelectorAll(".fade-row") || [];
-    rows.forEach((el, i) => setTimeout(() => el.classList.add("is-in"), i * 60));
-  });
 }
-
 
 async function computePlacingForEmail_(targetEmail, gwIdForRank) {
   const emailKey = String(targetEmail || "").toLowerCase();
@@ -3643,7 +3644,7 @@ async function renderEntriesTab() {
   }
 
   try {
-    const gwIdForEntries = currentGwId;
+    const gwIdForEntries = getEntriesViewGwId_();
     const data = await api({ action: "getEntries", gameId: activeGameId, gwId: gwIdForEntries });
 
     if (myReq !== entriesReqId) return;
@@ -5002,7 +5003,7 @@ function renderWinBox() {
   box.classList.remove("hidden");
   box.classList.remove("loss"); // ensure green styling
   box.innerHTML = `
-    <div > <strong>${escapeHtml(gwLabelShort(convertFixtureGwToGameGw_(p.gwId, game)))} - ${escapeHtml(p.team)} - Won</strong></div >
+    <div><strong>${escapeHtml(gwLabelShort(getDisplayGwIdForGame_(p.gwId, getActiveGame_())))} - ${escapeHtml(p.team)} - Won</strong></div>
       <div class="state good">✓</div>
 `;
 }
