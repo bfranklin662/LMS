@@ -1012,7 +1012,7 @@ async function openGwReportModal_(gwId) {
   if (!modal || !bodyEl || !titleEl) return;
 
   titleEl.innerHTML = `
-    ${escapeHtml(gwLabelLong(gwId))} - Selections
+    ${escapeHtml(gwLabelLong(gwId))} - Selections:
     <span class="muted" id="gwReportModalCountDots">
       <span class="dots" aria-label="Loading"></span>
     </span>
@@ -1020,6 +1020,10 @@ async function openGwReportModal_(gwId) {
   `;
 
   bodyEl.innerHTML = `
+    <div class="gw-report-summary muted small" id="gwReportModalSummary" style="margin:0 0 10px 0;">
+      Loading…
+    </div>
+
     <div class="gw-report-body" style="overflow:auto; max-height:60vh;">
       <table class="gw-table">
         <thead>
@@ -1051,35 +1055,56 @@ async function openGwReportModal_(gwId) {
     rows = [];
   }
 
-  rows = rows.filter(r => String(r.selection || "").trim());
+  // keep rows even if no team selected, as long as they belong to this GW report
+  rows = rows.filter(r => shouldShowGwReportRow_(r, gwId));
+
+  const wonCount = rows.filter(r => String(r.outcome || "").trim().toUpperCase() === "WIN").length;
+  const lostCount = rows.filter(r => String(r.outcome || "").trim().toUpperCase() === "LOSS").length;
+  const pendingCount = rows.filter(r => String(r.outcome || "").trim().toUpperCase() === "PENDING").length;
 
   const totalSelections = rows.length;
 
   const countEl = document.getElementById("gwReportModalCount");
   const dotsEl = document.getElementById("gwReportModalCountDots");
+  const summaryEl = document.getElementById("gwReportModalSummary");
 
   if (countEl) countEl.textContent = String(totalSelections);
   if (dotsEl) dotsEl.style.display = "none";
+
+  if (summaryEl) {
+    summaryEl.innerHTML = `
+    Won: <strong>${wonCount}</strong>,
+    Lost: <strong>${lostCount}</strong>
+    ${pendingCount > 0 ? `, Pending: <strong>${pendingCount}</strong>` : ""}
+  `;
+  }
 
   const tbodyHtml = rows.map(r => {
     const name = r.name || r.email || "—";
     const club = simplifyClub_(r.clubTeam || "—");
     const sel = String(r.selection || "").trim();
-    const resLabel = outcomeLabel_(r.outcome);
-    const resCls = outcomeCls_(r.outcome);
+    const hasSelection = !!sel;
+
+    const outcomeRaw = String(r.outcome || "").trim().toUpperCase();
+    const outcomeForDisplay = hasSelection ? outcomeRaw : "LOSS";
+    const resLabel = hasSelection ? outcomeLabel_(outcomeForDisplay) : "Lost";
+    const resCls = hasSelection ? outcomeCls_(outcomeForDisplay) : "lost";
 
     return `
-      <tr>
-        <td title="${escapeAttr(name)}">${escapeHtml(name)}</td>
-        <td class="muted" title="${escapeAttr(club)}">${escapeHtml(club)}</td>
-        <td class="gw-cell-selection">
-          ${teamInlineHtml_(sel, { size: 12, logoPosition: "before" })}
-        </td>
-        <td class="gw-cell-result">
-          <span class="gw-result ${resCls}">${escapeHtml(resLabel)}</span>
-        </td>
-      </tr>
-    `;
+    <tr>
+      <td title="${escapeAttr(name)}">${escapeHtml(name)}</td>
+      <td class="muted" title="${escapeAttr(club)}">${escapeHtml(club)}</td>
+      <td class="gw-cell-selection">
+        ${hasSelection
+        ? teamInlineHtml_(sel, { size: 12, logoPosition: "before" })
+        : `<span class="muted">Not submitted</span>`
+      }
+      </td>
+      <td class="gw-cell-result">
+        <span class="gw-result ${resCls}">${escapeHtml(resLabel)}</span>
+      </td>
+    </tr>
+  `;
   }).join("");
 
   const tbody = bodyEl.querySelector(".gw-table tbody");
@@ -1324,16 +1349,13 @@ function getGameBannerStatusClass_(game, entry) {
   return "game-status-pill--open";
 }
 
-
 function getPlayersBadgeHtml_(game, counts) {
   const gameId = String(game?.id || "");
   const status = String(game?.status || "").toUpperCase();
   const loading = !!lobbyCountsLoading[gameId] || !counts;
 
   if (loading) {
-    const tooltip =
-      status === "RUNNING" ? "Remaining players" : "Players";
-
+    const tooltip = status === "OPEN" ? "Players" : "Remaining";
     return `
       <span class="hero-pill-tooltip" data-tooltip="${tooltip}">
         <span class="pill-emoji">👤</span> ${dotsHtml_()}
@@ -1343,30 +1365,23 @@ function getPlayersBadgeHtml_(game, counts) {
 
   const registered = Number(counts?.registered || counts?.total || 0);
   const remaining = Number(counts?.remaining || 0);
-  const total = Number(counts?.total || 0);
+  const total = Number(counts?.total || registered || 0);
 
-  if (status === "RUNNING") {
-    return `
-      <span class="hero-pill-tooltip" data-tooltip="Remaining players">
-        <span class="pill-emoji">👤</span> ${remaining}/${total}
-      </span>
-    `;
-  }
-
-  if (status === "FINISHED") {
+  if (status === "OPEN") {
     return `
       <span class="hero-pill-tooltip" data-tooltip="Players">
-        <span class="pill-emoji">👤</span> ${total}
+        <span class="pill-emoji">👤</span> ${registered}
       </span>
     `;
   }
 
   return `
-    <span class="hero-pill-tooltip" data-tooltip="Players">
-      <span class="pill-emoji">👤</span> ${registered}
+    <span class="hero-pill-tooltip" data-tooltip="Remaining">
+      <span class="pill-emoji">👤</span> ${remaining}/${total}
     </span>
   `;
 }
+
 
 
 function renderGameTitleBox_() {
