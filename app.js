@@ -419,6 +419,22 @@ async function handleLobbyApprovalChanges_() {
   }
 }
 
+function wasPlayerAliveInGw_(userOrRow, gwId) {
+  const approved = isApproved_(userOrRow);
+  if (!approved) return false;
+
+  const targetIdx = gwIndexForRank_(gwId);
+  const knockedOutGw = String(userOrRow?.knockedOutGw || "").toUpperCase();
+
+  // still alive now, so they were alive for that GW
+  if (!knockedOutGw) return true;
+
+  const koIdx = gwIndexForRank_(knockedOutGw);
+
+  // knocked out in this GW = they were alive entering this GW, so include them
+  return koIdx >= targetIdx;
+}
+
 function getGameStatusRank_(status) {
   const s = String(status || "").toUpperCase();
   if (s === "RUNNING") return 0;
@@ -853,20 +869,16 @@ function getGameweeksForGame_(game) {
 }
 
 function shouldShowGwReportRow_(row, gwId) {
-  const rowGwId = String(row?.gwId || gwId || "").toUpperCase();
-  const targetGwId = String(gwId || "").toUpperCase();
+  const rowGwId = String(row?.gwId || gwId || "").trim().toUpperCase();
+  const targetGwId = String(gwId || "").trim().toUpperCase();
 
-  if (rowGwId && rowGwId !== targetGwId) return false;
+  if (rowGwId !== targetGwId) return false;
 
-  const hasSelection = !!String(row?.selection || "").trim();
+  const selection = String(row?.selection || row?.team || "").trim();
   const outcome = String(row?.outcome || "").trim().toUpperCase();
 
-  // show:
-  // - normal submitted rows
-  // - missed submit rows once they become LOSS
-  // - explicit pending rows
-  if (hasSelection) return true;
-  if (outcome === "WIN" || outcome === "LOSS" || outcome === "PENDING") return true;
+  if (selection) return true;
+  if (!selection && outcome === "LOSS") return true;
 
   return false;
 }
@@ -918,6 +930,21 @@ function getCurrentGame_() {
   if (open) return open;
 
   return null;
+}
+
+function wasAliveForGwFromEntry_(entry, gwId) {
+  if (!isApproved_(entry)) return false;
+
+  const targetIdx = gwIndexForRank_(String(gwId || "").toUpperCase());
+  const knockedOutGw = String(entry?.knockedOutGw || "").toUpperCase();
+
+  // no knockout GW = still alive / never knocked out yet
+  if (!knockedOutGw) return true;
+
+  const koIdx = gwIndexForRank_(knockedOutGw);
+
+  // if knocked out in GW2, they still count for GW2 selections
+  return koIdx >= targetIdx;
 }
 
 function getAutoEnterGameIdForSession_() {
@@ -1004,7 +1031,6 @@ async function refreshGwReportCount_(gwId) {
   }
 }
 
-
 async function openGwReportModal_(gwId) {
   const modal = document.getElementById("gwReportModal");
   const titleEl = document.getElementById("gwReportModalTitle");
@@ -1048,6 +1074,7 @@ async function openGwReportModal_(gwId) {
   openModal(modal);
 
   let rows = [];
+
   try {
     rows = await fetchGwReportRows_(gwId);
     rows = Array.isArray(rows) ? rows : [];
@@ -1055,7 +1082,6 @@ async function openGwReportModal_(gwId) {
     rows = [];
   }
 
-  // keep rows even if no team selected, as long as they belong to this GW report
   rows = rows.filter(r => shouldShowGwReportRow_(r, gwId));
 
   const wonCount = rows.filter(r => String(r.outcome || "").trim().toUpperCase() === "WIN").length;
@@ -1073,10 +1099,10 @@ async function openGwReportModal_(gwId) {
 
   if (summaryEl) {
     summaryEl.innerHTML = `
-    Won: <strong>${wonCount}</strong>,
-    Lost: <strong>${lostCount}</strong>
-    ${pendingCount > 0 ? `, Pending: <strong>${pendingCount}</strong>` : ""}
-  `;
+      Won: <strong>${wonCount}</strong>,
+      Lost: <strong>${lostCount}</strong>
+      ${pendingCount > 0 ? `, Pending: <strong>${pendingCount}</strong>` : ""}
+    `;
   }
 
   const tbodyHtml = rows.map(r => {
@@ -1091,20 +1117,20 @@ async function openGwReportModal_(gwId) {
     const resCls = hasSelection ? outcomeCls_(outcomeForDisplay) : "lost";
 
     return `
-    <tr>
-      <td title="${escapeAttr(name)}">${escapeHtml(name)}</td>
-      <td class="muted" title="${escapeAttr(club)}">${escapeHtml(club)}</td>
-      <td class="gw-cell-selection">
-        ${hasSelection
-        ? teamInlineHtml_(sel, { size: 12, logoPosition: "before" })
-        : `<span class="muted">Not submitted</span>`
-      }
-      </td>
-      <td class="gw-cell-result">
-        <span class="gw-result ${resCls}">${escapeHtml(resLabel)}</span>
-      </td>
-    </tr>
-  `;
+      <tr>
+        <td title="${escapeAttr(name)}">${escapeHtml(name)}</td>
+        <td class="muted" title="${escapeAttr(club)}">${escapeHtml(club)}</td>
+        <td class="gw-cell-selection">
+          ${hasSelection
+            ? teamInlineHtml_(sel, { size: 12, logoPosition: "before" })
+            : `<span class="muted">Not submitted</span>`
+          }
+        </td>
+        <td class="gw-cell-result">
+          <span class="gw-result ${resCls}">${escapeHtml(resLabel)}</span>
+        </td>
+      </tr>
+    `;
   }).join("");
 
   const tbody = bodyEl.querySelector(".gw-table tbody");
@@ -1112,6 +1138,7 @@ async function openGwReportModal_(gwId) {
     tbody.innerHTML = tbodyHtml || `<tr><td colspan="4" class="muted small" style="padding:10px 6px;">No selections.</td></tr>`;
   }
 }
+
 
 
 
@@ -3148,13 +3175,8 @@ function detectGwId(raw) {
 
 
 function parseKickoffUK(dateStr, timeStr) {
-  // Treat your JSON date/time as UK local clock time.
-  // Convert it into an absolute Date in UTC reliably.
-  // We do this by parsing as if it’s UTC, then formatting in Europe/London for display.
-  // (This avoids browser-local timezone differences)
   const t = (timeStr && String(timeStr).trim()) ? String(timeStr).trim() : null;
-
-  const iso = t ? `${dateStr}T${t}:00Z` : `${dateStr}T12:00:00Z`;
+  const iso = t ? `${dateStr}T${t}:00` : `${dateStr}T12:00:00`;
   const d = new Date(iso);
   return isNaN(d.getTime()) ? null : d;
 }
