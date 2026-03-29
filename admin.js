@@ -245,6 +245,7 @@ const FIXTURE_SOURCES = [
   { league: "Championship", url: "championship.json" },
   { league: "League One", url: "league-one.json" },
   { league: "League Two", url: "league-two.json" },
+  { league: "FA Cup", url: "fa-cup.json" },
 ];
 
 let adminFixtures = [];
