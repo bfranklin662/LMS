@@ -6,20 +6,20 @@ const API_URL = "https://lms-api.nick-horne123.workers.dev";
 const DEBUG_API = false;
 
 const FIXTURE_SOURCES = [
-  { league: "Premier League", url: "data/fixtures/premier-league.json" },
-  { league: "Championship", url: "data/fixtures/championship.json" },
-  { league: "League One", url: "data/fixtures/league-one.json" },
-  { league: "League Two", url: "data/fixtures/league-two.json" },
-  { league: "FA Cup", url: "data/fixtures/fa-cup.json" },
+  { league: "Premier League", url: "site/data/fixtures/premier-league.json" },
+  { league: "Championship", url: "site/data/fixtures/championship.json" },
+  { league: "League One", url: "site/data/fixtures/league-one.json" },
+  { league: "League Two", url: "site/data/fixtures/league-two.json" },
+  { league: "FA Cup", url: "site/data/fixtures/fa-cup.json" },
 ];
 
 const DEADLINE_HOURS_BEFORE_FIRST_FIXTURE = 1;
 
 const LS_SESSION = "cpfc_lms_session";
 
-const TEAM_NAME_MAP_URL = "data/team-name-map.json";
-const TEAM_LOGOS_URL = "data/team-logos.json";
-const DEFAULT_TEAM_LOGO = "images/team-default.png";
+const TEAM_NAME_MAP_URL = "site/data/team-name-map.json";
+const TEAM_LOGOS_URL = "site/data/team-logos.json";
+const DEFAULT_TEAM_LOGO = "site/images/team-default.png";
 
 let TEAM_NAME_MAP_ROWS = [];
 let TEAM_NAME_MAP_BY_ANY = new Map();
@@ -629,7 +629,7 @@ function convertFixtureGwToGameGw_(fixtureGwId, game) {
 }
 
 function getGameBannerUrl_(gameId) {
-  return `images/game-banners/${String(gameId || "").trim()}.png`;
+  return `site/images/game-banners/${String(gameId || "").trim()}.png`;
 }
 
 function getGameStartGwNum_(game = getActiveGame_()) {
@@ -700,14 +700,14 @@ function getCompetitionLogo_(name) {
   const key = String(name || "").trim().toLowerCase();
 
   const map = {
-    "premier league": "images/competitions/premier-league.png",
-    "championship": "images/competitions/championship.png",
-    "league one": "images/competitions/league-one.png",
-    "league two": "images/competitions/league-two.png",
-    "fa cup": "images/competitions/fa-cup.png",
+    "premier league": "site/images/competitions/premier-league.png",
+    "championship": "site/images/competitions/championship.png",
+    "league one": "site/images/competitions/league-one.png",
+    "league two": "site/images/competitions/league-two.png",
+    "fa cup": "site/images/competitions/fa-cup.png",
   };
 
-  return map[key] || "images/competitions/default.png";
+  return map[key] || "site/images/competitions/default.png";
 }
 
 
@@ -1534,7 +1534,7 @@ function renderGameTitleBox_() {
     bannerImg.alt = `${title} banner`;
     bannerImg.onerror = function () {
       this.onerror = null;
-      this.src = "images/game-banners/default.png";
+      this.src = "site/images/game-banners/default.png";
     };
   }
 
@@ -3387,7 +3387,7 @@ function isGameRegistrationOpenNow_(game) {
 
 
 async function loadDeadlines() {
-  const res = await fetch("data/gameweek-deadlines.json", { cache: "no-store" });
+  const res = await fetch("site/data/gameweek-deadlines.json", { cache: "no-store" });
   if (!res.ok) return new Map();
 
   const data = await res.json();
@@ -3850,7 +3850,7 @@ function openCompetitionsModalForGame_(gameId) {
                 class="competition-modal-logo"
                 src="${escapeAttr(getCompetitionLogo_(name))}"
                 alt="${escapeAttr(name)}"
-                onerror="this.onerror=null;this.src='images/competitions/default.png';"
+                onerror="this.onerror=null;this.src='site/images/competitions/default.png';"
               />
               <span>${escapeHtml(name)}</span>
             </div>
@@ -4133,7 +4133,7 @@ function renderLobby_() {
             class="game-hero-banner-img"
             src="${escapeAttr(getGameBannerUrl_(gameId))}"
             alt="${escapeAttr(title)} banner"
-            onerror="this.onerror=null;this.src='images/game-banners/default.png';"
+            onerror="this.onerror=null;this.src='site/images/game-banners/default.png';"
           />
 
           <div>
@@ -4296,7 +4296,7 @@ function renderLobby_() {
     <div class="phone">
       <header class="topbar">
         <div class="brand auth-brand">
-          <img class="brand-logo" src="images/lmsSquare5.jpg" alt="Polytechnic FC" />
+          <img class="brand-logo" src="site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
           <div class="brand-text">
             <div class="brand-title">Last Man Standing</div>
             <div class="brand-sub">Polytechnic FC</div>
@@ -4998,7 +4998,7 @@ function openPickCompetitionsModal_() {
                 src="${escapeAttr(getCompetitionLogo_(name))}"
                 alt="${escapeAttr(name)}"
                 style="width:22px;height:22px;object-fit:contain;"
-                onerror="this.onerror=null;this.src='images/competitions/default.png';"
+                onerror="this.onerror=null;this.src='site/images/competitions/default.png';"
               />
               <span>${escapeHtml(name)}</span>
             </div>
