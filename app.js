@@ -150,7 +150,7 @@ let selectedDayKey = "ALL";
 
 let entriesReqId = 0;
 let remainingReqId = 0;
-let activeTab2 = "fixtures"; // track current tab
+let activeTab2 = "selection"; // track current tab
 
 let entriesLoading = false;
 let lastEntriesSig = "";
@@ -628,8 +628,13 @@ function convertFixtureGwToGameGw_(fixtureGwId, game) {
   return `GW${gameNum}`;
 }
 
+const GAME_BANNERS = {
+  "jan_2026_lms": "site/images/game-banners/jan_2026_lms.png",
+  "spring_2026_lms": "site/images/game-banners/spring_2026_lms.png"
+};
+
 function getGameBannerUrl_(gameId) {
-  return `site/images/game-banners/${String(gameId || "").trim()}.png`;
+  return GAME_BANNERS[String(gameId || "").trim()] || "site/images/game-banners/default.png";
 }
 
 function getGameStartGwNum_(game = getActiveGame_()) {
