@@ -6,29 +6,27 @@ const API_URL = "https://lms-api.nick-horne123.workers.dev";
 const DEBUG_API = false;
 
 const FIXTURE_SOURCES = [
-  { league: "Premier League", url: "premier-league.json" },
-  { league: "Championship", url: "championship.json" },
-  { league: "League One", url: "league-one.json" },
-  { league: "League Two", url: "league-two.json" },
-  { league: "FA Cup", url: "fa-cup.json" },
+  { league: "Premier League", url: "data/fixtures/premier-league.json" },
+  { league: "Championship", url: "data/fixtures/championship.json" },
+  { league: "League One", url: "data/fixtures/league-one.json" },
+  { league: "League Two", url: "data/fixtures/league-two.json" },
+  { league: "FA Cup", url: "data/fixtures/fa-cup.json" },
 ];
-
 
 const DEADLINE_HOURS_BEFORE_FIRST_FIXTURE = 1;
 
 const LS_SESSION = "cpfc_lms_session";
 
-const TEAM_LOGOS_URL = "team-logos.json";
+const TEAM_NAME_MAP_URL = "data/team-name-map.json";
+const TEAM_LOGOS_URL = "data/team-logos.json";
 const DEFAULT_TEAM_LOGO = "images/team-default.png";
 
-
+let TEAM_NAME_MAP_ROWS = [];
+let TEAM_NAME_MAP_BY_ANY = new Map();
 
 // --- DEBUG: force GW report UI on/off ---
 const DEBUG_FORCE_GW_REPORT = false;   // set true to show the card even before deadline
 const DEBUG_REPORT_GW_ID = null;       // e.g. "GW2" to force a specific GW, or null to use currentGwId
-
-
-
 
 // ✅ Registration lock
 const REGISTRATION_OPEN = true; // set true when you open entries again
@@ -42,7 +40,6 @@ const REGISTRATION_CLOSED_HTML = `
 `;
 // ✅ Report card should follow the current GW by default
 const GW_REPORT_GW_ID = null;          // null = use currentGwId
-
 
 /*******************************
  * API
@@ -341,8 +338,66 @@ async function loadTeamLogosOnce_() {
   );
 }
 
-function getTeamLogo_(teamName) {
+async function loadTeamNameMapOnce_() {
+  if (TEAM_NAME_MAP_ROWS.length) return;
+
+  const res = await fetch(TEAM_NAME_MAP_URL, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to load team name map: ${TEAM_NAME_MAP_URL} (${res.status})`);
+
+  const data = await res.json();
+  TEAM_NAME_MAP_ROWS = Array.isArray(data.teams) ? data.teams : [];
+  TEAM_NAME_MAP_BY_ANY = new Map();
+
+  for (const row of TEAM_NAME_MAP_ROWS) {
+    const terms = [
+      row.canonical,
+      row.flashscore,
+      row.logo,
+      ...(Array.isArray(row.search) ? row.search : [])
+    ];
+
+    for (const term of terms) {
+      const key = normTeamKey_(term);
+      if (key) TEAM_NAME_MAP_BY_ANY.set(key, row);
+    }
+  }
+}
+
+function getTeamMapRow_(teamName) {
   const key = normTeamKey_(teamName);
+  return TEAM_NAME_MAP_BY_ANY.get(key) || null;
+}
+
+function getCanonicalTeamName_(teamName) {
+  const row = getTeamMapRow_(teamName);
+  return row?.canonical || teamName;
+}
+
+function getDisplayTeamName_(teamName) {
+  const row = getTeamMapRow_(teamName);
+  return row?.canonical || teamName;
+}
+
+function getTeamSearchTerms_(teamName) {
+  const row = getTeamMapRow_(teamName);
+  if (!row) return [teamName];
+
+  return Array.from(new Set([
+    row.canonical,
+    row.flashscore,
+    row.logo,
+    ...(Array.isArray(row.search) ? row.search : [])
+  ].filter(Boolean)));
+}
+
+function areTeamsSame_(a, b) {
+  return normTeamKey_(getCanonicalTeamName_(a)) === normTeamKey_(getCanonicalTeamName_(b));
+}
+
+function getTeamLogo_(teamName) {
+  const row = getTeamMapRow_(teamName);
+  const lookupName = row?.logo || row?.canonical || teamName;
+  const key = normTeamKey_(lookupName);
   return TEAM_LOGO_MAP.get(key) || DEFAULT_TEAM_LOGO;
 }
 
@@ -721,22 +776,22 @@ function unlockBodyScroll_() {
 
 
 function fixtureTeamsHtml_(home, away, { highlightTeam = null } = {}) {
-  const pickKey = normTeamKey_(highlightTeam);
-  const homeSel = pickKey && normTeamKey_(home) === pickKey;
-  const awaySel = pickKey && normTeamKey_(away) === pickKey;
+  const pickKey = normTeam_(highlightTeam);
+  const homeSel = pickKey && normTeam_(home) === pickKey;
+  const awaySel = pickKey && normTeam_(away) === pickKey;
 
   return `
     <div class="fixture-teams">
       ${teamInlineHtml_(home, {
     logoPosition: "before",
     isSelected: homeSel,
-    displayName: displayTeamNameForFixture_(home)   // ✅ alias here only
+    displayName: displayTeamNameForFixture_(home)
   })}
       <span class="vs">vs</span>
       ${teamInlineHtml_(away, {
     logoPosition: "after",
     isSelected: awaySel,
-    displayName: displayTeamNameForFixture_(away)   // ✅ alias here only
+    displayName: displayTeamNameForFixture_(away)
   })}
     </div>
   `;
@@ -1122,9 +1177,9 @@ async function openGwReportModal_(gwId) {
         <td class="muted" title="${escapeAttr(club)}">${escapeHtml(club)}</td>
         <td class="gw-cell-selection">
           ${hasSelection
-            ? teamInlineHtml_(sel, { size: 12, logoPosition: "before" })
-            : `<span class="muted">Not submitted</span>`
-          }
+        ? teamInlineHtml_(sel, { size: 12, logoPosition: "before" })
+        : `<span class="muted">Not submitted</span>`
+      }
         </td>
         <td class="gw-cell-result">
           <span class="gw-result ${resCls}">${escapeHtml(resLabel)}</span>
@@ -1139,17 +1194,16 @@ async function openGwReportModal_(gwId) {
   }
 }
 
-
-
-
 function showPickConfirmModal_(team, gwId) {
+  const canonicalTeam = getCanonicalTeamName_(team);
+
   const gw = gameweeks.find(g => g.id === gwId);
   if (!gw) {
     setBtnLoading(submitPickBtn, false);
     return;
   }
 
-  const fx = findFixtureForTeam(gw, team);
+  const fx = findFixtureForTeam(gw, canonicalTeam);
   if (!fx) {
     setBtnLoading(submitPickBtn, false);
     showFixturesMessage("Match not found for this gameweek.", "bad");
@@ -1161,12 +1215,12 @@ function showPickConfirmModal_(team, gwId) {
     : `${formatDateWithOrdinalShortUK(fx.kickoff)}`;
 
   showConfirmModal_(
-    `<span class="">Confirm selection:</span> <strong>${escapeHtml(team)}?</strong>`,
+    `<span>Confirm selection:</span> <strong>${escapeHtml(canonicalTeam)}?</strong>`,
     `
       <div style="margin-top:10px;">
         <div class="fixture-row">
           <div class="fixture-main">
-            ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: team })}
+            ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: canonicalTeam })}
             <div class="fixture-datetime muted">${escapeHtml(kickoffText)}</div>
           </div>
         </div>
@@ -1176,7 +1230,7 @@ function showPickConfirmModal_(team, gwId) {
       confirmText: "Confirm",
       cancelText: "Cancel",
       onConfirm: async () => {
-        await savePick(team);
+        await savePick(canonicalTeam);
       }
     }
   );
@@ -1702,44 +1756,13 @@ function now() {
   return new Date();
 }
 
-
-
-const TEAM_NAME_ALIAS = {
-  "manchester united": "Man United",
-  "manchester city": "Man City",
-  "nottingham forest": "Nott'm Forest",
-  "sheffield wednesday": "Sheff Wed",
-  "sheffield united": "Sheff Utd",
-  "queens park rangers": "QPR",
-  "brighton and hove albion": "Brighton",
-  "wolverhampton wanderers": "Wolves",
-  "oxford utd": "Oxford",
-  "leicester city": "Leicester",
-  "blackburn rovers": "Blackburn",
-  "norwich city": "Norwich",
-  "ipswich town": "Ipswich",
-  "wigan athletic": "Wigan",
-  "northampton town": "Northampton",
-  "harrogate town": "Harrogate",
-  "newport county": "Newport",
-  "salford city": "Salford",
-  "crawley town": "Crawley",
-  "swindon town": "Swindon",
-  "oldham athletic": "Oldham",
-  "cambridge united": "Cambridge",
-  "grimsby town": "Grimsby",
-};
-
 function displayTeamName_(name) {
-  const k = normTeamKey_(name);   // you already have this normalizer
-  return TEAM_NAME_ALIAS[k] || name;
+  return getDisplayTeamName_(name);
 }
 
 function displayTeamNameForFixture_(name) {
-  const k = normTeamKey_(name);
-  return TEAM_NAME_ALIAS[k] || name;
+  return getDisplayTeamName_(name);
 }
-
 
 function showPlayerModal_(title, html, { status = null, approved = true } = {}) {
   if (!playerModal || !playerModalBody) return;
@@ -1910,8 +1933,8 @@ function getTeamsForSelectedGw() {
 
   const teams = new Set();
   for (const f of gw.fixtures) {
-    teams.add(f.home);
-    teams.add(f.away);
+    teams.add(getCanonicalTeamName_(f.home));
+    teams.add(getCanonicalTeamName_(f.away));
   }
 
   return Array.from(teams).sort((a, b) => a.localeCompare(b));
@@ -1943,7 +1966,10 @@ function renderSuggestions() {
   }
 
   const hits = teams
-    .filter(t => t.toLowerCase().includes(q))
+    .filter(t => {
+      const terms = getTeamSearchTerms_(t).map(x => String(x).toLowerCase());
+      return terms.some(term => term.includes(q));
+    })
     .slice(0, 8);
 
   if (!hits.length) {
@@ -3203,12 +3229,11 @@ function normalizeFixture(raw, leagueName) {
     league: leagueName,
     kickoff,
     kickoffHasTime: !!hasTime,
-    home: String(home),
-    away: String(away),
+    home: getCanonicalTeamName_(String(home)),
+    away: getCanonicalTeamName_(String(away)),
     round: raw.round || ""
   };
 }
-
 
 function findGwIndexById(gwId) {
   return gameweeks.findIndex(g => g.id === gwId);
@@ -3334,8 +3359,8 @@ function getUnstartedTeamsForGw_(gwId) {
   const teams = new Set();
 
   getUnstartedFixturesForGw_(gwId).forEach(f => {
-    teams.add(f.home);
-    teams.add(f.away);
+    teams.add(getCanonicalTeamName_(f.home));
+    teams.add(getCanonicalTeamName_(f.away));
   });
 
   return Array.from(teams).sort((a, b) => a.localeCompare(b));
@@ -3362,7 +3387,7 @@ function isGameRegistrationOpenNow_(game) {
 
 
 async function loadDeadlines() {
-  const res = await fetch("gameweek-deadlines.json", { cache: "no-store" });
+  const res = await fetch("data/gameweek-deadlines.json", { cache: "no-store" });
   if (!res.ok) return new Map();
 
   const data = await res.json();
@@ -3417,7 +3442,11 @@ async function refreshProfile() {
     outcome: normalizeOutcome_(p.outcome)
   }));
 
-  usedTeams = new Set(sessionPicks.filter(p => p.outcome === "WIN").map(p => p.team));
+  usedTeams = new Set(
+    sessionPicks
+      .filter(p => p.outcome === "WIN")
+      .map(p => normTeamKey_(getCanonicalTeamName_(p.team)))
+  );
   renderGameTitleBox_();
 }
 
@@ -3475,7 +3504,7 @@ function startDeadlineTimer() {
 }
 
 function normTeam_(s) {
-  return String(s || "").trim().toLowerCase();
+  return normTeamKey_(getCanonicalTeamName_(s));
 }
 
 function findFixtureForTeam(gw, team) {
@@ -3493,8 +3522,6 @@ function findFixtureForTeam(gw, team) {
 function getPickForGw(gwId) {
   return sessionPicks.find(p => p.gwId === gwId) || null;
 }
-
-
 
 function renderFixturesTab() {
   const viewGw = gameweeks.find(g => g.id === viewingGwId);
@@ -3621,11 +3648,11 @@ function renderFixturesTab() {
           : `${escapeHtml(formatDateUK(f.kickoff))} `;
 
         row.innerHTML = `
-  <div class="fixture-main" >
-    ${fixtureTeamsHtml_(f.home, f.away)}
-<div class="fixture-datetime muted">${dateLine}</div>
-          </div >
-  `;
+        <div class="fixture-main" >
+          ${fixtureTeamsHtml_(f.home, f.away)}
+        <div class="fixture-datetime muted">${dateLine}</div>
+                  </div >
+          `;
 
 
         container.appendChild(row);
@@ -3638,9 +3665,6 @@ function renderFixturesTab() {
     fixturesList.appendChild(dayGroup);
   }
 }
-
-
-
 
 /*******************************
  * RENDER: ENTRIES TAB
@@ -3826,7 +3850,7 @@ function openCompetitionsModalForGame_(gameId) {
                 class="competition-modal-logo"
                 src="${escapeAttr(getCompetitionLogo_(name))}"
                 alt="${escapeAttr(name)}"
-                onerror="this.onerror=null;this.src='images/competition-logos/default.png';"
+                onerror="this.onerror=null;this.src='images/competitions/default.png';"
               />
               <span>${escapeHtml(name)}</span>
             </div>
@@ -4558,6 +4582,8 @@ function renderPickCardState() {
  * PICK SUBMISSION
  *******************************/
 async function savePick(team) {
+  team = getCanonicalTeamName_(team);
+
   const gwId = currentGwId;
   const gw = gameweeks.find(g => g.id === gwId);
   if (!gw) {
@@ -4607,7 +4633,11 @@ async function savePick(team) {
     upsertLocalPick(gwId, team);
     resetPickInputUi_();
 
-    usedTeams = new Set(sessionPicks.filter(p => p.outcome === "WIN").map(p => p.team));
+    usedTeams = new Set(
+      sessionPicks
+        .filter(p => p.outcome === "WIN")
+        .map(p => normTeamKey_(getCanonicalTeamName_(p.team)))
+    );
 
     // ✅ Immediately update UI so there is no “gap”
     showFixturesMessage("Selection submitted.", "good");
@@ -4968,7 +4998,7 @@ function openPickCompetitionsModal_() {
                 src="${escapeAttr(getCompetitionLogo_(name))}"
                 alt="${escapeAttr(name)}"
                 style="width:22px;height:22px;object-fit:contain;"
-                onerror="this.onerror=null;this.src='images/competition-logos/default.png';"
+                onerror="this.onerror=null;this.src='images/competitions/default.png';"
               />
               <span>${escapeHtml(name)}</span>
             </div>
@@ -5626,12 +5656,24 @@ submitPickBtn?.addEventListener("click", () => {
   if (!typed) return showFixturesMessage("Type a team first.", "bad");
 
   const gwTeams = getTeamsForSelectedGw();
-  const match = gwTeams.find(t => t.toLowerCase() === typed.toLowerCase());
-  if (!match) return showFixturesMessage("That team is not in this gameweek’s fixtures.", "bad");
+  const typedKey = normTeamKey_(typed);
 
+  const matchedTeam = gwTeams.find(t => {
+    const terms = getTeamSearchTerms_(t).map(x => normTeamKey_(x));
+    return terms.includes(typedKey);
+  });
+
+  if (!matchedTeam) {
+    return showFixturesMessage("That team is not in this gameweek’s fixtures.", "bad");
+  }
+
+  const match = getCanonicalTeamName_(matchedTeam);
   const existing = getPickForGw(currentGwId);
 
-  if (usedTeams.has(match) && existing?.team !== match) {
+  if (
+    usedTeams.has(normTeamKey_(getCanonicalTeamName_(match))) &&
+    !areTeamsSame_(existing?.team, match)
+  ) {
     return showFixturesMessage("You already used that team in a previous gameweek.", "bad");
   }
 
@@ -5697,9 +5739,12 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
   if (!activeGameId) return;
 
   try {
-    await loadTeamLogosOnce_();
+    await Promise.all([
+      loadTeamLogosOnce_(),
+      loadTeamNameMapOnce_()
+    ]);
   } catch (e) {
-    console.warn("Team logos failed to load:", e);
+    console.warn("Team assets failed to load:", e);
   }
 
   await loadFixturesAndDeadlines_();

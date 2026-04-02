@@ -4,6 +4,13 @@
     {
       "gwId": "GW1",
       "date": "2026-01-31",
+      "team1": "Brighton",
+      "team2": "Everton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW1",
+      "date": "2026-01-31",
       "team1": "Leeds",
       "team2": "Arsenal",
       "time": "15:00"
@@ -13,13 +20,6 @@
       "date": "2026-01-31",
       "team1": "Wolves",
       "team2": "Bournemouth",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW1",
-      "date": "2026-01-31",
-      "team1": "Brighton",
-      "team2": "Everton",
       "time": "15:00"
     },
     {
@@ -88,8 +88,15 @@
     {
       "gwId": "GW2",
       "date": "2026-02-07",
-      "team1": "Fulham",
-      "team2": "Everton",
+      "team1": "Arsenal",
+      "team2": "Sunderland",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW2",
+      "date": "2026-02-07",
+      "team1": "Bournemouth",
+      "team2": "Aston Villa",
       "time": "15:00"
     },
     {
@@ -102,8 +109,8 @@
     {
       "gwId": "GW2",
       "date": "2026-02-07",
-      "team1": "Arsenal",
-      "team2": "Sunderland",
+      "team1": "Fulham",
+      "team2": "Everton",
       "time": "15:00"
     },
     {
@@ -111,13 +118,6 @@
       "date": "2026-02-07",
       "team1": "Wolves",
       "team2": "Chelsea",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW2",
-      "date": "2026-02-07",
-      "team1": "Bournemouth",
-      "team2": "Aston Villa",
       "time": "15:00"
     },
     {
@@ -144,13 +144,6 @@
     {
       "gwId": "GW3",
       "date": "2026-02-10",
-      "team1": "Tottenham",
-      "team2": "Newcastle",
-      "time": "19:30"
-    },
-    {
-      "gwId": "GW3",
-      "date": "2026-02-10",
       "team1": "Chelsea",
       "team2": "Leeds",
       "time": "19:30"
@@ -165,16 +158,16 @@
     {
       "gwId": "GW3",
       "date": "2026-02-10",
-      "team1": "West Ham",
-      "team2": "Manchester United",
-      "time": "20:15"
+      "team1": "Tottenham",
+      "team2": "Newcastle",
+      "time": "19:30"
     },
     {
       "gwId": "GW3",
-      "date": "2026-02-11",
-      "team1": "Nottingham Forest",
-      "team2": "Wolves",
-      "time": "19:30"
+      "date": "2026-02-10",
+      "team1": "West Ham",
+      "team2": "Manchester United",
+      "time": "20:15"
     },
     {
       "gwId": "GW3",
@@ -195,6 +188,13 @@
       "date": "2026-02-11",
       "team1": "Manchester City",
       "team2": "Fulham",
+      "time": "19:30"
+    },
+    {
+      "gwId": "GW3",
+      "date": "2026-02-11",
+      "team1": "Nottingham Forest",
+      "team2": "Wolves",
       "time": "19:30"
     },
     {
@@ -228,13 +228,6 @@
     {
       "gwId": "GW4",
       "date": "2026-02-21",
-      "team1": "Nottingham Forest",
-      "team2": "Liverpool",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW4",
-      "date": "2026-02-21",
       "team1": "Brentford",
       "team2": "Brighton",
       "time": "15:00"
@@ -244,6 +237,13 @@
       "date": "2026-02-21",
       "team1": "Chelsea",
       "team2": "Burnley",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW4",
+      "date": "2026-02-21",
+      "team1": "Nottingham Forest",
+      "team2": "Liverpool",
       "time": "15:00"
     },
     {
@@ -305,6 +305,13 @@
     {
       "gwId": "GW5",
       "date": "2026-02-28",
+      "team1": "Burnley",
+      "team2": "Brentford",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW5",
+      "date": "2026-02-28",
       "team1": "Liverpool",
       "team2": "West Ham",
       "time": "15:00"
@@ -314,13 +321,6 @@
       "date": "2026-02-28",
       "team1": "Newcastle",
       "team2": "Everton",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW5",
-      "date": "2026-02-28",
-      "team1": "Burnley",
-      "team2": "Brentford",
       "time": "15:00"
     },
     {
@@ -354,15 +354,15 @@
     {
       "gwId": "GW6",
       "date": "2026-03-03",
-      "team1": "Everton",
-      "team2": "Burnley",
+      "team1": "Bournemouth",
+      "team2": "Brentford",
       "time": "19:30"
     },
     {
       "gwId": "GW6",
       "date": "2026-03-03",
-      "team1": "Bournemouth",
-      "team2": "Brentford",
+      "team1": "Everton",
+      "team2": "Burnley",
       "time": "19:30"
     },
     {
@@ -382,15 +382,15 @@
     {
       "gwId": "GW6",
       "date": "2026-03-04",
-      "team1": "Brighton",
-      "team2": "Arsenal",
+      "team1": "Aston Villa",
+      "team2": "Chelsea",
       "time": "19:30"
     },
     {
       "gwId": "GW6",
       "date": "2026-03-04",
-      "team1": "Manchester City",
-      "team2": "Nottingham Forest",
+      "team1": "Brighton",
+      "team2": "Arsenal",
       "time": "19:30"
     },
     {
@@ -403,8 +403,8 @@
     {
       "gwId": "GW6",
       "date": "2026-03-04",
-      "team1": "Aston Villa",
-      "team2": "Chelsea",
+      "team1": "Manchester City",
+      "team2": "Nottingham Forest",
       "time": "19:30"
     },
     {
@@ -431,15 +431,15 @@
     {
       "gwId": "GW8",
       "date": "2026-03-14",
-      "team1": "Crystal Palace",
-      "team2": "Leeds",
+      "team1": "Burnley",
+      "team2": "Bournemouth",
       "time": "15:00"
     },
     {
       "gwId": "GW8",
       "date": "2026-03-14",
-      "team1": "Burnley",
-      "team2": "Bournemouth",
+      "team1": "Crystal Palace",
+      "team2": "Leeds",
       "time": "15:00"
     },
     {
@@ -452,15 +452,15 @@
     {
       "gwId": "GW8",
       "date": "2026-03-14",
-      "team1": "Sunderland",
-      "team2": "Brighton",
+      "team1": "Nottingham Forest",
+      "team2": "Fulham",
       "time": "15:00"
     },
     {
       "gwId": "GW8",
       "date": "2026-03-14",
-      "team1": "Nottingham Forest",
-      "team2": "Fulham",
+      "team1": "Sunderland",
+      "team2": "Brighton",
       "time": "15:00"
     },
     {
@@ -508,15 +508,15 @@
     {
       "gwId": "GW9",
       "date": "2026-03-21",
-      "team1": "Fulham",
-      "team2": "Burnley",
+      "team1": "Aston Villa",
+      "team2": "West Ham",
       "time": "15:00"
     },
     {
       "gwId": "GW9",
       "date": "2026-03-21",
-      "team1": "Aston Villa",
-      "team2": "West Ham",
+      "team1": "Fulham",
+      "team2": "Burnley",
       "time": "15:00"
     },
     {
@@ -549,51 +549,23 @@
     },
     {
       "gwId": "GW12",
-      "date": "2026-04-11",
-      "team1": "Brentford",
-      "team2": "Everton",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW12",
-      "date": "2026-04-11",
-      "team1": "Manchester United",
-      "team2": "Leeds",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW12",
-      "date": "2026-04-11",
+      "date": "2026-04-10",
       "team1": "West Ham",
       "team2": "Wolves",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW12",
-      "date": "2026-04-11",
-      "team1": "Chelsea",
-      "team2": "Manchester City",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW12",
-      "date": "2026-04-11",
-      "team1": "Crystal Palace",
-      "team2": "Newcastle",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW12",
-      "date": "2026-04-11",
-      "team1": "Sunderland",
-      "team2": "Tottenham",
-      "time": "15:00"
+      "time": "20:00"
     },
     {
       "gwId": "GW12",
       "date": "2026-04-11",
       "team1": "Arsenal",
       "team2": "Bournemouth",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-11",
+      "team1": "Brentford",
+      "team2": "Everton",
       "time": "15:00"
     },
     {
@@ -608,69 +580,55 @@
       "date": "2026-04-11",
       "team1": "Liverpool",
       "team2": "Fulham",
-      "time": "15:00"
+      "time": "17:30"
     },
     {
       "gwId": "GW12",
-      "date": "2026-04-11",
-      "team1": "Nottingham Forest",
-      "team2": "Aston Villa",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW13",
-      "date": "2026-04-18",
-      "team1": "Manchester City",
-      "team2": "Arsenal",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW13",
-      "date": "2026-04-18",
-      "team1": "Tottenham",
-      "team2": "Brighton",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW13",
-      "date": "2026-04-18",
+      "date": "2026-04-12",
       "team1": "Crystal Palace",
-      "team2": "West Ham",
-      "time": "15:00"
+      "team2": "Newcastle",
+      "time": "14:00"
     },
     {
-      "gwId": "GW13",
-      "date": "2026-04-18",
-      "team1": "Nottingham Forest",
-      "team2": "Burnley",
-      "time": "15:00"
+      "gwId": "GW12",
+      "date": "2026-04-12",
+      "team1": "Nottm Forest",
+      "team2": "Aston Villa",
+      "time": "14:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-12",
+      "team1": "Sunderland",
+      "team2": "Tottenham",
+      "time": "14:00"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-12",
+      "team1": "Chelsea",
+      "team2": "Man City",
+      "time": "16:30"
+    },
+    {
+      "gwId": "GW12",
+      "date": "2026-04-13",
+      "team1": "Man Utd",
+      "team2": "Leeds",
+      "time": "20:00"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Brentford",
       "team2": "Fulham",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW13",
-      "date": "2026-04-18",
-      "team1": "Aston Villa",
-      "team2": "Sunderland",
-      "time": "15:00"
+      "time": "12:30"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Chelsea",
       "team2": "Manchester United",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW13",
-      "date": "2026-04-18",
-      "team1": "Everton",
-      "team2": "Liverpool",
       "time": "15:00"
     },
     {
@@ -688,10 +646,73 @@
       "time": "15:00"
     },
     {
+      "gwId": "GW13",
+      "date": "2026-04-18",
+      "team1": "Tottenham",
+      "team2": "Brighton",
+      "time": "17:30"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-19",
+      "team1": "Aston Villa",
+      "team2": "Sunderland",
+      "time": "14:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-19",
+      "team1": "Everton",
+      "team2": "Liverpool",
+      "time": "14:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-19",
+      "team1": "Nottingham Forest",
+      "team2": "Burnley",
+      "time": "14:00"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-19",
+      "team1": "Manchester City",
+      "team2": "Arsenal",
+      "time": "16:30"
+    },
+    {
+      "gwId": "GW13",
+      "date": "2026-04-20",
+      "team1": "Crystal Palace",
+      "team2": "West Ham",
+      "time": "20:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-24",
+      "team1": "Sunderland",
+      "team2": "Nottingham Forest",
+      "time": "20:00"
+    },
+    {
       "gwId": "GW14",
       "date": "2026-04-25",
-      "team1": "Arsenal",
-      "team2": "Newcastle",
+      "team1": "Fulham",
+      "team2": "Aston Villa",
+      "time": "12:30"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-25",
+      "team1": "Bournemouth",
+      "team2": "Leeds",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-25",
+      "team1": "Liverpool",
+      "team2": "Crystal Palace",
       "time": "15:00"
     },
     {
@@ -704,48 +725,6 @@
     {
       "gwId": "GW14",
       "date": "2026-04-25",
-      "team1": "Manchester United",
-      "team2": "Brentford",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW14",
-      "date": "2026-04-25",
-      "team1": "Burnley",
-      "team2": "Manchester City",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW14",
-      "date": "2026-04-25",
-      "team1": "Fulham",
-      "team2": "Aston Villa",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW14",
-      "date": "2026-04-25",
-      "team1": "Brighton",
-      "team2": "Chelsea",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW14",
-      "date": "2026-04-25",
-      "team1": "Bournemouth",
-      "team2": "Leeds",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW14",
-      "date": "2026-04-25",
-      "team1": "Sunderland",
-      "team2": "Nottingham Forest",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW14",
-      "date": "2026-04-25",
       "team1": "Wolves",
       "team2": "Tottenham",
       "time": "15:00"
@@ -753,8 +732,36 @@
     {
       "gwId": "GW14",
       "date": "2026-04-25",
-      "team1": "Liverpool",
-      "team2": "Crystal Palace",
+      "team1": "Arsenal",
+      "team2": "Newcastle",
+      "time": "17:30"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-26",
+      "team1": "Burnley",
+      "team2": "Manchester City",
+      "time": "14:00"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-26",
+      "team1": "Brighton",
+      "team2": "Chelsea",
+      "time": "16:30"
+    },
+    {
+      "gwId": "GW14",
+      "date": "2026-04-27",
+      "team1": "Man United",
+      "team2": "Brentford",
+      "time": "20:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-05-02",
+      "team1": "Arsenal",
+      "team2": "Fulham",
       "time": "15:00"
     },
     {
@@ -762,6 +769,20 @@
       "date": "2026-05-02",
       "team1": "Aston Villa",
       "team2": "Tottenham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-05-02",
+      "team1": "Bournemouth",
+      "team2": "Crystal Palace",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW15",
+      "date": "2026-05-02",
+      "team1": "Brentford",
+      "team2": "West Ham",
       "time": "15:00"
     },
     {
@@ -781,20 +802,6 @@
     {
       "gwId": "GW15",
       "date": "2026-05-02",
-      "team1": "Manchester United",
-      "team2": "Liverpool",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW15",
-      "date": "2026-05-02",
-      "team1": "Brentford",
-      "team2": "West Ham",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW15",
-      "date": "2026-05-02",
       "team1": "Leeds",
       "team2": "Burnley",
       "time": "15:00"
@@ -802,15 +809,8 @@
     {
       "gwId": "GW15",
       "date": "2026-05-02",
-      "team1": "Arsenal",
-      "team2": "Fulham",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW15",
-      "date": "2026-05-02",
-      "team1": "Wolves",
-      "team2": "Sunderland",
+      "team1": "Manchester United",
+      "team2": "Liverpool",
       "time": "15:00"
     },
     {
@@ -823,22 +823,36 @@
     {
       "gwId": "GW15",
       "date": "2026-05-02",
-      "team1": "Bournemouth",
-      "team2": "Crystal Palace",
+      "team1": "Wolves",
+      "team2": "Sunderland",
       "time": "15:00"
     },
     {
       "gwId": "GW16",
       "date": "2026-05-09",
-      "team1": "Nottingham Forest",
-      "team2": "Newcastle",
+      "team1": "Brighton",
+      "team2": "Wolves",
       "time": "15:00"
     },
     {
       "gwId": "GW16",
       "date": "2026-05-09",
-      "team1": "Tottenham",
-      "team2": "Leeds",
+      "team1": "Burnley",
+      "team2": "Aston Villa",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-05-09",
+      "team1": "Crystal Palace",
+      "team2": "Everton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-05-09",
+      "team1": "Fulham",
+      "team2": "Bournemouth",
       "time": "15:00"
     },
     {
@@ -858,8 +872,8 @@
     {
       "gwId": "GW16",
       "date": "2026-05-09",
-      "team1": "Fulham",
-      "team2": "Bournemouth",
+      "team1": "Nottingham Forest",
+      "team2": "Newcastle",
       "time": "15:00"
     },
     {
@@ -872,64 +886,22 @@
     {
       "gwId": "GW16",
       "date": "2026-05-09",
+      "team1": "Tottenham",
+      "team2": "Leeds",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW16",
+      "date": "2026-05-09",
       "team1": "West Ham",
       "team2": "Arsenal",
       "time": "15:00"
     },
     {
-      "gwId": "GW16",
-      "date": "2026-05-09",
-      "team1": "Brighton",
-      "team2": "Wolves",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW16",
-      "date": "2026-05-09",
-      "team1": "Crystal Palace",
-      "team2": "Everton",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW16",
-      "date": "2026-05-09",
-      "team1": "Burnley",
-      "team2": "Aston Villa",
-      "time": "15:00"
-    },
-    {
       "gwId": "GW17",
       "date": "2026-05-17",
-      "team1": "Brentford",
-      "team2": "Crystal Palace",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW17",
-      "date": "2026-05-17",
-      "team1": "Bournemouth",
-      "team2": "Manchester City",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW17",
-      "date": "2026-05-17",
-      "team1": "Chelsea",
-      "team2": "Tottenham",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW17",
-      "date": "2026-05-17",
-      "team1": "Leeds",
-      "team2": "Brighton",
-      "time": "15:00"
-    },
-    {
-      "gwId": "GW17",
-      "date": "2026-05-17",
-      "team1": "Newcastle",
-      "team2": "West Ham",
+      "team1": "Arsenal",
+      "team2": "Burnley",
       "time": "15:00"
     },
     {
@@ -942,15 +914,22 @@
     {
       "gwId": "GW17",
       "date": "2026-05-17",
-      "team1": "Arsenal",
-      "team2": "Burnley",
+      "team1": "Bournemouth",
+      "team2": "Manchester City",
       "time": "15:00"
     },
     {
       "gwId": "GW17",
       "date": "2026-05-17",
-      "team1": "Wolves",
-      "team2": "Fulham",
+      "team1": "Brentford",
+      "team2": "Crystal Palace",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-17",
+      "team1": "Chelsea",
+      "team2": "Tottenham",
       "time": "15:00"
     },
     {
@@ -963,43 +942,36 @@
     {
       "gwId": "GW17",
       "date": "2026-05-17",
+      "team1": "Leeds",
+      "team2": "Brighton",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-17",
       "team1": "Manchester United",
       "team2": "Nottingham Forest",
       "time": "15:00"
     },
     {
-      "gwId": "GW18",
-      "date": "2026-05-24",
-      "team1": "Manchester City",
-      "team2": "Aston Villa",
-      "time": "16:00"
+      "gwId": "GW17",
+      "date": "2026-05-17",
+      "team1": "Newcastle",
+      "team2": "West Ham",
+      "time": "15:00"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-17",
+      "team1": "Wolves",
+      "team2": "Fulham",
+      "time": "15:00"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Brighton",
       "team2": "Manchester United",
-      "time": "16:00"
-    },
-    {
-      "gwId": "GW18",
-      "date": "2026-05-24",
-      "team1": "Fulham",
-      "team2": "Newcastle",
-      "time": "16:00"
-    },
-    {
-      "gwId": "GW18",
-      "date": "2026-05-24",
-      "team1": "Tottenham",
-      "team2": "Everton",
-      "time": "16:00"
-    },
-    {
-      "gwId": "GW18",
-      "date": "2026-05-24",
-      "team1": "Liverpool",
-      "team2": "Brentford",
       "time": "16:00"
     },
     {
@@ -1012,15 +984,36 @@
     {
       "gwId": "GW18",
       "date": "2026-05-24",
-      "team1": "Nottingham Forest",
-      "team2": "Bournemouth",
+      "team1": "Crystal Palace",
+      "team2": "Arsenal",
       "time": "16:00"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
-      "team1": "West Ham",
-      "team2": "Leeds",
+      "team1": "Fulham",
+      "team2": "Newcastle",
+      "time": "16:00"
+    },
+    {
+      "gwId": "GW18",
+      "date": "2026-05-24",
+      "team1": "Liverpool",
+      "team2": "Brentford",
+      "time": "16:00"
+    },
+    {
+      "gwId": "GW18",
+      "date": "2026-05-24",
+      "team1": "Manchester City",
+      "team2": "Aston Villa",
+      "time": "16:00"
+    },
+    {
+      "gwId": "GW18",
+      "date": "2026-05-24",
+      "team1": "Nottingham Forest",
+      "team2": "Bournemouth",
       "time": "16:00"
     },
     {
@@ -1033,8 +1026,15 @@
     {
       "gwId": "GW18",
       "date": "2026-05-24",
-      "team1": "Crystal Palace",
-      "team2": "Arsenal",
+      "team1": "Tottenham",
+      "team2": "Everton",
+      "time": "16:00"
+    },
+    {
+      "gwId": "GW18",
+      "date": "2026-05-24",
+      "team1": "West Ham",
+      "team2": "Leeds",
       "time": "16:00"
     }
   ]

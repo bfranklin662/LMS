@@ -4,8 +4,8 @@
 <head>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>LMS Admin</title>
-  <link rel="stylesheet" href="styles.css">
-  <link rel="icon" href="images/lmsSquare5.jpg">
+  <link rel="stylesheet" href="../site/styles.css">
+  <link rel="icon" href="../site/images/lmsSquare5.jpg">
   <!-- Social sharing (WhatsApp / Facebook / iMessage etc) -->
   <meta property="og:title" content="Polytechnic FC – Last Man Standing" />
   <meta property="og:description"
@@ -20,7 +20,7 @@
   <!-- SPLASH -->
   <div id="splash" class="splash hidden">
     <div class="splash-inner">
-      <img class="splash-logo" src="images/lmsSquare5.jpg" alt="Polytechnic FC" />
+      <img class="splash-logo" src="../site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
       <div class="splash-title">LMS Admin</div>
       <div class="splash-sub">Polytechnic FC</div>
       <div class="splash-ball" aria-label="Loading">⚽</div>
@@ -30,7 +30,7 @@
   <div class="app">
     <header class="topbar">
       <div class="brand auth-brand">
-        <img class="brand-logo" src="images/lmsSquare5.jpg" alt="Polytechnic FC" />
+        <img class="brand-logo" src="../site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
         <div class="brand-text">
           <div class="brand-title">LMS Admin</div>
           <div class="brand-sub">Polytechnic FC</div>
@@ -80,6 +80,7 @@
           <div class="seg-tabs">
             <button class="tab2 active" data-tab="approvals" type="button">Approvals</button>
             <button class="tab2" data-tab="submissions" type="button">Submissions</button>
+            <button class="tab2" data-tab="fixtures" type="button">Fixtures</button>
           </div>
 
           <div id="adminMsg" class="msg hidden" style="margin-top:12px;"></div>
@@ -113,8 +114,6 @@
                 <div id="approvedList" class="list"></div>
               </div>
             </details>
-
-
           </section>
 
           <!-- SUBMISSIONS -->
@@ -131,7 +130,44 @@
           </section>
         </section>
 
-        
+        <!-- FIXTURES PANEL -->
+        <section id="panel-fixtures" class="hidden">
+          <div class="fixtures-card" style="margin-bottom:16px;">
+            <div id="fixturesMeta" class="muted small" style="margin-bottom:12px;"></div>
+
+            <div class="filters" style="margin-bottom:12px;">
+              <select id="adminFixtureGwSelect" class="filter select-dropdown"></select>
+            </div>
+
+            <div style="display:flex;gap:8px;margin-bottom:12px;">
+              <input id="fixtureScanFromDate" class="input fixture-date-input" type="date">
+              <input id="fixtureScanToDate" class="input fixture-date-input" type="date">
+            </div>
+            <div class="muted small" style="margin-top:10px;line-height:1.7;">
+              <div>First submission deadline: <span id="fixtureFirstDeadlineText">—</span></div>
+              <div>Late submission deadline: <span id="fixtureLateDeadlineText">—</span></div>
+            </div>
+
+            <button id="refreshFixturesBtn" class="btn btn-primary" type="button">Rescan fixtures</button>
+
+            <div id="fixtureScanStatusWrap" class="hidden" style="margin-top:10px;">
+              <div id="fixtureScanStatusText" class="muted small" style="min-height:20px;"></div>
+              <div class="fixture-scan-bar-track">
+                <div id="fixtureScanBar" class="fixture-scan-bar-fill"></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="adminFixturesList"></div>
+
+          <div id="fixtureChangesSummary"></div>
+
+          <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+            <button id="commitFixturesBtn" class="btn btn-primary" type="button" disabled>Commit changes</button>
+          </div>
+        </section>
+
+
       </div>
     </main>
   </div>

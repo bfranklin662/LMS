@@ -491,12 +491,17 @@ select:focus {
   border-top: 1px solid var(--line);
 }
 
+
 .league-summary {
   padding: 12px 12px;
   cursor: pointer;
   font-weight: 900;
   background: rgba(0, 0, 0, 0.16);
   list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .league-summary::-webkit-details-marker {
@@ -512,6 +517,18 @@ select:focus {
 
 details[open]>.league-summary::before {
   content: "▾";
+}
+
+.league-left {
+  display: flex;
+  align-items: center;
+}
+
+.league-change {
+  margin-left: auto;
+  font-weight: 700;
+  font-size: 13px;
+  color: #1df645b0;
 }
 
 .league-group {
@@ -3695,4 +3712,333 @@ button:disabled {
 
 .text-link-btn:hover {
   opacity: 0.85;
+}
+
+.fixture-row1 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.fixture-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.fixture-preview-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.fixture-preview-title {
+  font-weight: 800;
+  line-height: 1.2;
+  word-break: break-word;
+}
+
+.fixture-preview-sub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #b8bcc8;
+  line-height: 1.2;
+}
+
+.fixture-preview-icon {
+  width: 18px;
+  min-width: 18px;
+  text-align: center;
+  font-weight: 900;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.fixture-preview-added .fixture-preview-icon {
+  color: #35d07f;
+}
+
+.fixture-preview-removed .fixture-preview-icon {
+  color: #ff6b6b;
+}
+
+.fixture-preview-change .fixture-preview-icon {
+  font-size: 16px;
+}
+
+.fixture-group-collapse {
+  margin-bottom: 10px;
+}
+
+.fixture-group-summary {
+  cursor: pointer;
+}
+
+.fixture-row1,
+.fixture-group-row {
+  transition: opacity 0.18s ease, filter 0.18s ease;
+}
+
+.fixture-row1.is-unchecked,
+.fixture-group-row.is-unchecked {
+  opacity: 0.45;
+  filter: grayscale(0.2);
+}
+
+.fixture-change-line {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+
+.fixture-change-line:last-child {
+  border-bottom: 0;
+}
+
+.fixture-change-teams {
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.fixture-change-times {
+  font-size: 14px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.fixture-old {
+  color: #ff7b7b;
+}
+
+.fixture-new {
+  color: #57e389;
+}
+
+.fixture-arrow {
+  opacity: 0.8;
+}
+
+.fixture-dim {
+  opacity: 0.45;
+}
+
+#fixtureFromDate,
+#fixtureToDate {
+  font-size: 14px;
+  padding: 10px 12px;
+  height: 44px;
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+}
+
+#fixtureFromDate::-webkit-datetime-edit,
+#fixtureToDate::-webkit-datetime-edit {
+  padding: 0;
+}
+
+#fixtureFromDate::-webkit-calendar-picker-indicator,
+#fixtureToDate::-webkit-calendar-picker-indicator {
+  transform: scale(0.9);
+  opacity: 0.9;
+}
+
+.fixture-row1 .list-title {
+  line-height: 1.2;
+}
+
+.fixture-row1 .list-sub {
+  font-size: 13px;
+  font-weight: 400;
+}
+
+.fixture-date-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  font-size: 10px;
+}
+
+#fixtureFromDate,
+#fixtureToDate {
+  font-size: 13px;
+  height: 42px;
+  padding: 8px 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#fixtureScanFromDate,
+#fixtureScanToDate {
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+}
+
+#fixtureScanFromDate::-webkit-date-and-time-value,
+#fixtureScanToDate::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+#fixtureScanFromDate::-webkit-calendar-picker-indicator,
+#fixtureScanToDate::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+}
+
+.fixture-date-input {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+  max-width: 160px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  box-sizing: border-box;
+}
+
+.fixture-date-input::-webkit-date-and-time-value {
+  text-align: left;
+}
+
+.fixture-date-input::-webkit-calendar-picker-indicator {
+  opacity: 0.9;
+}
+
+.fixture-scan-bar-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.18);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.fixture-scan-bar-fill {
+  width: 30%;
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  transform: translateX(-120%);
+}
+
+.fixture-scan-bar-fill.is-animating {
+  animation: fixtureScanBarMove 1.2s linear infinite;
+}
+
+@keyframes fixtureScanBarMove {
+  0% { transform: translateX(-120%); }
+  100% { transform: translateX(420%); }
+}
+
+.league-summary-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex: 0 0 auto;
+}
+
+
+
+.league-details.is-league-removed .league-group,
+.league-details.is-league-removed .league-summary {
+  opacity: 0.45;
+}
+
+.fixture-row {
+  padding: 10px 0;
+}
+
+.fixture-row-main {
+  min-width: 0;
+}
+
+.fixture-row.is-removed .fixture-row-main {
+  opacity: 0.48;
+}
+
+.fixture-row.is-faded .fixture-row-main {
+  opacity: 0.55;
+}
+
+.fixture-change-line {
+  margin-top: 4px;
+  font-size: 14px;
+  line-height: 1.35;
+  color: rgba(255,255,255,0.72);
+}
+
+.fixture-change-arrow {
+  margin: 0 4px;
+}
+
+.fixture-change-new {
+  color: #69db7c;
+  font-weight: 700;
+}
+
+.fixture-status {
+  margin-top: 6px;
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 600;
+}
+
+.fixture-status-add,
+.fixture-status-update {
+  color: #8bc34a;
+}
+
+.fixture-status-remove {
+  color: #ff6b6b;
+}
+
+
+
+.league-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+
+.league-remove-all-btn,
+.fixture-remove-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex: 0 0 auto;
+}
+
+.league-remove-all-btn.is-undo {
+  font-size: 15px;
+}
+
+.league-change {
+  white-space: nowrap;
+}
+
+.league-details > summary {
+  list-style: none;
+}
+
+.league-details > summary::-webkit-details-marker {
+  display: none;
+}
+
+
+.fixture-row.is-removed .fixture-row-main {
+  opacity: 0.48;
 }

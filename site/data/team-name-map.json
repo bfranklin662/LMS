@@ -1,0 +1,817 @@
+{
+  "teams": [
+    {
+      "canonical": "Arsenal",
+      "flashscore": "Arsenal",
+      "logo": "Arsenal",
+      "search": [
+        "Arsenal"
+      ]
+    },
+    {
+      "canonical": "Aston Villa",
+      "flashscore": "Aston Villa",
+      "logo": "Aston Villa",
+      "search": [
+        "Aston Villa",
+        "Villa"
+      ]
+    },
+    {
+      "canonical": "Bournemouth",
+      "flashscore": "Bournemouth",
+      "logo": "Bournemouth",
+      "search": [
+        "Bournemouth",
+        "Bournemouth AFC"
+      ]
+    },
+    {
+      "canonical": "Brentford",
+      "flashscore": "Brentford",
+      "logo": "Brentford",
+      "search": [
+        "Brentford"
+      ]
+    },
+    {
+      "canonical": "Brighton",
+      "flashscore": "Brighton",
+      "logo": "Brighton",
+      "search": [
+        "Brighton",
+        "Brighton and Hove Albion"
+      ]
+    },
+    {
+      "canonical": "Burnley",
+      "flashscore": "Burnley",
+      "logo": "Burnley",
+      "search": [
+        "Burnley"
+      ]
+    },
+    {
+      "canonical": "Chelsea",
+      "flashscore": "Chelsea",
+      "logo": "Chelsea",
+      "search": [
+        "Chelsea"
+      ]
+    },
+    {
+      "canonical": "Crystal Palace",
+      "flashscore": "Crystal Palace",
+      "logo": "Crystal Palace",
+      "search": [
+        "Crystal Palace"
+      ]
+    },
+    {
+      "canonical": "Everton",
+      "flashscore": "Everton",
+      "logo": "Everton",
+      "search": [
+        "Everton"
+      ]
+    },
+    {
+      "canonical": "Fulham",
+      "flashscore": "Fulham",
+      "logo": "Fulham",
+      "search": [
+        "Fulham"
+      ]
+    },
+    {
+      "canonical": "Leeds",
+      "flashscore": "Leeds",
+      "logo": "Leeds",
+      "search": [
+        "Leeds",
+        "Leeds United"
+      ]
+    },
+    {
+      "canonical": "Liverpool",
+      "flashscore": "Liverpool",
+      "logo": "Liverpool",
+      "search": [
+        "Liverpool"
+      ]
+    },
+    {
+      "canonical": "Manchester City",
+      "flashscore": "Man City",
+      "logo": "Manchester City",
+      "search": [
+        "Man City",
+        "Manchester City"
+      ]
+    },
+    {
+      "canonical": "Man United",
+      "flashscore": "Man Utd",
+      "logo": "Man United",
+      "search": [
+        "Man Utd",
+        "Manchester United",
+        "Manchester Utd",
+        "Man United"
+      ]
+    },
+    {
+      "canonical": "Newcastle",
+      "flashscore": "Newcastle",
+      "logo": "Newcastle",
+      "search": [
+        "Newcastle",
+        "Newcastle United"
+      ]
+    },
+    {
+      "canonical": "Nottingham Forest",
+      "flashscore": "Nottm Forest",
+      "logo": "Nottingham Forest",
+      "search": [
+        "Nottingham",
+        "Nottingham Forest"
+      ]
+    },
+    {
+      "canonical": "Sunderland",
+      "flashscore": "Sunderland",
+      "logo": "Sunderland",
+      "search": [
+        "Sunderland"
+      ]
+    },
+    {
+      "canonical": "Tottenham",
+      "flashscore": "Tottenham",
+      "logo": "Tottenham",
+      "search": [
+        "Tottenham",
+        "Tottenham Hotspur",
+        "Spurs"
+      ]
+    },
+    {
+      "canonical": "West Ham",
+      "flashscore": "West Ham",
+      "logo": "West Ham",
+      "search": [
+        "West Ham",
+        "West Ham United"
+      ]
+    },
+    {
+      "canonical": "Wolves",
+      "flashscore": "Wolves",
+      "logo": "Wolves",
+      "search": [
+        "Wolves",
+        "Wolverhampton Wanderers"
+      ]
+    },
+    {
+      "canonical": "Birmingham",
+      "flashscore": "Birmingham",
+      "logo": "Birmingham",
+      "search": [
+        "Birmingham",
+        "Birmingham City"
+      ]
+    },
+    {
+      "canonical": "Blackburn Rovers",
+      "flashscore": "Blackburn",
+      "logo": "Blackburn Rovers",
+      "search": [
+        "Blackburn",
+        "Blackburn Rovers"
+      ]
+    },
+    {
+      "canonical": "Bradford City",
+      "flashscore": "Bradford",
+      "logo": "Bradford City",
+      "search": [
+        "Bradford",
+        "Bradford City"
+      ]
+    },
+    {
+      "canonical": "Bristol City",
+      "flashscore": "Bristol City",
+      "logo": "Bristol City",
+      "search": [
+        "Bristol City"
+      ]
+    },
+    {
+      "canonical": "Cardiff City",
+      "flashscore": "Cardiff",
+      "logo": "Cardiff City",
+      "search": [
+        "Cardiff",
+        "Cardiff City"
+      ]
+    },
+    {
+      "canonical": "Coventry",
+      "flashscore": "Coventry",
+      "logo": "Coventry",
+      "search": [
+        "Coventry",
+        "Coventry City"
+      ]
+    },
+    {
+      "canonical": "Derby County",
+      "flashscore": "Derby",
+      "logo": "Derby County",
+      "search": [
+        "Derby",
+        "Derby County"
+      ]
+    },
+    {
+      "canonical": "Hull City",
+      "flashscore": "Hull",
+      "logo": "Hull City",
+      "search": [
+        "Hull",
+        "Hull City"
+      ]
+    },
+    {
+      "canonical": "Ipswich Town",
+      "flashscore": "Ipswich",
+      "logo": "Ipswich Town",
+      "search": [
+        "Ipswich",
+        "Ipswich Town"
+      ]
+    },
+    {
+      "canonical": "Leicester City",
+      "flashscore": "Leicester",
+      "logo": "Leicester City",
+      "search": [
+        "Leicester",
+        "Leicester City"
+      ]
+    },
+    {
+      "canonical": "Middlesbrough",
+      "flashscore": "Middlesbrough",
+      "logo": "Middlesbrough",
+      "search": [
+        "Middlesbrough"
+      ]
+    },
+    {
+      "canonical": "Millwall",
+      "flashscore": "Millwall",
+      "logo": "Millwall",
+      "search": [
+        "Millwall"
+      ]
+    },
+    {
+      "canonical": "Norwich City",
+      "flashscore": "Norwich",
+      "logo": "Norwich City",
+      "search": [
+        "Norwich",
+        "Norwich City"
+      ]
+    },
+    {
+      "canonical": "Oxford",
+      "flashscore": "Oxford",
+      "logo": "Oxford",
+      "search": [
+        "Oxford",
+        "Oxford United"
+      ]
+    },
+    {
+      "canonical": "Portsmouth",
+      "flashscore": "Portsmouth",
+      "logo": "Portsmouth",
+      "search": [
+        "Portsmouth"
+      ]
+    },
+    {
+      "canonical": "Preston",
+      "flashscore": "Preston",
+      "logo": "Preston",
+      "search": [
+        "Preston",
+        "Preston North End"
+      ]
+    },
+    {
+      "canonical": "QPR",
+      "flashscore": "QPR",
+      "logo": "QPR",
+      "search": [
+        "QPR",
+        "Queens Park Rangers"
+      ]
+    },
+    {
+      "canonical": "Sheffield United",
+      "flashscore": "Sheff Utd",
+      "logo": "Sheffield United",
+      "search": [
+        "Sheff Utd",
+        "Sheffield Utd",
+        "Sheffield United"
+      ]
+    },
+    {
+      "canonical": "Southampton",
+      "flashscore": "Southampton",
+      "logo": "Southampton",
+      "search": [
+        "Southampton"
+      ]
+    },
+    {
+      "canonical": "Stoke City",
+      "flashscore": "Stoke City",
+      "logo": "Stoke City",
+      "search": [
+        "Stoke",
+        "Stoke City"
+      ]
+    },
+    {
+      "canonical": "Swansea",
+      "flashscore": "Swansea",
+      "logo": "Swansea",
+      "search": [
+        "Swansea",
+        "Swansea City"
+      ]
+    },
+    {
+      "canonical": "Watford",
+      "flashscore": "Watford",
+      "logo": "Watford",
+      "search": [
+        "Watford"
+      ]
+    },
+    {
+      "canonical": "West Brom",
+      "flashscore": "West Brom",
+      "logo": "West Brom",
+      "search": [
+        "West Brom",
+        "West Bromwich Albion"
+      ]
+    },
+    {
+      "canonical": "Wrexham",
+      "flashscore": "Wrexham",
+      "logo": "Wrexham",
+      "search": [
+        "Wrexham"
+      ]
+    },
+    {
+      "canonical": "Barnsley",
+      "flashscore": "Barnsley",
+      "logo": "Barnsley",
+      "search": [
+        "Barnsley"
+      ]
+    },
+    {
+      "canonical": "Blackpool",
+      "flashscore": "Blackpool",
+      "logo": "Blackpool",
+      "search": [
+        "Blackpool"
+      ]
+    },
+    {
+      "canonical": "Bolton",
+      "flashscore": "Bolton",
+      "logo": "Bolton",
+      "search": [
+        "Bolton",
+        "Bolton Wanderers"
+      ]
+    },
+    {
+      "canonical": "Burton",
+      "flashscore": "Burton",
+      "logo": "Burton",
+      "search": [
+        "Burton",
+        "Burton Albion"
+      ]
+    },
+    {
+      "canonical": "Cambridge United",
+      "flashscore": "Cambridge Utd",
+      "logo": "Cambridge United",
+      "search": [
+        "Cambridge",
+        "Cambridge Utd",
+        "Cambridge United"
+      ]
+    },
+    {
+      "canonical": "Charlton",
+      "flashscore": "Charlton",
+      "logo": "Charlton",
+      "search": [
+        "Charlton",
+        "Charlton Athletic"
+      ]
+    },
+    {
+      "canonical": "Exeter City",
+      "flashscore": "Exeter",
+      "logo": "Exeter City",
+      "search": [
+        "Exeter",
+        "Exeter City"
+      ]
+    },
+    {
+      "canonical": "Huddersfield",
+      "flashscore": "Huddersfield",
+      "logo": "Huddersfield",
+      "search": [
+        "Huddersfield",
+        "Huddersfield Town"
+      ]
+    },
+    {
+      "canonical": "Leyton Orient",
+      "flashscore": "Leyton Orient",
+      "logo": "Leyton Orient",
+      "search": [
+        "Leyton Orient"
+      ]
+    },
+    {
+      "canonical": "Lincoln City",
+      "flashscore": "Lincoln",
+      "logo": "Lincoln City",
+      "search": [
+        "Lincoln",
+        "Lincoln City"
+      ]
+    },
+    {
+      "canonical": "Luton Town",
+      "flashscore": "Luton",
+      "logo": "Luton Town",
+      "search": [
+        "Luton",
+        "Luton Town"
+      ]
+    },
+    {
+      "canonical": "Mansfield Town",
+      "flashscore": "Mansfield Town",
+      "logo": "Mansfield Town",
+      "search": [
+        "Mansfield",
+        "Mansfield Town"
+      ]
+    },
+    {
+      "canonical": "Northampton Town",
+      "flashscore": "Northampton",
+      "logo": "Northampton Town",
+      "search": [
+        "Northampton",
+        "Northampton Town"
+      ]
+    },
+    {
+      "canonical": "Peterborough",
+      "flashscore": "Peterborough",
+      "logo": "Peterborough",
+      "search": [
+        "Peterborough",
+        "Peterborough United"
+      ]
+    },
+    {
+      "canonical": "Plymouth",
+      "flashscore": "Plymouth",
+      "logo": "Plymouth",
+      "search": [
+        "Plymouth",
+        "Plymouth Argyle"
+      ]
+    },
+    {
+      "canonical": "Reading",
+      "flashscore": "Reading",
+      "logo": "Reading",
+      "search": [
+        "Reading"
+      ]
+    },
+    {
+      "canonical": "Rotherham",
+      "flashscore": "Rotherham",
+      "logo": "Rotherham",
+      "search": [
+        "Rotherham",
+        "Rotherham United"
+      ]
+    },
+    {
+      "canonical": "Sheffield Wed",
+      "flashscore": "Sheff Wed",
+      "logo": "Sheffield Wed",
+      "search": [
+        "Sheff Wed",
+        "Sheffield Wed",
+        "Sheffield Wednesday"
+      ]
+    },
+    {
+      "canonical": "Stevenage",
+      "flashscore": "Stevenage",
+      "logo": "Stevenage",
+      "search": [
+        "Stevenage"
+      ]
+    },
+    {
+      "canonical": "Stockport",
+      "flashscore": "Stockport",
+      "logo": "Stockport",
+      "search": [
+        "Stockport",
+        "Stockport County"
+      ]
+    },
+    {
+      "canonical": "Wigan Athletic",
+      "flashscore": "Wigan",
+      "logo": "Wigan Athletic",
+      "search": [
+        "Wigan",
+        "Wigan Athletic"
+      ]
+    },
+    {
+      "canonical": "Wycombe",
+      "flashscore": "Wycombe",
+      "logo": "Wycombe",
+      "search": [
+        "Wycombe",
+        "Wycombe Wanderers"
+      ]
+    },
+    {
+      "canonical": "Accrington Stanley",
+      "flashscore": "Accrington",
+      "logo": "Accrington Stanley",
+      "search": [
+        "Accrington",
+        "Accrington Stanley"
+      ]
+    },
+    {
+      "canonical": "Barrow",
+      "flashscore": "Barrow",
+      "logo": "Barrow",
+      "search": [
+        "Barrow"
+      ]
+    },
+    {
+      "canonical": "Bromley",
+      "flashscore": "Bromley",
+      "logo": "Bromley",
+      "search": [
+        "Bromley"
+      ]
+    },
+    {
+      "canonical": "Cheltenham",
+      "flashscore": "Cheltenham",
+      "logo": "Cheltenham",
+      "search": [
+        "Cheltenham",
+        "Cheltenham Town"
+      ]
+    },
+    {
+      "canonical": "Chesterfield",
+      "flashscore": "Chesterfield",
+      "logo": "Chesterfield",
+      "search": [
+        "Chesterfield"
+      ]
+    },
+    {
+      "canonical": "Colchester",
+      "flashscore": "Colchester",
+      "logo": "Colchester",
+      "search": [
+        "Colchester",
+        "Colchester United"
+      ]
+    },
+    {
+      "canonical": "Crewe Alexandra",
+      "flashscore": "Crewe",
+      "logo": "Crewe Alexandra",
+      "search": [
+        "Crewe",
+        "Crewe Alexandra"
+      ]
+    },
+    {
+      "canonical": "Doncaster",
+      "flashscore": "Doncaster",
+      "logo": "Doncaster",
+      "search": [
+        "Doncaster",
+        "Doncaster Rovers"
+      ]
+    },
+    {
+      "canonical": "Fleetwood",
+      "flashscore": "Fleetwood",
+      "logo": "Fleetwood",
+      "search": [
+        "Fleetwood",
+        "Fleetwood Town"
+      ]
+    },
+    {
+      "canonical": "Gillingham",
+      "flashscore": "Gillingham",
+      "logo": "Gillingham",
+      "search": [
+        "Gillingham"
+      ]
+    },
+    {
+      "canonical": "Grimsby Town",
+      "flashscore": "Grimsby",
+      "logo": "Grimsby Town",
+      "search": [
+        "Grimsby",
+        "Grimsby Town"
+      ]
+    },
+    {
+      "canonical": "Harrogate Town",
+      "flashscore": "Harrogate",
+      "logo": "Harrogate Town",
+      "search": [
+        "Harrogate",
+        "Harrogate Town"
+      ]
+    },
+    {
+      "canonical": "MK Dons",
+      "flashscore": "MK Dons",
+      "logo": "MK Dons",
+      "search": [
+        "Milton Keynes Dons",
+        "MK Dons"
+      ]
+    },
+    {
+      "canonical": "Morecambe",
+      "flashscore": "Morecambe",
+      "logo": "Morecambe",
+      "search": [
+        "Morecambe"
+      ]
+    },
+    {
+      "canonical": "Newport County",
+      "flashscore": "Newport",
+      "logo": "Newport County",
+      "search": [
+        "Newport",
+        "Newport County"
+      ]
+    },
+    {
+      "canonical": "Notts County",
+      "flashscore": "Notts Co",
+      "logo": "Notts County",
+      "search": [
+        "Notts Co",
+        "Notts County"
+      ]
+    },
+    {
+      "canonical": "Oldham Athletic",
+      "flashscore": "Oldham Athletic",
+      "logo": "Oldham Athletic",
+      "search": [
+        "Oldham",
+        "Oldham Athletic"
+      ]
+    },
+    {
+      "canonical": "Port Vale",
+      "flashscore": "Port Vale",
+      "logo": "Port Vale",
+      "search": [
+        "Port Vale"
+      ]
+    },
+    {
+      "canonical": "Salford",
+      "flashscore": "Salford",
+      "logo": "Salford",
+      "search": [
+        "Salford",
+        "Salford City"
+      ]
+    },
+    {
+      "canonical": "Swindon Town",
+      "flashscore": "Swindon",
+      "logo": "Swindon Town",
+      "search": [
+        "Swindon",
+        "Swindon Town"
+      ]
+    },
+    {
+      "canonical": "Tranmere",
+      "flashscore": "Tranmere",
+      "logo": "Tranmere",
+      "search": [
+        "Tranmere",
+        "Tranmere Rovers"
+      ]
+    },
+    {
+      "canonical": "Walsall",
+      "flashscore": "Walsall",
+      "logo": "Walsall",
+      "search": [
+        "Walsall"
+      ]
+    },
+    {
+      "canonical": "AFC Wimbledon",
+      "flashscore": "AFC Wimbledon",
+      "logo": "AFC Wimbledon",
+      "search": [
+        "Wimbledon",
+        "AFC Wimbledon"
+      ]
+    },
+    {
+      "canonical": "Barnet",
+      "flashscore": "Barnet",
+      "logo": "Barnet",
+      "search": [
+        "Barnet"
+      ]
+    },
+    {
+      "canonical": "Bristol Rovers",
+      "flashscore": "Bristol Rovers",
+      "logo": "Bristol Rovers",
+      "search": [
+        "Bristol Rovers"
+      ]
+    },
+    {
+      "canonical": "Crawley",
+      "flashscore": "Crawley",
+      "logo": "Crawley",
+      "search": [
+        "Crawley",
+        "Crawley Town"
+      ]
+    },
+    {
+      "canonical": "Shrewsbury",
+      "flashscore": "Shrewsbury",
+      "logo": "Shrewsbury",
+      "search": [
+        "Shrewsbury",
+        "Shrewsbury Town"
+      ]
+    }
+  ]
+}
