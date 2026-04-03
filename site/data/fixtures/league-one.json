@@ -1087,9 +1087,9 @@
       "team1": "Blackpool",
       "team2": "Exeter City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
@@ -1097,9 +1097,9 @@
       "team1": "Bradford City",
       "team2": "Northampton Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
@@ -1107,9 +1107,9 @@
       "team1": "Burton",
       "team2": "Barnsley",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
@@ -1117,9 +1117,9 @@
       "team1": "Huddersfield",
       "team2": "Reading",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
@@ -1127,19 +1127,19 @@
       "team1": "Lincoln City",
       "team2": "AFC Wimbledon",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
       "date": "2026-04-03",
-      "team1": "Luton",
+      "team1": "Luton Town",
       "team2": "Peterborough",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
@@ -1147,9 +1147,9 @@
       "team1": "Plymouth",
       "team2": "Bolton",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
@@ -1157,9 +1157,9 @@
       "team1": "Rotherham",
       "team2": "Stevenage",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
@@ -1167,9 +1167,9 @@
       "team1": "Stockport",
       "team2": "Wycombe",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",

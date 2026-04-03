@@ -47,7 +47,7 @@
 
 
     <main class="view">
-      <div class="card">
+      <div class="card admin-card">
 
         <!-- LOGIN VIEW -->
         <section id="loginView">
@@ -129,45 +129,45 @@
             <div id="subsContainer"></div>
           </section>
 
-        <!-- FIXTURES PANEL -->
-        <section id="panel-fixtures" class="hidden">
-          <div class="fixtures-card" style="margin-bottom:16px;">
-            <div id="fixturesMeta" class="muted small" style="margin-bottom:12px;"></div>
+          <!-- FIXTURES PANEL -->
+          <section id="panel-fixtures" class="hidden">
+            <div class="fixtures-card" style="margin-bottom:16px;">
+              <div id="fixturesMeta" class="muted small" style="margin-bottom:12px;"></div>
 
-            <div class="filters" style="margin-bottom:12px;">
-              <select id="adminFixtureGwSelect" class="filter select-dropdown"></select>
-            </div>
+              <div class="filters" style="margin-bottom:12px;">
+                <select id="adminFixtureGwSelect" class="filter select-dropdown"></select>
+              </div>
 
-            <div style="display:flex;gap:8px;margin-bottom:12px;">
-              <input id="fixtureScanFromDate" class="input fixture-date-input" type="date">
-              <input id="fixtureScanToDate" class="input fixture-date-input" type="date">
-            </div>
-            <div class="muted small" style="margin-top:10px;line-height:1.7;">
-              <div>First submission deadline: <span id="fixtureFirstDeadlineText">—</span></div>
-              <div>Late submission deadline: <span id="fixtureLateDeadlineText">—</span></div>
-            </div>
+              <div style="display:flex;gap:8px;margin-bottom:12px;">
+                <input id="fixtureScanFromDate" class="input fixture-date-input" type="date">
+                <input id="fixtureScanToDate" class="input fixture-date-input" type="date">
+              </div>
+              <div class="muted small" style="margin-top:10px;line-height:1.7;">
+                <div>First submission deadline: <span id="fixtureFirstDeadlineText">—</span></div>
+                <div>Late submission deadline: <span id="fixtureLateDeadlineText">—</span></div>
+              </div>
 
-            <button id="refreshFixturesBtn" class="btn btn-primary" type="button">Rescan fixtures</button>
-            <button id="updateResultsBtn" class="btn btn-ghost" type="button">Update results</button>
+              <button id="refreshFixturesBtn" class="btn btn-primary" type="button">Rescan fixtures</button>
+              <button id="updateResultsBtn" class="btn btn-ghost" type="button">Update results</button>
 
-            <div id="fixtureScanStatusWrap" class="hidden" style="margin-top:10px;">
-              <div id="fixtureScanStatusText" class="muted small" style="min-height:20px;"></div>
-              <div class="fixture-scan-bar-track">
-                <div id="fixtureScanBar" class="fixture-scan-bar-fill"></div>
+              <div id="fixtureScanStatusWrap" class="hidden" style="margin-top:10px;">
+                <div id="fixtureScanStatusText" class="muted small" style="min-height:20px;"></div>
+                <div class="fixture-scan-bar-track">
+                  <div id="fixtureScanBar" class="fixture-scan-bar-fill"></div>
+                </div>
               </div>
             </div>
-          </div>
 
-          <div id="adminFixturesList"></div>
+            <div id="adminFixturesList"></div>
 
-          <div id="fixtureChangesSummary"></div>
+            <div id="fixtureChangesSummary"></div>
 
-          <div style="margin-top:18px;display:flex;justify-content:flex-end;">
-            <button id="commitFixturesBtn" class="btn btn-primary" type="button" disabled>Commit changes</button>
-          </div>
+            <div style="margin-top:18px;display:flex;justify-content:flex-end;">
+              <button id="commitFixturesBtn" class="btn btn-primary" type="button" disabled>Commit changes</button>
+            </div>
+          </section>
+
         </section>
-
-
       </div>
     </main>
   </div>

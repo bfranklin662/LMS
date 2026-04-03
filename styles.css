@@ -4055,3 +4055,7 @@ button:disabled {
   font-size: 13px;
   line-height: 1;
 }
+
+.admin-card {
+  padding: 10px 8px;
+}

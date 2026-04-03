@@ -578,11 +578,20 @@ function formatAdminFixtureDayLabel_(dayKey) {
 }
 
 function updateFixtureServerDependentButtons_() {
-  const disabled = !fixtureAdminServerAvailable;
+  const noServer = !fixtureAdminServerAvailable;
+  const gwComplete = isSelectedGwComplete_();
 
-  if (refreshFixturesBtn) refreshFixturesBtn.disabled = disabled;
-  if (commitFixturesBtn) commitFixturesBtn.disabled = disabled;
-  if (updateResultsBtn) updateResultsBtn.disabled = disabled;
+  if (refreshFixturesBtn) {
+    refreshFixturesBtn.disabled = noServer || gwComplete;
+  }
+
+  if (updateResultsBtn) {
+    updateResultsBtn.disabled = noServer || gwComplete;
+  }
+
+  if (commitFixturesBtn) {
+    commitFixturesBtn.disabled = noServer || gwComplete;
+  }
 }
 
 function bindFixtureEditorEvents_() {
@@ -762,8 +771,8 @@ function updateCommitVisibility_() {
     adminFixtureSelectedGw === "ALL"
       ? null
       : (adminFixtureGameweeks || []).find(
-        gw => String(gw.gwId) === String(adminFixtureSelectedGw)
-      ) || null;
+          gw => String(gw.gwId) === String(adminFixtureSelectedGw)
+        ) || null;
 
   const gw = selectedGwObj || (adminFixtureGameweeks || [])[0];
 
@@ -792,7 +801,10 @@ function updateCommitVisibility_() {
   }
 
   if (commitFixturesBtn) {
-    commitFixturesBtn.disabled = !fixtureAdminServerAvailable || !hasFixtureChanges;
+    commitFixturesBtn.disabled =
+      !fixtureAdminServerAvailable ||
+      isSelectedGwComplete_() ||
+      !hasFixtureChanges;
   }
 }
 
@@ -877,6 +889,38 @@ function buildFixtureChangesSummaryHtml_() {
       ${lines.join("")}
     </div>
   `;
+}
+
+function getSelectedGwLastDayTs_() {
+  const gw = getSelectedFixtureGwObj_();
+  if (!gw) return null;
+
+  const days = (gw.days || [])
+    .map(d => String(d.dayKey || ""))
+    .filter(Boolean)
+    .sort();
+
+  if (!days.length) return null;
+
+  return new Date(`${days[days.length - 1]}T23:59:59`).getTime();
+}
+
+function isFixtureLocked_(fx) {
+  const hasScore =
+    Number.isInteger(fx.homeScore) &&
+    Number.isInteger(fx.awayScore);
+
+  if (hasScore) return true;
+
+  const kickoffTs = fx.date
+    ? new Date(`${fx.date}T${String(fx.time || "12:00")}:00`).getTime()
+    : null;
+
+  return Number.isFinite(kickoffTs) ? Date.now() >= kickoffTs : false;
+}
+
+function canLeagueBeEdited_(league) {
+  return (league.fixtures || []).some(fx => !isFixtureLocked_(fx));
 }
 
 function getDayScanState_(day) {
@@ -1184,6 +1228,7 @@ function renderAdminFixturesTabView_() {
                   ${renderLeagueScanLabel_(league)}
                 </span>
 
+                ${canLeagueBeEdited_(league) ? `
                 <button
                   type="button"
                   class="league-remove-all-btn ${isLeagueMarkedRemoved_(day.dayKey, league.leagueKey) ? "is-undo" : ""}"
@@ -1192,6 +1237,7 @@ function renderAdminFixturesTabView_() {
                 >
                   ${isLeagueMarkedRemoved_(day.dayKey, league.leagueKey) ? "↺" : "−"}
                 </button>
+              ` : ""}
               </span>
             </summary>
 
@@ -1394,6 +1440,23 @@ async function loadApprovals() {
   if (pendingMeta) {
     pendingMeta.textContent = `${gameLabel} • Pending: ${pending.length} • Approved: ${approved.length}`;
   }
+}
+
+function isSelectedGwComplete_() {
+  const gw = getSelectedFixtureGwObj_();
+  if (!gw) return false;
+
+  const days = (gw.days || [])
+    .map(d => String(d.dayKey || ""))
+    .filter(Boolean)
+    .sort();
+
+  if (!days.length) return false;
+
+  const lastDay = days[days.length - 1];
+  const endOfLastDay = new Date(`${lastDay}T23:59:59`).getTime();
+
+  return Date.now() > endOfLastDay;
 }
 
 /*******************************
@@ -1916,17 +1979,26 @@ function bindDayToggleEvents_() {
 
 function renderFixtureMiddleBox_(fx) {
   if (Number.isInteger(fx.homeScore) && Number.isInteger(fx.awayScore)) {
-    return `<span class="score-box">${fx.homeScore}-${fx.awayScore}</span>`;
+    return `<span class="score-box" style="display:inline-flex;align-items:center;justify-content:center;min-width:45px;height:28px;">${fx.homeScore}-${fx.awayScore}</span>`;
   }
 
-  return `<span class="vs">vs</span>`;
+  return `<span class="score-box" style="display:inline-flex;align-items:center;justify-content:center;min-width:45px;height:28px;">${escapeHtml(String(fx.time || "").trim() || "TBD")}</span>`;
 }
 
 function renderFixtureEditorRow_(fx) {
   const edit = fixtureEdits.get(fx.fixtureId) || {};
   const isScrapedOnly = fx.status === "scraped-only";
   const isUpdated = fx.status === "updated";
-  const isRemoved = fx.status === "removed" || edit.remove === true;
+
+  const hasScore =
+    Number.isInteger(fx.homeScore) &&
+    Number.isInteger(fx.awayScore);
+
+  const isLocked = isFixtureLocked_(fx);
+  const allowRemoveButton = !isLocked;
+  const showRemoveButton = allowRemoveButton && !isScrapedOnly && !isUpdated;
+
+  const isRemoved = allowRemoveButton && (fx.status === "removed" || edit.remove === true);
 
   const isIncluded = isScrapedOnly
     ? edit.include !== false
@@ -1941,7 +2013,7 @@ function renderFixtureEditorRow_(fx) {
     const afterLine = formatFixtureDateTimeDisplay(fx.change.afterDate, fx.change.afterTime);
 
     changeLine = `
-      <div class="fixture-change-line">
+      <div class="fixture-change-line" style="margin-top:6px;">
         <span>${escapeHtml(beforeLine)}</span>
         <span class="fixture-change-arrow">→</span>
         <span class="fixture-change-new">${escapeHtml(afterLine)}</span>
@@ -1955,8 +2027,10 @@ function renderFixtureEditorRow_(fx) {
     ${isRemoved ? `<div class="fixture-status fixture-status-remove">Fixture will be removed</div>` : ""}
   `;
 
-  const actionHtml = isScrapedOnly
-    ? `
+  let actionHtml = "";
+
+  if (isScrapedOnly) {
+    actionHtml = `
       <label style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;cursor:pointer;">
         <input
           type="checkbox"
@@ -1965,9 +2039,9 @@ function renderFixtureEditorRow_(fx) {
           ${edit.include !== false ? "checked" : ""}
         >
       </label>
-        `
-    : isUpdated
-      ? `
+    `;
+  } else if (isUpdated) {
+    actionHtml = `
       <label style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;cursor:pointer;">
         <input
           type="checkbox"
@@ -1976,8 +2050,9 @@ function renderFixtureEditorRow_(fx) {
           ${edit.applyUpdate !== false ? "checked" : ""}
         >
       </label>
-    `
-      : `
+    `;
+  } else if (showRemoveButton) {
+    actionHtml = `
       <button
         class="fixture-remove-btn"
         type="button"
@@ -2000,49 +2075,71 @@ function renderFixtureEditorRow_(fx) {
         ${edit.remove ? "↺" : "−"}
       </button>
     `;
+  }
 
   return `
-    <div class="fixture-row ${isRemoved ? "is-removed" : ""} ${!isIncluded ? "is-faded" : ""}"
-      data-fixture-id="${escapeHtml(fx.fixtureId)}">
-      <div style="display:grid;grid-template-columns:minmax(0,1fr) 32px;gap:10px;align-items:start;width:100%;">
+    <div
+      class="fixture-row ${isRemoved ? "is-removed" : ""} ${!isIncluded ? "is-faded" : ""}"
+      data-fixture-id="${escapeHtml(fx.fixtureId)}"
+      style="position:relative;"
+    >
+
+      <div style="width:100%;">
         <div class="fixture-row-main" style="min-width:0;">
-          <div class="fixture-teams">
-            <span style="display:inline-flex;align-items:center;gap:6px;min-width:0;">
+
+          <div
+            class="fixture-teams"
+            style="
+              display:grid;
+              grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+              align-items:center;
+              gap:6px;
+            "
+          >
+            <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;text-align:right;">
+              <div class="team-name" style="min-width:0;white-space:normal;line-height:1.15;display:flex;align-items:center;min-height:22px;">
+                ${escapeHtml(fx.team1)}
+              </div>
               <img
                 src="${escapeHtml(leftLogo)}"
                 alt="${escapeHtml(fx.team1)}"
                 class="team-logo"
+                style="display:block;flex:0 0 auto;"
                 onerror="this.onerror=null;this.src='../site/images/team-default.png';"
               />
-              <span class="team-name">${escapeHtml(fx.team1)}</span>
-            </span>
+            </div>
 
-            ${renderFixtureMiddleBox_(fx)}
+            <div style="display:flex;justify-content:center;align-items:center;">
+              ${renderFixtureMiddleBox_(fx)}
+            </div>
 
-            <span style="display:inline-flex;align-items:center;gap:6px;min-width:0;">
-              <span class="team-name">${escapeHtml(fx.team2)}</span>
+            <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;text-align:left;">
               <img
                 src="${escapeHtml(rightLogo)}"
                 alt="${escapeHtml(fx.team2)}"
                 class="team-logo"
+                style="display:block;flex:0 0 auto;"
                 onerror="this.onerror=null;this.src='../site/images/team-default.png';"
               />
-            </span>
+              <div class="team-name" style="min-width:0;white-space:normal;line-height:1.15;display:flex;align-items:center;min-height:22px;">
+                ${escapeHtml(fx.team2)}
+              </div>
+            </div>
           </div>
 
-          <div class="fixture-datetime muted">
-            ${Number.isInteger(fx.homeScore) && Number.isInteger(fx.awayScore)
-      ? "FT"
-      : escapeHtml(formatFixtureDateTimeDisplay(fx.date, fx.time))}
+          <div class="fixture-datetime muted" style="text-align:center;margin-top:2px;line-height:1.1;">
+            ${hasScore ? "FT" : ""}
           </div>
 
           ${changeLine}
         </div>
+      </div>
 
-        <div style="display:flex;justify-content:flex-end;align-items:flex-start;">
+      ${actionHtml ? `
+        <div style="position:absolute;top:12px;right:12px;z-index:2;">
           ${actionHtml}
         </div>
-      </div>
+      ` : ``}
 
       ${statusLine}
     </div>
