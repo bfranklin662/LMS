@@ -4042,3 +4042,16 @@ button:disabled {
 .fixture-row.is-removed .fixture-row-main {
   opacity: 0.48;
 }
+
+.score-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 38px;
+  height: 24px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.12);
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 1;
+}

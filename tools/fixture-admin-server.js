@@ -11,8 +11,7 @@ const ADMIN_KEY = process.env.FIXTURE_ADMIN_KEY || "";
 const BASE_DIR = process.env.LMS_BASE_DIR || path.resolve(__dirname, "..");
 
 const {
-  getCanonicalTeamName,
-  areTeamsEquivalent
+  getCanonicalTeamName
 } = require("./team-name-utils");
 
 const FILE_MAP = {
@@ -79,6 +78,9 @@ async function handleFixturesEditorView(body, res) {
         time: String(m.time || "").trim(),
         team1: String(m.team1 || "").trim(),
         team2: String(m.team2 || "").trim(),
+        homeScore: Number.isInteger(m.homeScore) ? m.homeScore : null,
+        awayScore: Number.isInteger(m.awayScore) ? m.awayScore : null,
+        resultStatus: String(m.resultStatus || "pending").trim(),
         status: "existing",
         change: null
       });
@@ -373,6 +375,100 @@ function parseBody(req) {
   });
 }
 
+async function runResultSync({ file, from, to, dryRun, opsFile }) {
+  return new Promise((resolve, reject) => {
+    const args = [
+      "tools/sync-results.js",
+      `--file=${file}`,
+      `--from=${from}`,
+      `--to=${to}`,
+    ];
+
+    if (dryRun) args.push("--dry-run");
+    if (opsFile) args.push(`--ops-file=${opsFile}`);
+
+    const child = spawn("node", args, {
+      cwd: BASE_DIR,
+      env: process.env,
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", d => {
+      stdout += d.toString();
+    });
+
+    child.stderr.on("data", d => {
+      stderr += d.toString();
+    });
+
+    child.on("error", reject);
+
+    child.on("close", code => {
+      if (code !== 0) {
+        return reject(new Error(stderr || stdout || `sync-results exited with code ${code}`));
+      }
+      resolve(stdout);
+    });
+  });
+}
+
+async function handleResultsUpdateGw(body, res) {
+  requireAdminKey(body);
+
+  const {
+    actualGwId,
+    from,
+    to,
+    league = "all",
+    useTestFiles = false
+  } = body;
+
+  if (!actualGwId) throw new Error("Missing actualGwId");
+  if (!from || !to) throw new Error("Missing from/to");
+
+  const actualGwKey = String(actualGwId).trim().toUpperCase();
+  const targets = getTargetFiles({ league, useTestFiles });
+  const results = [];
+
+  for (const target of targets) {
+    const json = await readJsonFile(target.absPath);
+    const localMatches = Array.isArray(json.matches) ? json.matches : [];
+
+    const gwMatches = localMatches.filter(
+      m => String(m.gwId || "").trim().toUpperCase() === actualGwKey
+    );
+
+    if (!gwMatches.length) {
+      results.push({
+        label: target.label,
+        file: target.file,
+        updated: []
+      });
+      continue;
+    }
+
+    const output = await runResultSync({
+      file: target.file,
+      from,
+      to,
+      dryRun: false
+    });
+
+    const changed = parseSectionLines(output, "Changed").map(line => line.trim());
+
+    results.push({
+      label: target.label,
+      file: target.file,
+      updated: changed,
+      rawOutput: output
+    });
+  }
+
+  sendJson(res, 200, { ok: true, results });
+}
+
 function requireAdminKey(body) {
   if (!ADMIN_KEY) {
     throw new Error("FIXTURE_ADMIN_KEY is not set on the server");
@@ -443,116 +539,6 @@ async function readJsonFile(absPath) {
   return JSON.parse(raw);
 }
 
-function buildFixtureId(file, match, idx) {
-  return [
-    file,
-    String(match.gwId || "").trim().toUpperCase(),
-    String(match.date || "").trim(),
-    String(match.team1 || "").trim().toLowerCase(),
-    String(match.team2 || "").trim().toLowerCase(),
-    String(idx)
-  ].join("::");
-}
-
-async function loadGroupedFixtures({ league = "all", useTestFiles = false }) {
-  const targets = getTargetFiles({ league, useTestFiles });
-  const flatFixtures = [];
-
-  for (const target of targets) {
-    const json = await readJsonFile(target.absPath);
-    const matches = Array.isArray(json.matches) ? json.matches : [];
-
-    matches.forEach((match, idx) => {
-      flatFixtures.push({
-        fixtureId: buildFixtureId(target.file, match, idx),
-        file: target.file,
-        leagueKey: target.key,
-        leagueLabel: target.label,
-        gwId: String(match.gwId || "").trim().toUpperCase(),
-        date: String(match.date || "").trim(),
-        time: String(match.time || "").trim(),
-        team1: String(match.team1 || "").trim(),
-        team2: String(match.team2 || "").trim(),
-      });
-    });
-  }
-
-  flatFixtures.sort((a, b) => {
-    const gwDiff = gwNum(a.gwId) - gwNum(b.gwId);
-    if (gwDiff !== 0) return gwDiff;
-
-    const dtDiff = fixtureSortKey(a).localeCompare(fixtureSortKey(b));
-    if (dtDiff !== 0) return dtDiff;
-
-    const leagueDiff = a.leagueLabel.localeCompare(b.leagueLabel);
-    if (leagueDiff !== 0) return leagueDiff;
-
-    return `${a.team1} ${a.team2}`.localeCompare(`${b.team1} ${b.team2}`);
-  });
-
-  const gwMap = new Map();
-
-  for (const fixture of flatFixtures) {
-    const gwKey = fixture.gwId || "UNGROUPED";
-    if (!gwMap.has(gwKey)) {
-      gwMap.set(gwKey, {
-        gwId: gwKey,
-        displayGwId: gwKey,
-        days: new Map(),
-      });
-    }
-
-    const gw = gwMap.get(gwKey);
-    const dayKey = fixture.date || "unknown";
-
-    if (!gw.days.has(dayKey)) {
-      gw.days.set(dayKey, {
-        dayKey,
-        label: formatAdminDayLabel(dayKey),
-        leagues: new Map(),
-      });
-    }
-
-    const day = gw.days.get(dayKey);
-    const leagueKey = fixture.leagueKey;
-
-    if (!day.leagues.has(leagueKey)) {
-      day.leagues.set(leagueKey, {
-        leagueKey,
-        leagueLabel: fixture.leagueLabel,
-        fixtures: [],
-      });
-    }
-
-    day.leagues.get(leagueKey).fixtures.push(fixture);
-  }
-
-  const gameweeks = Array.from(gwMap.values())
-    .sort((a, b) => gwNum(a.gwId) - gwNum(b.gwId))
-    .map((gw) => ({
-      gwId: gw.gwId,
-      displayGwId: gw.displayGwId,
-      days: Array.from(gw.days.values())
-        .sort((a, b) => String(a.dayKey).localeCompare(String(b.dayKey)))
-        .map((day) => ({
-          dayKey: day.dayKey,
-          label: day.label,
-          leagues: Array.from(day.leagues.values())
-            .sort(compareLeagueDisplayOrder)
-            .map((league) => ({
-              leagueKey: league.leagueKey,
-              leagueLabel: league.leagueLabel,
-              fixtures: league.fixtures.sort((a, b) => {
-                const dtDiff = fixtureSortKey(a).localeCompare(fixtureSortKey(b));
-                if (dtDiff !== 0) return dtDiff;
-                return `${a.team1} ${a.team2}`.localeCompare(`${b.team1} ${b.team2}`);
-              }),
-            })),
-        })),
-    }));
-
-  return { gameweeks };
-}
 
 async function runSync({ file, from, to, removeMissing, addMissing, dryRun, opsFile, forceGwId }) {
   return new Promise((resolve, reject) => {
@@ -820,18 +806,6 @@ async function buildResult(label, file, output) {
   };
 }
 
-async function handleFixturesView(body, res) {
-  requireAdminKey(body);
-
-  const {
-    league = "all",
-    useTestFiles = false
-  } = body;
-
-  const data = await loadGroupedFixtures({ league, useTestFiles });
-  sendJson(res, 200, { ok: true, ...data });
-}
-
 async function handlePreview(body, res) {
   requireAdminKey(body);
 
@@ -1028,6 +1002,10 @@ const server = http.createServer(async (req, res) => {
 
     if (req.url === "/fixtures/rescan-gw") {
       return await handleFixturesRescanGw(body, res);
+    }
+
+    if (req.url === "/results/update-gw") {
+      return await handleResultsUpdateGw(body, res);
     }
 
     return sendJson(res, 404, { ok: false, error: "Unknown route" });

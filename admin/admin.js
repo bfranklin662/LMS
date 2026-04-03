@@ -198,6 +198,8 @@ const fixtureScanBar = document.getElementById("fixtureScanBar");
 const fixtureFirstDeadlineText = document.getElementById("fixtureFirstDeadlineText");
 const fixtureLateDeadlineText = document.getElementById("fixtureLateDeadlineText");
 
+const updateResultsBtn = document.getElementById("updateResultsBtn");
+
 let TEAM_NAME_MAP_ROWS = [];
 let TEAM_NAME_MAP_BY_ANY = new Map();
 
@@ -417,6 +419,8 @@ const seenSubs = new Map();   // key -> { outcome, el, gwId, isResolved }
 let selectedGameId = "";
 let adminGames = [];
 
+let fixtureAdminServerAvailable = false;
+
 const FIXTURE_SOURCES = [
   { league: "Premier League", url: "../site/data/fixtures/premier-league.json" },
   { league: "Championship", url: "../site/data/fixtures/championship.json" },
@@ -455,6 +459,69 @@ function startFixtureScanLoading_() {
       fixtureScanStatusText.textContent = messages[fixtureScanStatusIndex];
     }
   }, 1100);
+}
+
+async function updateResultsForSelectedGw_() {
+  const selectedGw = (adminFixtureGameweeks || []).find(
+    gw => String(gw.gwId) === String(adminFixtureSelectedGw)
+  );
+
+  if (!selectedGw) {
+    throw new Error("No gameweek selected.");
+  }
+
+  const from = fixtureScanFromDate?.value || "";
+  const to = fixtureScanToDate?.value || "";
+
+  if (!from || !to) {
+    throw new Error("Choose both result dates.");
+  }
+
+  const actualGwId = selectedGw.actualGwId || getActualGwIdForSelectedGame_(selectedGw.gwId);
+
+  setBtnLoading(updateResultsBtn, true);
+
+  try {
+    const data = await fixtureApi("/results/update-gw", {
+      adminKey,
+      actualGwId,
+      from,
+      to,
+      league: "all",
+      useTestFiles: false
+    });
+
+    await loadGroupedFixturesView();
+
+    const lines = [];
+
+    for (const r of data.results || []) {
+      const changedCount = Array.isArray(r.updated) ? r.updated.length : 0;
+      if (changedCount) {
+        lines.push(`${r.label}: ${changedCount} result${changedCount === 1 ? "" : "s"} updated`);
+      }
+    }
+
+    if (!lines.length) {
+      showMsg(`No new results found for ${adminFixtureSelectedGw}.`, true);
+      return;
+    }
+
+    openBulkResolveModal({
+      title: "Results updated",
+      html: `<div style="line-height:1.6;">${lines.map(line => `<div>${escapeHtml(line)}</div>`).join("")}</div>`,
+      onConfirm: async () => { }
+    });
+
+    const confirmBtn = document.getElementById("bulkResolveConfirmBtn");
+    const cancelBtn = document.getElementById("bulkResolveCancelBtn");
+    if (confirmBtn) confirmBtn.textContent = "OK";
+    if (cancelBtn) cancelBtn.classList.add("hidden");
+
+    showMsg(`Results updated for ${adminFixtureSelectedGw}.`, true);
+  } finally {
+    setBtnLoading(updateResultsBtn, false);
+  }
 }
 
 function stopFixtureScanLoading_(finalLines = []) {
@@ -508,6 +575,14 @@ function formatAdminFixtureDayLabel_(dayKey) {
     month: "short",
     timeZone: "Europe/London"
   }).format(d);
+}
+
+function updateFixtureServerDependentButtons_() {
+  const disabled = !fixtureAdminServerAvailable;
+
+  if (refreshFixturesBtn) refreshFixturesBtn.disabled = disabled;
+  if (commitFixturesBtn) commitFixturesBtn.disabled = disabled;
+  if (updateResultsBtn) updateResultsBtn.disabled = disabled;
 }
 
 function bindFixtureEditorEvents_() {
@@ -570,15 +645,129 @@ function bindFixtureEditorEvents_() {
   });
 }
 
+async function loadGroupedFixturesViewFallback_() {
+  const allFixtures = [];
+
+  for (const source of FIXTURE_SOURCES) {
+    try {
+      const res = await fetch(`${source.url}?ts=${Date.now()}`, { cache: "no-store" });
+      if (!res.ok) continue;
+
+      const json = await res.json();
+      const matches = Array.isArray(json.matches) ? json.matches : [];
+
+      matches.forEach((m, idx) => {
+        allFixtures.push({
+          fixtureId: `${source.url}::${idx}`,
+          file: source.url,
+          leagueKey: String(source.league || "")
+            .toLowerCase()
+            .replace(/\s+/g, "-"),
+          leagueLabel: source.league,
+          gwId: String(m.gwId || "").trim().toUpperCase(),
+          date: String(m.date || "").trim(),
+          time: String(m.time || "").trim(),
+          team1: String(m.team1 || "").trim(),
+          team2: String(m.team2 || "").trim(),
+          homeScore: Number.isInteger(m.homeScore) ? m.homeScore : null,
+          awayScore: Number.isInteger(m.awayScore) ? m.awayScore : null,
+          resultStatus: String(m.resultStatus || "pending").trim(),
+          status: "existing",
+          change: null
+        });
+      });
+    } catch {
+      // ignore individual file failures
+    }
+  }
+
+  allFixtures.sort((a, b) => {
+    const gwDiff = gwNum(a.gwId) - gwNum(b.gwId);
+    if (gwDiff !== 0) return gwDiff;
+
+    const dtDiff = fixtureSortKey(a).localeCompare(fixtureSortKey(b));
+    if (dtDiff !== 0) return dtDiff;
+
+    const leagueDiff = a.leagueLabel.localeCompare(b.leagueLabel);
+    if (leagueDiff !== 0) return leagueDiff;
+
+    return `${a.team1} ${a.team2}`.localeCompare(`${b.team1} ${b.team2}`);
+  });
+
+  const gwMap = new Map();
+
+  for (const fixture of allFixtures) {
+    const gwKey = fixture.gwId || "UNGROUPED";
+
+    if (!gwMap.has(gwKey)) {
+      gwMap.set(gwKey, {
+        gwId: gwKey,
+        displayGwId: gwKey,
+        days: new Map()
+      });
+    }
+
+    const gw = gwMap.get(gwKey);
+    const dayKey = fixture.date || "unknown";
+
+    if (!gw.days.has(dayKey)) {
+      gw.days.set(dayKey, {
+        dayKey,
+        label: formatAdminFixtureDayLabel_(dayKey),
+        leagues: new Map()
+      });
+    }
+
+    const day = gw.days.get(dayKey);
+
+    if (!day.leagues.has(fixture.leagueKey)) {
+      day.leagues.set(fixture.leagueKey, {
+        leagueKey: fixture.leagueKey,
+        leagueLabel: fixture.leagueLabel,
+        fixtures: []
+      });
+    }
+
+    day.leagues.get(fixture.leagueKey).fixtures.push(fixture);
+  }
+
+  return {
+    gameweeks: Array.from(gwMap.values())
+      .sort((a, b) => gwNum(a.gwId) - gwNum(b.gwId))
+      .map(gw => ({
+        gwId: gw.gwId,
+        displayGwId: gw.displayGwId,
+        days: Array.from(gw.days.values())
+          .sort((a, b) => String(a.dayKey).localeCompare(String(b.dayKey)))
+          .map(day => ({
+            dayKey: day.dayKey,
+            label: day.label,
+            leagues: Array.from(day.leagues.values())
+              .sort(compareLeagueDisplayOrder_)
+              .map(league => ({
+                ...league,
+                fixtures: (league.fixtures || []).sort((a, b) => {
+                  const dtDiff = fixtureSortKey(a).localeCompare(fixtureSortKey(b));
+                  if (dtDiff !== 0) return dtDiff;
+                  return `${a.team1} ${a.team2}`.localeCompare(`${b.team1} ${b.team2}`);
+                })
+              }))
+          }))
+      }))
+  };
+}
+
 function updateCommitVisibility_() {
   const selectedGwObj =
     adminFixtureSelectedGw === "ALL"
       ? null
-      : (adminFixtureGameweeks || []).find(gw => String(gw.gwId) === String(adminFixtureSelectedGw)) || null;
+      : (adminFixtureGameweeks || []).find(
+        gw => String(gw.gwId) === String(adminFixtureSelectedGw)
+      ) || null;
 
   const gw = selectedGwObj || (adminFixtureGameweeks || [])[0];
 
-  let hasDetectedChanges = false;
+  let hasFixtureChanges = false;
 
   if (gw) {
     for (const day of gw.days || []) {
@@ -586,17 +775,24 @@ function updateCommitVisibility_() {
         for (const fx of league.fixtures || []) {
           const edit = fixtureEdits.get(fx.fixtureId) || {};
 
-          if (fx.status === "updated" && edit.applyUpdate !== false) hasDetectedChanges = true;
-          if (fx.status === "scraped-only" && edit.include !== false) hasDetectedChanges = true;
-          if (fx.status === "removed" && edit.remove !== false) hasDetectedChanges = true;
-          if (fx.status !== "removed" && edit.remove) hasDetectedChanges = true;
+          if (fx.status === "updated" && edit.applyUpdate !== false) hasFixtureChanges = true;
+          if (fx.status === "scraped-only" && edit.include !== false) hasFixtureChanges = true;
+          if (fx.status === "removed" && edit.remove !== false) hasFixtureChanges = true;
+
+          if (
+            fx.status !== "removed" &&
+            fx.status !== "scraped-only" &&
+            edit.remove
+          ) {
+            hasFixtureChanges = true;
+          }
         }
       }
     }
   }
 
   if (commitFixturesBtn) {
-    commitFixturesBtn.disabled = !hasDetectedChanges;
+    commitFixturesBtn.disabled = !fixtureAdminServerAvailable || !hasFixtureChanges;
   }
 }
 
@@ -740,6 +936,57 @@ function resetSelectedGwScanState_() {
       }))
     };
   });
+}
+
+async function rescanResultsForSelectedGw_(from, to) {
+  const selectedGw = (adminFixtureGameweeks || []).find(
+    gw => String(gw.gwId) === String(adminFixtureSelectedGw)
+  );
+
+  if (!selectedGw) {
+    throw new Error("No gameweek selected.");
+  }
+
+  const actualGwId = selectedGw.actualGwId || getActualGwIdForSelectedGame_(selectedGw.gwId);
+
+  const data = await fixtureApi("/results/rescan-gw", {
+    adminKey,
+    actualGwId,
+    from,
+    to,
+    league: "all",
+    useTestFiles: false
+  });
+
+  const scannedFixtures = Array.isArray(data.fixtures) ? data.fixtures : [];
+  const scanByFixtureId = new Map(scannedFixtures.map(fx => [fx.fixtureId, fx]));
+
+  adminFixtureGameweeks = adminFixtureGameweeks.map(gw => {
+    if (String(gw.gwId) !== String(adminFixtureSelectedGw)) return gw;
+
+    return {
+      ...gw,
+      days: (gw.days || []).map(day => ({
+        ...day,
+        leagues: (day.leagues || []).map(league => ({
+          ...league,
+          fixtures: (league.fixtures || []).map(fx => {
+            const scanned = scanByFixtureId.get(fx.fixtureId);
+            return scanned
+              ? {
+                ...fx,
+                ...scanned,
+                scanStatus: "scanned"
+              }
+              : fx;
+          })
+        }))
+      }))
+    };
+  });
+
+  renderAdminFixturesTabView_();
+  updateCommitVisibility_();
 }
 
 function bindLeagueRemoveAllEvents_() {
@@ -1294,9 +1541,12 @@ function resolveAdminAssetPath_(value) {
     return s;
   }
 
+  if (s.startsWith("site/")) {
+    return `../${s}`;
+  }
+
   return `../site/${s.replace(/^\.?\//, "")}`;
 }
-
 
 let TEAM_LOGO_MAP = new Map();
 
@@ -1349,7 +1599,7 @@ function getTeamLogo_(teamName) {
   const key = normTeamKeyLogo_(teamName);
   const row = TEAM_NAME_MAP_BY_ANY.get(key);
 
-  const lookupName = row?.logo || row?.canonical || teamName;
+  const lookupName = row?.canonical || teamName;
   const logoKey = normTeamKeyLogo_(lookupName);
 
   return TEAM_LOGO_MAP.get(logoKey) || DEFAULT_TEAM_LOGO;
@@ -1664,6 +1914,14 @@ function bindDayToggleEvents_() {
   });
 }
 
+function renderFixtureMiddleBox_(fx) {
+  if (Number.isInteger(fx.homeScore) && Number.isInteger(fx.awayScore)) {
+    return `<span class="score-box">${fx.homeScore}-${fx.awayScore}</span>`;
+  }
+
+  return `<span class="vs">vs</span>`;
+}
+
 function renderFixtureEditorRow_(fx) {
   const edit = fixtureEdits.get(fx.fixtureId) || {};
   const isScrapedOnly = fx.status === "scraped-only";
@@ -1699,15 +1957,15 @@ function renderFixtureEditorRow_(fx) {
 
   const actionHtml = isScrapedOnly
     ? `
-    <label style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;cursor:pointer;">
-      <input
-        type="checkbox"
-        class="fixture-include-toggle"
-        data-fixture-id="${escapeHtml(fx.fixtureId)}"
-        ${edit.include !== false ? "checked" : ""}
-      >
-    </label>
-  `
+      <label style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;cursor:pointer;">
+        <input
+          type="checkbox"
+          class="fixture-include-toggle"
+          data-fixture-id="${escapeHtml(fx.fixtureId)}"
+          ${edit.include !== false ? "checked" : ""}
+        >
+      </label>
+        `
     : isUpdated
       ? `
       <label style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;cursor:pointer;">
@@ -1759,7 +2017,7 @@ function renderFixtureEditorRow_(fx) {
               <span class="team-name">${escapeHtml(fx.team1)}</span>
             </span>
 
-            <span class="vs">vs</span>
+            ${renderFixtureMiddleBox_(fx)}
 
             <span style="display:inline-flex;align-items:center;gap:6px;min-width:0;">
               <span class="team-name">${escapeHtml(fx.team2)}</span>
@@ -1773,7 +2031,9 @@ function renderFixtureEditorRow_(fx) {
           </div>
 
           <div class="fixture-datetime muted">
-            ${escapeHtml(formatFixtureDateTimeDisplay(fx.date, fx.time))}
+            ${Number.isInteger(fx.homeScore) && Number.isInteger(fx.awayScore)
+      ? "FT"
+      : escapeHtml(formatFixtureDateTimeDisplay(fx.date, fx.time))}
           </div>
 
           ${changeLine}
@@ -1842,11 +2102,22 @@ async function loadGroupedFixturesView() {
   adminFixturesList.innerHTML = `<div class="muted">Loading fixtures…</div>`;
   fixtureEdits.clear();
 
-  const data = await fixtureApi("/fixtures/editor-view", {
-    adminKey,
-    league: "all",
-    useTestFiles: false
-  });
+  let data;
+  let usedFallback = false;
+
+  try {
+    data = await fixtureApi("/fixtures/editor-view", {
+      adminKey,
+      league: "all",
+      useTestFiles: false
+    });
+    fixtureAdminServerAvailable = true;
+  } catch (err) {
+    console.warn("Fixture admin server unavailable, using JSON fallback view.", err);
+    data = await loadGroupedFixturesViewFallback_();
+    usedFallback = true;
+    fixtureAdminServerAvailable = false;
+  }
 
   fixtureEditorData = data;
 
@@ -1875,8 +2146,12 @@ async function loadGroupedFixturesView() {
   await updateFixtureDeadlineInfo_();
 
   if (fixturesMeta) {
-    fixturesMeta.textContent = `Showing ${adminFixtureSelectedGw} fixtures for ${getSelectedGame_()?.title || selectedGameId}.`;
+    const baseText = `Showing ${adminFixtureSelectedGw} fixtures for ${getSelectedGame_()?.title || selectedGameId}.`;
+    fixturesMeta.textContent = usedFallback
+      ? `${baseText} View-only mode. Start fixture-admin-server.js to scan or commit changes.`
+      : baseText;
   }
+  updateFixtureServerDependentButtons_();
   updateCommitVisibility_();
 }
 
@@ -2898,6 +3173,14 @@ commitFixturesBtn?.addEventListener("click", async (e) => {
       await commitFixtureSync();
     }
   });
+});
+
+updateResultsBtn?.addEventListener("click", async () => {
+  try {
+    await updateResultsForSelectedGw_();
+  } catch (e) {
+    showMsg(String(e.message || e), false);
+  }
 });
 
 adminFixtureGwSelect?.addEventListener("change", async () => {
