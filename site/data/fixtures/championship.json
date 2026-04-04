@@ -7,9 +7,9 @@
       "team1": "Bristol City",
       "team2": "Derby County",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 5,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -17,9 +17,9 @@
       "team1": "Leicester City",
       "team2": "Charlton",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -27,9 +27,9 @@
       "team1": "Sheffield Wed",
       "team2": "Wrexham",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -37,9 +37,9 @@
       "team1": "Stoke City",
       "team2": "Southampton",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -47,9 +47,9 @@
       "team1": "Blackburn Rovers",
       "team2": "Hull City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -57,9 +57,9 @@
       "team1": "Ipswich Town",
       "team2": "Preston",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -67,9 +67,9 @@
       "team1": "Middlesbrough",
       "team2": "Norwich City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -77,9 +77,9 @@
       "team1": "Millwall",
       "team2": "Sheffield United",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -87,9 +87,9 @@
       "team1": "Oxford Utd",
       "team2": "Birmingham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -97,9 +97,9 @@
       "team1": "Portsmouth",
       "team2": "West Brom",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -107,9 +107,9 @@
       "team1": "QPR",
       "team2": "Coventry",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -117,19 +117,19 @@
       "team1": "Watford",
       "team2": "Swansea",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
       "date": "2026-02-06",
       "team1": "Charlton",
       "team2": "QPR",
-      "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "20:01",
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -137,9 +137,9 @@
       "team1": "Derby County",
       "team2": "Ipswich Town",
       "time": "12:31",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -147,9 +147,9 @@
       "team1": "Norwich City",
       "team2": "Blackburn Rovers",
       "time": "12:31",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -157,9 +157,9 @@
       "team1": "Southampton",
       "team2": "Watford",
       "time": "12:31",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -167,9 +167,9 @@
       "team1": "Birmingham",
       "team2": "Leicester City",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -177,9 +177,9 @@
       "team1": "Coventry",
       "team2": "Oxford Utd",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -187,9 +187,9 @@
       "team1": "Hull City",
       "team2": "Bristol City",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -197,9 +197,9 @@
       "team1": "Preston",
       "team2": "Portsmouth",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -207,9 +207,9 @@
       "team1": "West Brom",
       "team2": "Stoke City",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -217,9 +217,9 @@
       "team1": "Wrexham",
       "team2": "Millwall",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -227,9 +227,9 @@
       "team1": "Swansea",
       "team2": "Sheffield Wed",
       "time": "12:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 4,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -237,9 +237,9 @@
       "team1": "Sheffield United",
       "team2": "Middlesbrough",
       "time": "20:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -247,9 +247,9 @@
       "team1": "Leicester City",
       "team2": "Southampton",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 4,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -257,9 +257,9 @@
       "team1": "Oxford Utd",
       "team2": "Norwich City",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -267,9 +267,9 @@
       "team1": "Birmingham",
       "team2": "West Brom",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -277,9 +277,9 @@
       "team1": "Derby County",
       "team2": "Swansea",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -287,9 +287,9 @@
       "team1": "Portsmouth",
       "team2": "Sheffield United",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -297,9 +297,9 @@
       "team1": "Preston",
       "team2": "Watford",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -307,9 +307,9 @@
       "team1": "QPR",
       "team2": "Blackburn Rovers",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -317,9 +317,9 @@
       "team1": "Sheffield Wed",
       "team2": "Millwall",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -327,9 +327,9 @@
       "team1": "Coventry",
       "team2": "Middlesbrough",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -337,9 +337,9 @@
       "team1": "Blackburn Rovers",
       "team2": "Preston",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -347,9 +347,9 @@
       "team1": "Hull City",
       "team2": "QPR",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -357,9 +357,9 @@
       "team1": "Stoke City",
       "team2": "Leicester City",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -367,9 +367,9 @@
       "team1": "Swansea",
       "team2": "Bristol City",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -377,9 +377,9 @@
       "team1": "West Brom",
       "team2": "Coventry",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -387,9 +387,9 @@
       "team1": "Middlesbrough",
       "team2": "Oxford Utd",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -397,9 +397,9 @@
       "team1": "Millwall",
       "team2": "Portsmouth",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -407,9 +407,9 @@
       "team1": "Norwich City",
       "team2": "Birmingham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -417,9 +417,9 @@
       "team1": "Southampton",
       "team2": "Charlton",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -427,9 +427,9 @@
       "team1": "Watford",
       "team2": "Derby County",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -437,9 +437,9 @@
       "team1": "Wrexham",
       "team2": "Ipswich Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -447,9 +447,9 @@
       "team1": "Sheffield United",
       "team2": "Sheffield Wed",
       "time": "12:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -457,9 +457,9 @@
       "team1": "Bristol City",
       "team2": "Watford",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -467,9 +467,9 @@
       "team1": "Derby County",
       "team2": "Blackburn Rovers",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -477,9 +477,9 @@
       "team1": "Leicester City",
       "team2": "Norwich City",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -487,9 +487,9 @@
       "team1": "Portsmouth",
       "team2": "Hull City",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -497,9 +497,9 @@
       "team1": "Charlton",
       "team2": "Wrexham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -507,9 +507,9 @@
       "team1": "Coventry",
       "team2": "Stoke City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -517,9 +517,9 @@
       "team1": "Ipswich Town",
       "team2": "Swansea",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -527,9 +527,9 @@
       "team1": "Oxford Utd",
       "team2": "West Brom",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -537,9 +537,9 @@
       "team1": "Preston",
       "team2": "Millwall",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -547,9 +547,9 @@
       "team1": "QPR",
       "team2": "Sheffield United",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -557,9 +557,9 @@
       "team1": "Sheffield Wed",
       "team2": "Southampton",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -567,19 +567,19 @@
       "team1": "Birmingham",
       "team2": "Middlesbrough",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-03-07",
       "team1": "Blackburn Rovers",
       "team2": "Portsmouth",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -587,9 +587,9 @@
       "team1": "Charlton",
       "team2": "Birmingham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -597,19 +597,19 @@
       "team1": "Derby County",
       "team2": "Sheffield Wed",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-03-07",
       "team1": "Hull City",
       "team2": "Millwall",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -617,39 +617,9 @@
       "team1": "Ipswich Town",
       "team2": "Leicester City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW6",
-      "date": "2026-03-07",
-      "team1": "Middlesbrough",
-      "team2": "Coventry",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW6",
-      "date": "2026-03-07",
-      "team1": "Preston",
-      "team2": "Oxford Utd",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW6",
-      "date": "2026-03-07",
-      "team1": "QPR",
-      "team2": "Bristol City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -657,39 +627,9 @@
       "team1": "Sheffield United",
       "team2": "West Brom",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW6",
-      "date": "2026-03-07",
-      "team1": "Stoke City",
-      "team2": "Norwich City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW6",
-      "date": "2026-03-07",
-      "team1": "Swansea",
-      "team2": "Southampton",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW6",
-      "date": "2026-03-07",
-      "team1": "Watford",
-      "team2": "Wrexham",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -697,9 +637,9 @@
       "team1": "Leicester City",
       "team2": "Bristol City",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -707,9 +647,9 @@
       "team1": "Millwall",
       "team2": "Derby County",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -717,19 +657,19 @@
       "team1": "Portsmouth",
       "team2": "Swansea",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
       "date": "2026-03-10",
-      "team1": "Sheffield Wednesday",
+      "team1": "Sheffield Wed",
       "team2": "Watford",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -737,9 +677,9 @@
       "team1": "Wrexham",
       "team2": "Hull City",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -747,9 +687,9 @@
       "team1": "Stoke City",
       "team2": "Ipswich Town",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -757,9 +697,9 @@
       "team1": "Birmingham",
       "team2": "QPR",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -767,9 +707,9 @@
       "team1": "Middlesbrough",
       "team2": "Charlton",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -777,9 +717,9 @@
       "team1": "Norwich City",
       "team2": "Sheffield United",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -787,9 +727,9 @@
       "team1": "Oxford Utd",
       "team2": "Blackburn Rovers",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -797,9 +737,9 @@
       "team1": "West Brom",
       "team2": "Southampton",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -807,9 +747,9 @@
       "team1": "Coventry",
       "team2": "Preston",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -817,19 +757,19 @@
       "team1": "Birmingham",
       "team2": "Sheffield United",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
       "date": "2026-03-14",
       "team1": "Coventry",
       "team2": "Southampton",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -837,19 +777,19 @@
       "team1": "Leicester City",
       "team2": "QPR",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
       "date": "2026-03-14",
       "team1": "Middlesbrough",
       "team2": "Bristol City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -857,9 +797,9 @@
       "team1": "Millwall",
       "team2": "Blackburn Rovers",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -867,29 +807,29 @@
       "team1": "Norwich City",
       "team2": "Preston",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
       "date": "2026-03-14",
       "team1": "Oxford Utd",
       "team2": "Charlton",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
-      "date": "2026-03-14",
+      "date": "2026-03-16",
       "team1": "Portsmouth",
       "team2": "Derby County",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "20:00",
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -897,9 +837,9 @@
       "team1": "Sheffield Wed",
       "team2": "Ipswich Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -907,9 +847,9 @@
       "team1": "Stoke City",
       "team2": "Watford",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -917,29 +857,29 @@
       "team1": "West Brom",
       "team2": "Hull City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
-      "date": "2026-03-14",
+      "date": "2026-03-13",
       "team1": "Wrexham",
       "team2": "Swansea",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "20:00",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
       "date": "2026-03-21",
       "team1": "Blackburn Rovers",
       "team2": "Middlesbrough",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -947,9 +887,9 @@
       "team1": "Bristol City",
       "team2": "West Brom",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -957,19 +897,19 @@
       "team1": "Charlton",
       "team2": "Norwich City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
       "date": "2026-03-21",
       "team1": "Derby County",
       "team2": "Birmingham",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -977,29 +917,29 @@
       "team1": "Hull City",
       "team2": "Sheffield Wed",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
       "date": "2026-03-21",
       "team1": "Ipswich Town",
       "team2": "Millwall",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
-      "date": "2026-03-21",
+      "date": "2026-03-20",
       "team1": "Preston",
       "team2": "Stoke City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "20:00",
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -1007,9 +947,9 @@
       "team1": "QPR",
       "team2": "Portsmouth",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 6,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -1017,9 +957,9 @@
       "team1": "Sheffield United",
       "team2": "Wrexham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -1027,19 +967,19 @@
       "team1": "Southampton",
       "team2": "Oxford Utd",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
       "date": "2026-03-21",
       "team1": "Swansea",
       "team2": "Coventry",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "17:15",
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -1047,9 +987,9 @@
       "team1": "Watford",
       "team2": "Leicester City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
@@ -1637,36 +1577,6 @@
       "team1": "Wrexham",
       "team2": "Middlesbrough",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW3",
-      "date": null,
-      "team1": "Bristol City",
-      "team2": "Wrexham",
-      "time": "TBD",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW3",
-      "date": null,
-      "team1": "Charlton",
-      "team2": "Stoke City",
-      "time": "TBD",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW3",
-      "date": null,
-      "team1": "Ipswich Town",
-      "team2": "Hull City",
-      "time": "TBD",
       "homeScore": null,
       "awayScore": null,
       "resultStatus": "pending"

@@ -7,9 +7,9 @@
       "team1": "Bristol Rovers",
       "team2": "Newport County",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -17,9 +17,9 @@
       "team1": "Grimsby Town",
       "team2": "MK Dons",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -27,9 +27,9 @@
       "team1": "Accrington Stanley",
       "team2": "Cheltenham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -37,9 +37,9 @@
       "team1": "Chesterfield",
       "team2": "Walsall",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -47,9 +47,9 @@
       "team1": "Crawley Town",
       "team2": "Harrogate Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -57,9 +57,9 @@
       "team1": "Crewe Alexandra",
       "team2": "Colchester",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -67,9 +67,9 @@
       "team1": "Fleetwood",
       "team2": "Notts County",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -77,9 +77,9 @@
       "team1": "Gillingham",
       "team2": "Bromley",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 4,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -87,9 +87,9 @@
       "team1": "Oldham Athletic",
       "team2": "Cambridge United",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -97,9 +97,9 @@
       "team1": "Shrewsbury",
       "team2": "Barnet",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -107,9 +107,9 @@
       "team1": "Swindon Town",
       "team2": "Barrow",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -117,9 +117,9 @@
       "team1": "Tranmere",
       "team2": "Salford City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -127,9 +127,9 @@
       "team1": "Crawley Town",
       "team2": "Crewe Alexandra",
       "time": "12:31",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -137,9 +137,9 @@
       "team1": "Swindon Town",
       "team2": "Oldham Athletic",
       "time": "12:31",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -147,9 +147,9 @@
       "team1": "Bristol Rovers",
       "team2": "Chesterfield",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -157,9 +157,9 @@
       "team1": "Cheltenham",
       "team2": "MK Dons",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -167,9 +167,9 @@
       "team1": "Colchester",
       "team2": "Shrewsbury",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -177,9 +177,9 @@
       "team1": "Fleetwood",
       "team2": "Bromley",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -187,9 +187,9 @@
       "team1": "Gillingham",
       "team2": "Tranmere",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -197,9 +197,9 @@
       "team1": "Harrogate Town",
       "team2": "Cambridge United",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -207,9 +207,9 @@
       "team1": "Newport County",
       "team2": "Grimsby Town",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -217,9 +217,9 @@
       "team1": "Notts County",
       "team2": "Barrow",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
@@ -227,9 +227,9 @@
       "team1": "Walsall",
       "team2": "Barnet",
       "time": "15:01",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -237,9 +237,9 @@
       "team1": "Grimsby Town",
       "team2": "Accrington Stanley",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -247,19 +247,9 @@
       "team1": "Barnet",
       "team2": "Cheltenham",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW3",
-      "date": "2026-02-14",
-      "team1": "Salford City",
-      "team2": "Walsall",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -267,9 +257,9 @@
       "team1": "Barrow",
       "team2": "Colchester",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -277,9 +267,9 @@
       "team1": "Bromley",
       "team2": "Notts County",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -287,9 +277,9 @@
       "team1": "Cambridge United",
       "team2": "Bristol Rovers",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -297,9 +287,9 @@
       "team1": "Chesterfield",
       "team2": "Harrogate Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -307,9 +297,9 @@
       "team1": "Crewe Alexandra",
       "team2": "Gillingham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -317,9 +307,9 @@
       "team1": "MK Dons",
       "team2": "Newport County",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -327,9 +317,9 @@
       "team1": "Oldham Athletic",
       "team2": "Fleetwood",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -337,9 +327,9 @@
       "team1": "Shrewsbury",
       "team2": "Swindon Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -347,9 +337,9 @@
       "team1": "Tranmere",
       "team2": "Crawley Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -357,9 +347,9 @@
       "team1": "Fleetwood",
       "team2": "Barrow",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -367,9 +357,9 @@
       "team1": "Swindon Town",
       "team2": "Crewe Alexandra",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -377,9 +367,9 @@
       "team1": "Accrington Stanley",
       "team2": "Shrewsbury",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -387,9 +377,9 @@
       "team1": "Bristol Rovers",
       "team2": "Grimsby Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -397,9 +387,9 @@
       "team1": "Cheltenham",
       "team2": "Salford City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -407,9 +397,9 @@
       "team1": "Colchester",
       "team2": "Barnet",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 4,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -417,9 +407,9 @@
       "team1": "Crawley Town",
       "team2": "Chesterfield",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -427,9 +417,9 @@
       "team1": "Gillingham",
       "team2": "Oldham Athletic",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -437,9 +427,9 @@
       "team1": "Harrogate Town",
       "team2": "Bromley",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -447,9 +437,9 @@
       "team1": "Newport County",
       "team2": "Cambridge United",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -457,9 +447,9 @@
       "team1": "Notts County",
       "team2": "Tranmere",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
@@ -467,9 +457,9 @@
       "team1": "Walsall",
       "team2": "MK Dons",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -477,9 +467,9 @@
       "team1": "Harrogate Town",
       "team2": "Cheltenham",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -487,9 +477,9 @@
       "team1": "Cambridge United",
       "team2": "MK Dons",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -497,9 +487,9 @@
       "team1": "Shrewsbury",
       "team2": "Walsall",
       "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -507,9 +497,9 @@
       "team1": "Barnet",
       "team2": "Chesterfield",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -517,9 +507,9 @@
       "team1": "Barrow",
       "team2": "Gillingham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -527,9 +517,9 @@
       "team1": "Bromley",
       "team2": "Accrington Stanley",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -537,9 +527,9 @@
       "team1": "Colchester",
       "team2": "Salford City",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -547,9 +537,9 @@
       "team1": "Crewe Alexandra",
       "team2": "Tranmere",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -557,9 +547,9 @@
       "team1": "Fleetwood",
       "team2": "Newport County",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -567,9 +557,9 @@
       "team1": "Notts County",
       "team2": "Grimsby Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
@@ -577,19 +567,19 @@
       "team1": "Oldham Athletic",
       "team2": "Crawley Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
       "date": "2026-02-28",
       "team1": "Swindon Town",
       "team2": "Bristol Rovers",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -597,9 +587,9 @@
       "team1": "Cheltenham",
       "team2": "Barrow",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -607,9 +597,9 @@
       "team1": "Accrington Stanley",
       "team2": "Cambridge United",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -617,9 +607,9 @@
       "team1": "Bristol Rovers",
       "team2": "Crewe Alexandra",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -627,9 +617,9 @@
       "team1": "Chesterfield",
       "team2": "Shrewsbury",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -637,9 +627,9 @@
       "team1": "Crawley Town",
       "team2": "Swindon Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -647,19 +637,19 @@
       "team1": "Gillingham",
       "team2": "Fleetwood",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-03-07",
       "team1": "Grimsby Town",
       "team2": "Bromley",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -667,9 +657,9 @@
       "team1": "MK Dons",
       "team2": "Harrogate Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 4,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -677,19 +667,19 @@
       "team1": "Newport County",
       "team2": "Colchester",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-03-07",
       "team1": "Salford City",
       "team2": "Barnet",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -697,9 +687,9 @@
       "team1": "Tranmere",
       "team2": "Oldham Athletic",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -707,9 +697,9 @@
       "team1": "Walsall",
       "team2": "Notts County",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -717,9 +707,9 @@
       "team1": "Barrow",
       "team2": "Bristol Rovers",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -727,9 +717,9 @@
       "team1": "Fleetwood",
       "team2": "Cheltenham",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -737,9 +727,9 @@
       "team1": "Gillingham",
       "team2": "MK Dons",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 5,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -747,9 +737,9 @@
       "team1": "Salford City",
       "team2": "Walsall",
       "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -757,9 +747,9 @@
       "team1": "Barnet",
       "team2": "Newport County",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -767,9 +757,9 @@
       "team1": "Barrow",
       "team2": "Accrington Stanley",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -777,9 +767,9 @@
       "team1": "Bromley",
       "team2": "Bristol Rovers",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -787,9 +777,9 @@
       "team1": "Cambridge United",
       "team2": "Gillingham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -797,9 +787,9 @@
       "team1": "Crewe Alexandra",
       "team2": "Walsall",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -807,29 +797,29 @@
       "team1": "Fleetwood",
       "team2": "Tranmere",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
       "date": "2026-03-14",
       "team1": "Harrogate Town",
       "team2": "Salford City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
       "date": "2026-03-14",
       "team1": "Notts County",
       "team2": "Chesterfield",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 2,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -837,9 +827,9 @@
       "team1": "Oldham Athletic",
       "team2": "Grimsby Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -847,9 +837,9 @@
       "team1": "Shrewsbury",
       "team2": "Cheltenham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -857,9 +847,9 @@
       "team1": "Swindon Town",
       "team2": "MK Dons",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -867,9 +857,9 @@
       "team1": "Accrington Stanley",
       "team2": "Chesterfield",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -877,19 +867,19 @@
       "team1": "Bromley",
       "team2": "Colchester",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
       "date": "2026-03-21",
       "team1": "Cambridge United",
       "team2": "Salford City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -897,9 +887,9 @@
       "team1": "Fleetwood",
       "team2": "Crawley Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -907,9 +897,9 @@
       "team1": "Gillingham",
       "team2": "Bristol Rovers",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -917,19 +907,19 @@
       "team1": "Grimsby Town",
       "team2": "Barrow",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
       "date": "2026-03-21",
       "team1": "MK Dons",
       "team2": "Barnet",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:30",
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -937,9 +927,9 @@
       "team1": "Notts County",
       "team2": "Cheltenham",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -947,9 +937,9 @@
       "team1": "Oldham Athletic",
       "team2": "Harrogate Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -957,9 +947,9 @@
       "team1": "Shrewsbury",
       "team2": "Crewe Alexandra",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 4,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -967,9 +957,9 @@
       "team1": "Tranmere",
       "team2": "Swindon Town",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
@@ -977,9 +967,9 @@
       "team1": "Walsall",
       "team2": "Newport County",
       "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW10",
