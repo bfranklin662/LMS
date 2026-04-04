@@ -3229,6 +3229,11 @@ function normalizeFixture(raw, leagueName) {
   const kickoff = parseKickoffUK(dateStr, timeStr);
   if (!kickoff) return null;
 
+  const homeScore =
+    raw.homeScore === "" || raw.homeScore == null ? null : Number(raw.homeScore);
+  const awayScore =
+    raw.awayScore === "" || raw.awayScore == null ? null : Number(raw.awayScore);
+
   return {
     gwId: String(gwId).trim().toUpperCase(),
     league: leagueName,
@@ -3236,6 +3241,9 @@ function normalizeFixture(raw, leagueName) {
     kickoffHasTime: !!hasTime,
     home: getCanonicalTeamName_(String(home)),
     away: getCanonicalTeamName_(String(away)),
+    homeScore: Number.isFinite(homeScore) ? homeScore : null,
+    awayScore: Number.isFinite(awayScore) ? awayScore : null,
+    resultStatus: String(raw.resultStatus || "pending").trim(),
     round: raw.round || ""
   };
 }
@@ -3528,6 +3536,32 @@ function getPickForGw(gwId) {
   return sessionPicks.find(p => p.gwId === gwId) || null;
 }
 
+function renderFixtureMiddleBoxApp_(f) {
+  const hasScore =
+    Number.isInteger(f.homeScore) &&
+    Number.isInteger(f.awayScore);
+
+  if (hasScore) {
+    return `
+      <span
+        class="score-box"
+        style="display:inline-flex;align-items:center;justify-content:center;min-width:45px;height:28px;"
+      >
+        ${f.homeScore}-${f.awayScore}
+      </span>
+    `;
+  }
+
+  return `
+    <span
+      class="score-box"
+      style="display:inline-flex;align-items:center;justify-content:center;min-width:45px;height:28px;"
+    >
+      ${escapeHtml(String(f.kickoffHasTime ? formatTimeUK(f.kickoff) : "TBD"))}
+    </span>
+  `;
+}
+
 function renderFixturesTab() {
   const viewGw = gameweeks.find(g => g.id === viewingGwId);
   if (!viewGw) return;
@@ -3644,20 +3678,66 @@ function renderFixturesTab() {
         const row = document.createElement("div");
         row.className = "fixture-row";
 
-        const timeHtml = f.kickoffHasTime
-          ? `<div class="fixture-time muted" > ${formatTimeUK(f.kickoff)}</div > `
-          : "";
+        const hasScore =
+          Number.isInteger(f.homeScore) &&
+          Number.isInteger(f.awayScore);
 
-        const dateLine = f.kickoffHasTime
-          ? `${escapeHtml(formatDateUK(f.kickoff))} · ${escapeHtml(formatTimeUK(f.kickoff))} `
-          : `${escapeHtml(formatDateUK(f.kickoff))} `;
+        const leftLogo = getTeamLogo_(f.home);
+        const rightLogo = getTeamLogo_(f.away);
 
         row.innerHTML = `
-        <div class="fixture-main" >
-          ${fixtureTeamsHtml_(f.home, f.away)}
-        <div class="fixture-datetime muted">${dateLine}</div>
-                  </div >
-          `;
+          <div class="fixture-row-main" style="min-width:0;width:100%;">
+            <div
+              class="fixture-teams"
+              style="
+                display:grid;
+                grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
+                align-items:center;
+                gap:6px;
+              "
+            >
+              <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;text-align:right;">
+                <div
+                  class="team-name"
+                  style="min-width:0;white-space:normal;line-height:1.15;display:flex;align-items:center;min-height:22px;"
+                >
+                  ${escapeHtml(f.home)}
+                </div>
+                <img
+                  src="${escapeHtml(leftLogo)}"
+                  alt="${escapeHtml(f.home)}"
+                  class="team-logo"
+                  style="display:block;flex:0 0 auto;"
+                  onerror="this.onerror=null;this.src='site/images/team-default.png';"
+                />
+              </div>
+
+              <div style="display:flex;justify-content:center;align-items:center;">
+                ${renderFixtureMiddleBoxApp_(f)}
+              </div>
+
+              <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;text-align:left;">
+                <img
+                  src="${escapeHtml(rightLogo)}"
+                  alt="${escapeHtml(f.away)}"
+                  class="team-logo"
+                  style="display:block;flex:0 0 auto;"
+                  onerror="this.onerror=null;this.src='site/images/team-default.png';"
+                />
+                <div
+                  class="team-name"
+                  style="min-width:0;white-space:normal;line-height:1.15;display:flex;align-items:center;min-height:22px;"
+                >
+                  ${escapeHtml(f.away)}
+                </div>
+              </div>
+            </div>
+
+            <div class="fixture-datetime muted" style="text-align:center;margin-top:2px;line-height:1.1;">
+              ${hasScore ? "FT" : ""}
+            </div>
+          </div>
+        `;
 
 
         container.appendChild(row);
