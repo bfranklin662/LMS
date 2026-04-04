@@ -1157,9 +1157,9 @@
       "team1": "Coventry",
       "team2": "Derby County",
       "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",
