@@ -1977,6 +1977,16 @@ function bindDayToggleEvents_() {
   });
 }
 
+function formatResultStatusLabel_(status) {
+  const s = String(status || "").trim().toLowerCase();
+
+  if (!s || s === "final") return "FT";
+  if (s === "aet") return "AET";
+  if (s.startsWith("pens ")) return `PENS ${s.slice(5)}`;
+
+  return s.toUpperCase();
+}
+
 function renderFixtureMiddleBox_(fx) {
   if (Number.isInteger(fx.homeScore) && Number.isInteger(fx.awayScore)) {
     return `<span class="score-box" style="display:inline-flex;align-items:center;justify-content:center;min-width:45px;height:28px;">${fx.homeScore}-${fx.awayScore}</span>`;
@@ -2128,7 +2138,7 @@ function renderFixtureEditorRow_(fx) {
           </div>
 
           <div class="fixture-datetime muted" style="text-align:center;margin-top:2px;line-height:1.1;">
-            ${hasScore ? "FT" : ""}
+            ${hasScore ? formatResultStatusLabel_(fx.resultStatus) : ""}
           </div>
 
           ${changeLine}

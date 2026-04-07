@@ -4,30 +4,42 @@
     {
       "gwId": "GW11",
       "date": "2026-04-04",
-      "team1": "Man City",
+      "team1": "Manchester City",
       "team2": "Liverpool",
-      "time": "12:45"
+      "time": "12:45",
+      "homeScore": 4,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
       "date": "2026-04-04",
       "team1": "Chelsea",
       "team2": "Port Vale",
-      "time": "17:15"
+      "time": "17:15",
+      "homeScore": 7,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
       "date": "2026-04-04",
       "team1": "Southampton",
       "team2": "Arsenal",
-      "time": "20:00"
+      "time": "20:00",
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW11",
       "date": "2026-04-05",
       "team1": "West Ham",
       "team2": "Leeds",
-      "time": "16:30"
+      "time": "16:30",
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "pens"
     }
   ]
 }

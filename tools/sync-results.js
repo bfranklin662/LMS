@@ -183,7 +183,7 @@ function parseFlashscoreResultLine(line, from, to) {
 }
 
 function parseResultsFromPageText(bodyText, from, to) {
-  const text = (bodyText || "").replace(/\r/g, "");
+  const text = String(bodyText || "").replace(/\r/g, "");
   const lines = text
     .split("\n")
     .map(line => line.trim())
@@ -195,22 +195,76 @@ function parseResultsFromPageText(bodyText, from, to) {
     const dt = parseFlashscoreDateTime(lines[i], from, to);
     if (!dt) continue;
 
-    // Flashscore result block looks like:
-    // 03.04.2026
-    // Wigan
-    // Leyton Orient
-    // 0
-    // 0
     const team1 = cleanTeamName(lines[i + 1]);
     const team2 = cleanTeamName(lines[i + 2]);
-    const homeScore = Number(lines[i + 3]);
-    const awayScore = Number(lines[i + 4]);
 
     if (!looksLikeTeamName(team1) || !looksLikeTeamName(team2)) continue;
-    if (!Number.isInteger(homeScore) || !Number.isInteger(awayScore)) continue;
-
-    // Only keep matches inside requested window
     if (dt.date < from || dt.date > to) continue;
+
+    const block = lines.slice(i + 3, i + 18);
+    const upperBlock = block.map(x => String(x).trim().toUpperCase());
+
+    let homeScore = null;
+    let awayScore = null;
+    let resultStatus = "final";
+
+    // 1) Try separate numeric lines first
+    for (let j = 0; j < block.length - 1; j++) {
+      if (/^\d+$/.test(block[j]) && /^\d+$/.test(block[j + 1])) {
+        homeScore = Number(block[j]);
+        awayScore = Number(block[j + 1]);
+        break;
+      }
+    }
+
+    // 2) Fallback to combined score line like "2-3"
+    if (!Number.isInteger(homeScore) || !Number.isInteger(awayScore)) {
+      const combinedScoreLine = block.find(line => /^\d+\s*-\s*\d+$/.test(String(line).trim()));
+      if (combinedScoreLine) {
+        const m = String(combinedScoreLine).trim().match(/^(\d+)\s*-\s*(\d+)$/);
+        if (m) {
+          homeScore = Number(m[1]);
+          awayScore = Number(m[2]);
+        }
+      }
+    }
+
+    // 3) Look for bracket score like "(2-2)" — this is what we want for penalties
+    let bracketScore = null;
+    for (const line of block) {
+      const m = String(line).match(/\((\d+)\s*-\s*(\d+)\)/);
+      if (m) {
+        bracketScore = {
+          home: Number(m[1]),
+          away: Number(m[2])
+        };
+        break;
+      }
+    }
+
+    const hasPens = upperBlock.some(line =>
+      line === "PENS" ||
+      line === "PEN" ||
+      line === "AFTER PENALTIES"
+    );
+
+    const hasAet = upperBlock.some(line =>
+      line === "AET" ||
+      line === "AFTER EXTRA TIME"
+    );
+
+    // 4) If pens and we have bracket score, use bracket score as displayed result
+    if (hasPens && bracketScore) {
+      homeScore = bracketScore.home;
+      awayScore = bracketScore.away;
+      resultStatus = "pens";
+    } else if (hasAet) {
+      resultStatus = "aet";
+    } else {
+      resultStatus = "final";
+    }
+
+    if (!Number.isInteger(homeScore) || !Number.isInteger(awayScore)) continue;
 
     results.push({
       date: dt.date,
@@ -219,7 +273,7 @@ function parseResultsFromPageText(bodyText, from, to) {
       team2,
       homeScore,
       awayScore,
-      resultStatus: "final"
+      resultStatus
     });
   }
 
@@ -229,9 +283,35 @@ function parseResultsFromPageText(bodyText, from, to) {
 function dedupeResults(results) {
   const map = new Map();
 
+  function scoreResultQuality(item) {
+    let score = 0;
+
+    if (Number.isInteger(item.homeScore)) score += 1;
+    if (Number.isInteger(item.awayScore)) score += 1;
+
+    const status = String(item.resultStatus || "").toLowerCase();
+
+    if (status === "final") score += 1;
+    if (status === "aet") score += 2;
+    if (status === "pens") score += 2;
+    if (status.startsWith("pens ")) score += 5; // best: includes pen split like 0-1
+
+    return score;
+  }
+
   for (const item of results) {
     const key = `${normalizeTeamName(item.team1)}__${normalizeTeamName(item.team2)}__${item.date}`;
-    if (!map.has(key)) {
+    const existing = map.get(key);
+
+    if (!existing) {
+      map.set(key, item);
+      continue;
+    }
+
+    const existingScore = scoreResultQuality(existing);
+    const nextScore = scoreResultQuality(item);
+
+    if (nextScore > existingScore) {
       map.set(key, item);
     }
   }
@@ -277,6 +357,13 @@ async function scrapeFlashscoreResults({ url, from, to, headful }) {
     const parsedResults = parseResultsFromPageText(bodyText, from, to);
 
     console.log("SCRAPED RESULTS:", JSON.stringify(parsedResults, null, 2));
+
+    const westHamLeeds = parsedResults.find(r =>
+      normalizeTeamName(r.team1) === normalizeTeamName("West Ham") &&
+      normalizeTeamName(r.team2) === normalizeTeamName("Leeds")
+    );
+
+    console.log("WEST HAM LEEDS PARSED RESULT:", westHamLeeds || null);
 
     return parsedResults;
   } finally {
@@ -619,19 +706,38 @@ function parseFlashscoreDateTime(line, from, to) {
 }
 
 function looksLikeTeamName(value) {
-  if (!value) return false;
-  if (/^\d{2}\.\d{2}\./.test(value)) return false;
-  if (/^\d{2}:\d{2}$/.test(value)) return false;
-  if (/^\d+$/.test(value)) return false;
-  if (value === "-") return false;
-  if (/^MATCH$/i.test(value)) return false;
-  if (/^H2H$/i.test(value)) return false;
-  if (/^STANDINGS$/i.test(value)) return false;
-  if (/^LIVE$/i.test(value)) return false;
-  if (/^Advertisement$/i.test(value)) return false;
-  if (/^FT$/i.test(value)) return false;
-  if (/^AET$/i.test(value)) return false;
-  if (/^PEN$/i.test(value)) return false;
+  const v = String(value || "").trim();
+  if (!v) return false;
+
+  if (/^\d{2}\.\d{2}\./.test(v)) return false;
+  if (/^\d{2}:\d{2}$/.test(v)) return false;
+  if (/^\d+$/.test(v)) return false;
+  if (/^\d+\s*-\s*\d+$/.test(v)) return false;
+  if (/^\(\d+\s*-\s*\d+\)$/.test(v)) return false;
+
+  if (/^MATCH$/i.test(v)) return false;
+  if (/^REPORT$/i.test(v)) return false;
+  if (/^ODDS$/i.test(v)) return false;
+  if (/^H2H$/i.test(v)) return false;
+  if (/^DRAW$/i.test(v)) return false;
+  if (/^NEWS$/i.test(v)) return false;
+  if (/^VIDEO$/i.test(v)) return false;
+  if (/^SUMMARY$/i.test(v)) return false;
+  if (/^STATS$/i.test(v)) return false;
+  if (/^LINEUPS$/i.test(v)) return false;
+  if (/^PLAYER STATS$/i.test(v)) return false;
+  if (/^COMMENTARY$/i.test(v)) return false;
+  if (/^LIVE$/i.test(v)) return false;
+  if (/^FT$/i.test(v)) return false;
+  if (/^AET$/i.test(v)) return false;
+  if (/^PEN$/i.test(v)) return false;
+  if (/^PENS$/i.test(v)) return false;
+  if (/^AFTER PENALTIES$/i.test(v)) return false;
+  if (/^AFTER EXTRA TIME$/i.test(v)) return false;
+  if (/^EXTRA TIME$/i.test(v)) return false;
+  if (/^Advertisement$/i.test(v)) return false;
+  if (v === "-") return false;
+
   return true;
 }
 

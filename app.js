@@ -3562,6 +3562,16 @@ function renderFixtureMiddleBoxApp_(f) {
   `;
 }
 
+function formatResultStatusLabelApp_(status) {
+  const s = String(status || "").trim().toLowerCase();
+
+  if (!s || s === "final") return "FT";
+  if (s === "aet") return "AET";
+  if (s.startsWith("pens ")) return `PENS ${s.slice(5)}`;
+
+  return s.toUpperCase();
+}
+
 function renderFixturesTab() {
   const viewGw = gameweeks.find(g => g.id === viewingGwId);
   if (!viewGw) return;
@@ -3734,7 +3744,7 @@ function renderFixturesTab() {
             </div>
 
             <div class="fixture-datetime muted" style="text-align:center;margin-top:2px;line-height:1.1;">
-              ${hasScore ? "FT" : ""}
+              ${hasScore ? formatResultStatusLabelApp_(f.resultStatus) : ""}
             </div>
           </div>
         `;
