@@ -23,8 +23,11 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium
+      - name: Install Playwright
+        run: npm install playwright
+
+      - name: Install Playwright browser
+        run: npx playwright install chromium
 
       - name: Run auto sync
         run: node tools/auto-sync-results.js
