@@ -23,11 +23,17 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Create package.json
+        run: npm init -y
+
       - name: Install Playwright
         run: npm install playwright
 
-      - name: Install Playwright browser
+      - name: Install Chromium
         run: npx playwright install chromium
+
+      - name: Check Playwright installed
+        run: node -e "console.log(require.resolve('playwright'))"
 
       - name: Run auto sync
         run: node tools/auto-sync-results.js
