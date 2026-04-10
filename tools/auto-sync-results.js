@@ -30,10 +30,12 @@ const FILE_CONFIG = [
 ];
 
 // how long after kickoff before we try to fetch a result
-const RESULT_DELAY_MS = 2 * 60 * 60 * 1000; // 2 hours
+const RESULT_DELAY_MS = 105 * 60 * 1000;
 
 // how often the watcher runs
 const POLL_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes
+
+const MAX_FIXTURE_AGE_MS = 3 * 24 * 60 * 60 * 1000;
 
 // optional retry throttle per fixture so we do not hammer the same unresolved game every cycle
 const RETRY_AFTER_MS = 30 * 60 * 1000; // 30 minutes
@@ -186,6 +188,8 @@ async function getDueFixturesForFile(file, state) {
 
     const kickoffMs = getKickoffMs(match);
     if (!Number.isFinite(kickoffMs)) continue;
+
+    if ((now - kickoffMs) > MAX_FIXTURE_AGE_MS) continue;
 
     const resultCheckDueMs = kickoffMs + RESULT_DELAY_MS;
     if (now < resultCheckDueMs) continue;
