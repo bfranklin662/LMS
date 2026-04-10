@@ -1196,10 +1196,10 @@
       "date": "2026-04-10",
       "team1": "Colchester",
       "team2": "Swindon Town",
-      "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "18:45",
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",
