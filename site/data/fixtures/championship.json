@@ -1106,10 +1106,10 @@
       "date": "2026-04-10",
       "team1": "West Brom",
       "team2": "Millwall",
-      "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "19:00",
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",
