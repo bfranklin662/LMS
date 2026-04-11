@@ -796,10 +796,10 @@
       "date": "2026-04-11",
       "team1": "Arsenal",
       "team2": "Bournemouth",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",

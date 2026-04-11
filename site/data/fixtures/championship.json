@@ -1116,20 +1116,20 @@
       "date": "2026-04-11",
       "team1": "Coventry",
       "team2": "Sheffield Wed",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",
       "date": "2026-04-11",
       "team1": "Norwich City",
       "team2": "Ipswich Town",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",
@@ -1176,10 +1176,10 @@
       "date": "2026-04-11",
       "team1": "QPR",
       "team2": "Bristol City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",
