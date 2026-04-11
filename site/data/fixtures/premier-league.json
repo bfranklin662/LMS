@@ -826,10 +826,10 @@
       "date": "2026-04-11",
       "team1": "Liverpool",
       "team2": "Fulham",
-      "time": "17:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "16:30",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",
