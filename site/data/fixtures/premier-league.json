@@ -865,11 +865,11 @@
       "gwId": "GW12",
       "date": "2026-04-12",
       "team1": "Chelsea",
-      "team2": "Man City",
-      "time": "16:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "team2": "Manchester City",
+      "time": "15:30",
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW12",
