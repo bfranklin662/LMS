@@ -1216,10 +1216,10 @@
       "date": "2026-04-12",
       "team1": "Birmingham",
       "team2": "Wrexham",
-      "time": "12:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:00",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
