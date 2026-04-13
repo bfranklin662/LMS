@@ -76,6 +76,6 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          git add site/data/fixtures/*.json
+          git add site/data/fixtures/*.json site/data/automation-status.json
           git commit -m "Auto-sync fixture results"
           git push

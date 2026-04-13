@@ -2851,41 +2851,17 @@ async function refreshSubmissionsIncremental({ full = false } = {}) {
       subsContainer.innerHTML = `<div class="muted">Loading submissions…</div>`;
     }
 
-    const gwIds = await loadGwListFromDeadlines();
-    if (!gwIds.length) {
-      subsContainer.innerHTML = `<div class="muted">No gameweeks found.</div>`;
-      if (subsMeta) subsMeta.textContent = "No gameweeks found.";
-      if (subsPendingCount) subsPendingCount.textContent = `(0)`;
-      if (subsResolvedCount) subsResolvedCount.textContent = `(0)`;
-      return;
-    }
-
-    let allRows = [];
-
-    await mapWithConcurrency(gwIds, 4, async (gwId) => {
-      const data = await api({
-        action: "adminGetGwPicks",
-        adminKey,
-        gameId: selectedGameId,
-        gwId
-      });
-
-      const rows = Array.isArray(data.rows) ? data.rows : [];
-      allRows.push(...rows.map(r => ({
-        ...r,
-        gameId: selectedGameId,
-        gwId: String(r.gwId || gwId).toUpperCase()
-      })));
+    const data = await api({
+      action: "adminGetAllPicks",
+      adminKey,
+      gameId: selectedGameId
     });
 
-    const deduped = new Map();
-
-    allRows.forEach(r => {
-      const key = `${String(r.email || "").trim().toLowerCase()}::${String(r.gwId || "").trim().toUpperCase()}`;
-      if (!deduped.has(key)) deduped.set(key, r);
-    });
-
-    allRows = Array.from(deduped.values());
+    let allRows = (Array.isArray(data.rows) ? data.rows : []).map(r => ({
+      ...r,
+      gameId: selectedGameId,
+      gwId: String(r.gwId || "").trim().toUpperCase()
+    }));
 
     const enriched = allRows.map(row => {
       const fixture = findFixtureForPick_(row.gwId, row.pick);
