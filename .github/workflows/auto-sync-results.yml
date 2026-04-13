@@ -38,10 +38,10 @@ jobs:
       - name: Run auto sync
         run: node tools/auto-sync-results.js
 
-      - name: Dry run auto resolve picks
+      - name: Run auto resolve picks
         env:
           FIXTURE_ADMIN_KEY: ${{ secrets.FIXTURE_ADMIN_KEY }}
-        run: node tools/auto-resolve-picks.js
+        run: node tools/auto-resolve-picks.js --apply
 
       - name: Commit changes if needed
         run: |
