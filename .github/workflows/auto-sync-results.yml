@@ -54,6 +54,18 @@ jobs:
         env:
           LMS_ADMIN_KEY: ${{ secrets.LMS_ADMIN_KEY }}
 
+      - name: Update automation status file
+        run: |
+          NOW=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat > site/data/automation-status.json <<EOF
+          {
+            "lastRunIso": "$NOW",
+            "lastSyncIso": "$NOW",
+            "lastResolveIso": "$NOW",
+            "status": "ok"
+          }
+          EOF
+
       - name: Commit changes if needed
         run: |
           if git diff --quiet; then

@@ -6,6 +6,7 @@ const FIXTURE_SYNC_API_URL =
     ? "http://localhost:3001"
     : "";
 const LS_ADMIN_KEY = "lms_admin_key";
+const AUTOMATION_STATUS_URL = "../site/data/automation-status.json";
 
 
 /*******************************
@@ -199,6 +200,9 @@ const fixtureFirstDeadlineText = document.getElementById("fixtureFirstDeadlineTe
 const fixtureLateDeadlineText = document.getElementById("fixtureLateDeadlineText");
 
 const updateResultsBtn = document.getElementById("updateResultsBtn");
+
+const automationStatusBody = document.getElementById("automationStatusBody");
+
 
 let TEAM_NAME_MAP_ROWS = [];
 let TEAM_NAME_MAP_BY_ANY = new Map();
@@ -546,6 +550,60 @@ function stopFixtureScanLoading_(finalLines = []) {
   }
 }
 
+async function loadAutomationStatus_() {
+  const res = await fetch(`${AUTOMATION_STATUS_URL}?ts=${Date.now()}`, { cache: "no-store" });
+  if (!res.ok) throw new Error("Failed to load automation status");
+  return res.json();
+}
+
+function formatAutomationIso_(iso) {
+  if (!iso) return "—";
+
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(d);
+}
+
+async function renderAutomationStatus_() {
+  if (!automationStatusBody) return;
+
+  automationStatusBody.textContent = "Loading automation status…";
+
+  try {
+    const data = await loadAutomationStatus_();
+
+    const status = String(data.status || "unknown").toLowerCase();
+    const statusLabel =
+      status === "ok" ? "✅ Running" :
+        status === "error" ? "❌ Error" :
+          "⚪ Unknown";
+
+    automationStatusBody.innerHTML = `
+      <div style="line-height:1.7;">
+        <div><strong>Automation:</strong> ${escapeHtml(statusLabel)}</div>
+        <div><strong>Last run:</strong> ${escapeHtml(formatAutomationIso_(data.lastRunIso))}</div>
+        <div><strong>Last result sync:</strong> ${escapeHtml(formatAutomationIso_(data.lastSyncIso))}</div>
+        <div><strong>Last pick resolve:</strong> ${escapeHtml(formatAutomationIso_(data.lastResolveIso))}</div>
+      </div>
+    `;
+  } catch (err) {
+    automationStatusBody.innerHTML = `
+      <div style="line-height:1.7;">
+        <div><strong>Automation:</strong> ⚠️ Unavailable</div>
+        <div class="muted">Could not load automation status file.</div>
+      </div>
+    `;
+  }
+}
+
 /*******************************
  * Tabs
  *******************************/
@@ -771,8 +829,8 @@ function updateCommitVisibility_() {
     adminFixtureSelectedGw === "ALL"
       ? null
       : (adminFixtureGameweeks || []).find(
-          gw => String(gw.gwId) === String(adminFixtureSelectedGw)
-        ) || null;
+        gw => String(gw.gwId) === String(adminFixtureSelectedGw)
+      ) || null;
 
   const gw = selectedGwObj || (adminFixtureGameweeks || [])[0];
 
@@ -1311,7 +1369,10 @@ async function setTab(name) {
   if (name === "submissions") {
     try {
       submissionsLoadedOnce = true;
-      await refreshSubmissionsIncremental({ full: true });
+      await Promise.all([
+        refreshSubmissionsIncremental({ full: true }),
+        renderAutomationStatus_()
+      ]);
     } catch (e) {
       showMsg(String(e.message || e), false);
     }
@@ -2420,17 +2481,6 @@ async function commitFixtureSync() {
   }
 }
 
-async function setPickOutcomeDirect_(row, newOutcome) {
-  return api({
-    action: "adminSetPickOutcome",
-    adminKey,
-    email: row.email,
-    gameId: selectedGameId,
-    gwId: row.gwId,
-    outcome: newOutcome
-  });
-}
-
 function applyResolvedStateToRow_(targetRow, newOutcome) {
   const key = makeSubKey(targetRow, targetRow.gwId);
   const cached = seenSubs.get(key);
@@ -2535,10 +2585,12 @@ function renderSubmissionRow(row) {
 
   let fixtureLine = "Fixture not found";
   let dateTimeLine = "";
+  let resultLine = "";
 
   if (fixture) {
     const isHome = normTeamKey_(fixture.home) === normTeamKey_(row.pick);
     const opponent = isHome ? fixture.away : fixture.home;
+    resultLine = formatFixtureResultDisplay_(fixture);
 
     fixtureLine = `vs ${opponent}`;
 
@@ -2592,6 +2644,12 @@ function renderSubmissionRow(row) {
         <span class="admin-submission-fixture">${escapeHtml(fixtureLine)}</span>
         <span class="admin-submission-time">${escapeHtml(dateTimeLine)}</span>
       </div>
+
+      ${resultLine ? `
+        <div class="admin-submission-fixtureline" style="margin-top:4px;">
+          <span style="font-weight:800;">${escapeHtml(resultLine)}</span>
+        </div>
+      ` : ""}
     </div>
   `;
 
@@ -2655,7 +2713,6 @@ function renderPendingFixtureBlock_(rows) {
 
   let opponent = "Opponent unknown";
   let dateTimeLine = "";
-  let canResolve = false;
   let resultLine = "";
 
   if (fixture) {
@@ -2681,13 +2738,7 @@ function renderPendingFixtureBlock_(rows) {
 
     dateTimeLine = `${datePart} ${timePart}`;
     resultLine = formatFixtureResultDisplay_(fixture);
-    
-    canResolve =
-      !!fixture.kickoff && Date.now() >= fixture.kickoff.getTime();
   }
-
-  const winBtnClass = canResolve ? "btn btn-ghost" : "btn btn-ghost is-disabled";
-  const lossBtnClass = canResolve ? "btn btn-primary" : "btn btn-primary is-disabled";
 
   wrap.innerHTML = `
     <div class="admin-fixture-resolve-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
@@ -2707,25 +2758,27 @@ function renderPendingFixtureBlock_(rows) {
 
         <div class="muted" style="margin-top:6px;">
           vs ${escapeHtml(opponent)}
-        </div>
+        </div> 
       </div>
 
-      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:12px;flex:0 0 auto;">
-        <div class="admin-submission-actions">
-          <button class="${winBtnClass}" data-fixture-o="WIN" type="button" ${canResolve ? "" : "disabled aria-disabled='true'"}>Won</button>
-          <button class="${lossBtnClass}" data-fixture-o="LOSS" type="button" ${canResolve ? "" : "disabled aria-disabled='true'"}>Lost</button>
-        </div>
-
+      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:8px;flex:0 0 auto;">
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-            <div class="muted small" style="white-space:nowrap;">
-              ${escapeHtml(dateTimeLine)}
-            </div>
-            ${resultLine ? `
-              <div style="font-weight:800;white-space:nowrap;">
-                ${escapeHtml(resultLine)}
-              </div>
-            ` : ""}
+          <div class="muted small" style="white-space:nowrap;">
+            ${escapeHtml(dateTimeLine)}
           </div>
+          ${resultLine ? `
+            <div style="font-weight:800;white-space:nowrap;">
+              ${escapeHtml(resultLine)}
+            </div>
+          ` : `
+            <div class="muted small" style="white-space:nowrap;">
+              Awaiting final score
+            </div>
+          `}
+          <div class="muted small" style="white-space:nowrap;">
+            ${resultLine ? "Waiting for auto-resolve" : "Not ready yet"}
+          </div>
+        </div>
       </div>
 
     </div>
@@ -2760,71 +2813,6 @@ function renderPendingFixtureBlock_(rows) {
   });
 
   wrap.appendChild(playersList);
-
-  const fixtureButtons = wrap.querySelectorAll("button[data-fixture-o]");
-  fixtureButtons.forEach(btn => {
-    btn.addEventListener("click", async () => {
-      const outcome = btn.getAttribute("data-fixture-o");
-      const clickedBtn = btn;
-
-      if (!canResolve) return;
-
-      const matchRows = rows.filter(r => !isResolved(r.outcome));
-      if (!matchRows.length) return;
-
-      fixtureButtons.forEach(b => {
-        b.disabled = true;
-        if (b === clickedBtn) setBtnLoading(b, true);
-      });
-
-      try {
-        await Promise.all(matchRows.map(r => api({
-          action: "adminSetPickOutcome",
-          adminKey,
-          email: r.email,
-          gameId: selectedGameId,
-          gwId: r.gwId,
-          outcome
-        })));
-
-        const resolvedList = ensureResolvedList_();
-
-        for (const r of matchRows) {
-          const key = makeSubKey(r, r.gwId);
-          const cached = seenSubs.get(key);
-          if (!cached) continue;
-
-          cached.outcome = outcome;
-          cached.isResolved = true;
-          cached.rowData.outcome = outcome;
-
-          const rendered = renderSubmissionRow({
-            ...r,
-            outcome
-          });
-
-          cached.el.replaceWith(rendered.el);
-          cached.el = rendered.el;
-
-          if (resolvedList) resolvedList.prepend(rendered.el);
-
-          seenSubs.set(key, cached);
-        }
-
-        wrap.remove();
-        removeEmptyPendingGroups_();
-        updateSubmissionSummaryCounts_();
-        showMsg(`${matchRows.length} ${pickedTeam} picks marked ${outcome}`, true);
-      } catch (e) {
-        showMsg(String(e.message || e), false);
-      } finally {
-        fixtureButtons.forEach(b => {
-          b.disabled = false;
-          if (b === clickedBtn) setBtnLoading(b, false);
-        });
-      }
-    });
-  });
 
   return wrap;
 }
