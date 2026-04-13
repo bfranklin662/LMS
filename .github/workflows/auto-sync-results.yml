@@ -39,9 +39,9 @@ jobs:
         run: node tools/auto-sync-results.js
 
       - name: Run auto resolve picks
-        env:
-          FIXTURE_ADMIN_KEY: ${{ secrets.FIXTURE_ADMIN_KEY }}
         run: node tools/auto-resolve-picks.js --apply
+        env:
+          LMS_ADMIN_KEY: ${{ secrets.LMS_ADMIN_KEY }}
 
       - name: Commit changes if needed
         run: |
