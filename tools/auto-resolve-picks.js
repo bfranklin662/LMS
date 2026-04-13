@@ -202,7 +202,7 @@ async function applyOutcome(row, gameId, outcome) {
   });
 }
 
-async function processGame(game, fixturesByGw, gwIds) {
+async function processGame(game, fixturesByGw) {
   const gameId = String(game.id || "").trim();
   const gameTitle = String(game.title || gameId).trim();
 
@@ -214,18 +214,36 @@ async function processGame(game, fixturesByGw, gwIds) {
 
   log(`[${gameTitle}] starting`);
 
-  for (const displayGwId of gwIds) {
-    let rows = [];
+  // only check display GWs that actually have unresolved picks
+  const unresolvedRowsByGw = new Map();
 
-    try {
-      rows = await getPendingRowsForGameAndGw(gameId, displayGwId);
-    } catch (err) {
-      log(`[${gameTitle}] ${displayGwId} fetch failed: ${err.message || err}`);
-      continue;
+  try {
+    const data = await api({
+      action: "adminGetAllPicks",
+      adminKey: ADMIN_KEY,
+      gameId,
+    });
+
+    const rows = Array.isArray(data.rows) ? data.rows : [];
+
+    for (const row of rows) {
+      if (isResolvedOutcome(row.outcome)) continue;
+
+      const displayGwId = String(row.gwId || "").trim().toUpperCase();
+      if (!displayGwId) continue;
+
+      if (!unresolvedRowsByGw.has(displayGwId)) {
+        unresolvedRowsByGw.set(displayGwId, []);
+      }
+
+      unresolvedRowsByGw.get(displayGwId).push(row);
     }
+  } catch (err) {
+    log(`[${gameTitle}] failed to load picks: ${err.message || err}`);
+    return { checked: 0, resolved: 0, skipped: 0 };
+  }
 
-    if (!rows.length) continue;
-
+  for (const [displayGwId, rows] of unresolvedRowsByGw.entries()) {
     const actualGwId = getActualGwIdForGame(displayGwId, game);
 
     for (const row of rows) {
@@ -292,10 +310,9 @@ async function main() {
 
   log(`auto-resolve-picks started (${APPLY ? "apply" : "dry-run"})`);
 
-  const [games, allFixtures, gwIds] = await Promise.all([
+  const [games, allFixtures] = await Promise.all([
     loadGames(),
     loadAllFixtures(),
-    loadGwIds(),
   ]);
 
   const fixturesByGw = buildFixtureIndex(allFixtures);
@@ -305,7 +322,7 @@ async function main() {
   let totalSkipped = 0;
 
   for (const game of games) {
-    const summary = await processGame(game, fixturesByGw, gwIds);
+    const summary = await processGame(game, fixturesByGw);
     totalChecked += summary.checked;
     totalResolved += summary.resolved;
     totalSkipped += summary.skipped;
