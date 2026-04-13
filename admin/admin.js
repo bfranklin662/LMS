@@ -1727,7 +1727,29 @@ function normalizeFixture(raw, leagueName) {
     kickoff,
     home: String(home),
     away: String(away),
+    homeScore: Number.isInteger(raw.homeScore) ? raw.homeScore : null,
+    awayScore: Number.isInteger(raw.awayScore) ? raw.awayScore : null,
+    resultStatus: String(raw.resultStatus || "pending").trim().toLowerCase()
   };
+}
+
+function formatFixtureResultDisplay_(fixture) {
+  if (!fixture) return "";
+
+  const hasScore =
+    Number.isInteger(fixture.homeScore) &&
+    Number.isInteger(fixture.awayScore);
+
+  if (!hasScore) return "";
+
+  let suffix = "";
+  if (fixture.resultStatus === "aet") suffix = " AET";
+  else if (fixture.resultStatus === "pens") suffix = " PENS";
+  else if (String(fixture.resultStatus || "").startsWith("pens ")) {
+    suffix = ` PENS ${String(fixture.resultStatus).slice(5)}`;
+  }
+
+  return `${fixture.homeScore}-${fixture.awayScore}${suffix}`;
 }
 
 async function loadAdminFixtures_() {
@@ -2634,6 +2656,7 @@ function renderPendingFixtureBlock_(rows) {
   let opponent = "Opponent unknown";
   let dateTimeLine = "";
   let canResolve = false;
+  let resultLine = "";
 
   if (fixture) {
     const isHomePick = normTeamKey_(fixture.home) === pickedTeamKey;
@@ -2657,6 +2680,8 @@ function renderPendingFixtureBlock_(rows) {
     }).format(fixture.kickoff);
 
     dateTimeLine = `${datePart} ${timePart}`;
+    resultLine = formatFixtureResultDisplay_(fixture);
+    
     canResolve =
       !!fixture.kickoff && Date.now() >= fixture.kickoff.getTime();
   }
@@ -2691,9 +2716,16 @@ function renderPendingFixtureBlock_(rows) {
           <button class="${lossBtnClass}" data-fixture-o="LOSS" type="button" ${canResolve ? "" : "disabled aria-disabled='true'"}>Lost</button>
         </div>
 
-        <div class="muted small" style="white-space:nowrap;">
-          ${escapeHtml(dateTimeLine)}
-        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <div class="muted small" style="white-space:nowrap;">
+              ${escapeHtml(dateTimeLine)}
+            </div>
+            ${resultLine ? `
+              <div style="font-weight:800;white-space:nowrap;">
+                ${escapeHtml(resultLine)}
+              </div>
+            ` : ""}
+          </div>
       </div>
 
     </div>
