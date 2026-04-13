@@ -590,8 +590,6 @@ async function renderAutomationStatus_() {
       <div style="line-height:1.7;">
         <div><strong>Automation:</strong> ${escapeHtml(statusLabel)}</div>
         <div><strong>Last run:</strong> ${escapeHtml(formatAutomationIso_(data.lastRunIso))}</div>
-        <div><strong>Last result sync:</strong> ${escapeHtml(formatAutomationIso_(data.lastSyncIso))}</div>
-        <div><strong>Last pick resolve:</strong> ${escapeHtml(formatAutomationIso_(data.lastResolveIso))}</div>
       </div>
     `;
   } catch (err) {
