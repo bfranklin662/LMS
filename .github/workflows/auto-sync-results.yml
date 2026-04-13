@@ -38,6 +38,17 @@ jobs:
       - name: Run auto sync
         run: node tools/auto-sync-results.js
 
+      - name: Check admin secret exists
+        run: |
+          if [ -z "$LMS_ADMIN_KEY" ]; then
+            echo "LMS_ADMIN_KEY is missing"
+            exit 1
+          else
+            echo "LMS_ADMIN_KEY is present"
+          fi
+        env:
+          LMS_ADMIN_KEY: ${{ secrets.LMS_ADMIN_KEY }}
+
       - name: Run auto resolve picks
         run: node tools/auto-resolve-picks.js --apply
         env:
