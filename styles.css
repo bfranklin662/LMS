@@ -2727,9 +2727,9 @@ input[type="checkbox"]:focus-visible {
 .game-hero-badge {
   display: inline-flex;
   align-items: center;
-  padding: 5px 10px;
+  padding: 5px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -2891,8 +2891,8 @@ input[type="checkbox"]:focus-visible {
   transform: translateX(-50%) scale(0.9);
   background: #111;
   color: #fff;
-  font-size: 11px;
-  padding: 4px 8px;
+  font-size: 10px;
+  padding: 3px 7px;
   border-radius: 6px;
   white-space: nowrap;
   opacity: 0;
@@ -3678,17 +3678,17 @@ button:disabled {
   text-align: center;
   font-weight: 700;       /* less bold */
   letter-spacing: 1.8px;
-  font-size: 18px;
+  font-size: 16px;
   text-transform: uppercase;
   color: #ffffff;
-  margin: 8px 0 12px;
+  margin: 3px 0 15px;
   position: relative;
 }
 
 .lobby-title::after {
   content: "";
   display: block;
-  margin: 10px auto 0;
+  margin: 5px auto 0;
   width: 200px;           /* longer line */
   height: 1px;            /* thinner line */
   background: linear-gradient(
@@ -4206,4 +4206,112 @@ button:disabled {
   align-items: center;
   justify-content: flex-end;
   flex: 0 0 auto;
+}
+
+.the-run-in-banner-img {
+  object-fit: cover;
+  object-position: center 30%;
+}
+
+.winner-photo-btn {
+  margin-left: 8px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+  opacity: 0.9;
+}
+
+.winner-photo-btn:hover {
+  opacity: 1;
+}
+
+.winner-photo-btn__icon {
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+.game-hero-bio {
+  font-size: 13px;
+  color: #b8b8b8;
+  margin-top: 4px;
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.lobby-bottom-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.lobby-bottom-top .game-hero-player-name {
+  min-width: 0;
+}
+
+.lobby-game-bio {
+  font-size: 13px;
+  line-height: 1.4;
+  color: rgba(255,255,255,0.78);
+}
+
+.game-banner--finished .game-hero-banner-img {
+  filter: grayscale(100%) brightness(0.7);
+  opacity: 0.9;
+}
+
+.game-banner--finished::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.25), rgba(0,0,0,0.15));
+  pointer-events: none;
+}
+
+
+
+.game-hero-banner {
+  position: relative;
+  overflow: hidden;
+}
+
+.game-new-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 20;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-width: 42px;
+  height: 22px;
+  padding: 0 10px;
+
+  border-radius: 999px;
+  background: linear-gradient(180deg, #0b5a3c 0%, #08452e 100%);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  line-height: 1;
+  text-transform: uppercase;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+.game-hero-banner-img {
+  image-rendering: -webkit-optimize-contrast;
 }

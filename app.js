@@ -164,6 +164,8 @@ const entriesPanel = document.getElementById("panel-entries");
 
 const panelSelection = document.getElementById("panel-selection");
 
+const rolloverBadgeEl = document.getElementById("gameTitleRolloverBadge");
+
 
 function setTab2(name) {
   activeTab2 = name;
@@ -824,6 +826,82 @@ function stopLobbyPolling_() {
   }
 }
 
+function parsePrizeInfo_(rawValue) {
+  const raw = String(rawValue ?? "").trim();
+
+  if (!raw) {
+    return {
+      raw,
+      amount: 0,
+      isRollover: false,
+      hasPrize: false,
+      displayAmount: "",
+      badgeText: "",
+      tooltipText: ""
+    };
+  }
+
+  const cleaned = raw.replace(/£/g, "").trim();
+  const isRollover = cleaned.endsWith("+");
+  const numericPart = isRollover ? cleaned.slice(0, -1).trim() : cleaned;
+  const amount = Number(numericPart);
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return {
+      raw,
+      amount: 0,
+      isRollover: false,
+      hasPrize: false,
+      displayAmount: "",
+      badgeText: "",
+      tooltipText: ""
+    };
+  }
+
+  return {
+    raw,
+    amount,
+    isRollover,
+    hasPrize: true,
+    displayAmount: `£${amount}`,
+    badgeText: isRollover ? `£${amount} rollover` : `£${amount}`,
+    tooltipText: isRollover ? "Rollover prize" : "1st prize"
+  };
+}
+
+function getRolloverPillHtml_(game) {
+  const prizeInfo = parsePrizeInfo_(game?.prize);
+
+  if (!prizeInfo.isRollover) return "";
+
+  return `
+    <span class="hero-pill-tooltip" data-tooltip="${escapeAttr(prizeInfo.tooltipText)}">
+      <span class="pill-emoji">💰</span> ${escapeHtml(prizeInfo.badgeText)}
+    </span>
+  `;
+}
+
+function getPrizePillHtml_(game) {
+  const prizeInfo = parsePrizeInfo_(game?.prize);
+
+  if (!prizeInfo.hasPrize || prizeInfo.isRollover) return "";
+
+  return `
+    <span class="hero-pill-tooltip" data-tooltip="${escapeAttr(prizeInfo.tooltipText)}">
+      <span class="pill-emoji">💰</span> ${escapeHtml(prizeInfo.displayAmount)}
+    </span>
+  `;
+}
+
+function getGameEndGwNum_(game = getActiveGame_()) {
+  const raw = String(
+    game?.endGw || game?.finishedGw || game?.lastGw || ""
+  ).trim().toUpperCase();
+
+  const n = gwNumFromId(raw);
+  return Number.isFinite(n) ? n : null;
+}
+
 function openInfoModalForGame_(gameId) {
   const modal = document.getElementById("infoModal");
   if (!modal) return;
@@ -881,7 +959,8 @@ function convertFixtureGwToGameGw_(fixtureGwId, game) {
 
 const GAME_BANNERS = {
   "jan_2026_lms": "site/images/game-banners/jan_2026_lms.png",
-  "spring_2026_lms": "site/images/game-banners/spring_2026_lms.png"
+  "spring_2026_lms": "site/images/game-banners/spring_2026_lms.png",
+  "the_run_in": "site/images/game-banners/the_run_in.png"
 };
 
 function getGameBannerUrl_(gameId) {
@@ -1705,6 +1784,70 @@ function getGameBannerStatusText_(game, entry) {
   return "Registration open";
 }
 
+function slugifyGameTitle_(title) {
+  return String(title || "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function slugifyPersonNameForFile_(name) {
+  return String(name || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function getWinnerImageUrl_(gameId) {
+  const id = String(gameId || "").trim();
+  if (!id) return "";
+  return `site/images/winners/${id}.jpg`;
+}
+
+function getPrizeDisplayText_(game) {
+  const prizeInfo = parsePrizeInfo_(game?.prize);
+
+  if (!prizeInfo.hasPrize) return "—";
+  return prizeInfo.isRollover ? prizeInfo.badgeText : prizeInfo.displayAmount;
+}
+
+function escapeJsString_(str) {
+  return String(str || "")
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "");
+}
+
+function openWinnerPhotoModal_(gameTitle, winnerName, prizeText, imageUrl) {
+  showSystemModal_(
+    gameTitle,
+    `
+      <div style="line-height:1.5;">
+        <div style="margin-bottom:6px;">
+          <strong>Winner:</strong> ${escapeHtml(winnerName)}
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <strong>Prize:</strong> ${escapeHtml(prizeText)}
+        </div>
+
+        <div style="border-radius:16px;overflow:hidden;background:#111;">
+          <img
+            src="${escapeAttr(imageUrl)}"
+            alt="${escapeAttr(winnerName)} winner image"
+            style="display:block;width:100%;height:auto;"
+            onerror="this.style.display='none'; this.insertAdjacentHTML('afterend','<div class=&quot;muted&quot; style=&quot;padding:16px;&quot;>Winner image not found.</div>');"
+          />
+        </div>
+      </div>
+    `,
+    { showActions: false }
+  );
+}
+
 function getGameBannerStatusClass_(game, entry) {
   const text = getGameBannerStatusText_(game, entry);
 
@@ -1782,8 +1925,9 @@ function renderGameTitleBox_() {
   const statusPillEl = document.getElementById("gameTitleStatusPill");
   const playersBadgeEl = document.getElementById("gameTitlePlayersBadge");
   const prizeBadgeEl = document.getElementById("gameTitlePrizeBadge");
+  const rolloverBadgeEl = document.getElementById("gameTitleRolloverBadge");
 
-  if (!playerNameEl || !metaEl || !statusPillEl || !playersBadgeEl || !prizeBadgeEl) return;
+  if (!playerNameEl || !metaEl || !statusPillEl || !playersBadgeEl || !prizeBadgeEl || !rolloverBadgeEl) return;
 
   if (!game) {
     playerNameEl.innerHTML = dotsHtml_();
@@ -1796,9 +1940,9 @@ function renderGameTitleBox_() {
 
   const gameId = String(game.id || "").trim();
   const title = String(game.title || gameId || "Competition");
+  const bio = String(game.bio || "").trim();
   const status = String(game.status || "OPEN").toUpperCase();
-  const prize = Number(game.prize || 0);
-  const hasPrize = Number.isFinite(prize) && prize > 0;
+  const prizeInfo = parsePrizeInfo_(game?.prize);
   const entryFee = Number(game.entryFee || 0);
   const winner = String(game.winner || "").trim();
 
@@ -1809,10 +1953,23 @@ function renderGameTitleBox_() {
     : (firstGw?.deadline ? firstGw.deadline.toISOString() : "");
   const showCountdown = status === "OPEN" && !!deadlineIso;
 
+  const bannerWrap = document.querySelector("#gameTitleBox .game-hero-banner");
   const bannerImg = document.querySelector("#gameTitleBox .game-hero-banner-img");
+
+  const bannerSlug = slugifyGameTitle_(title);
+
+  if (bannerWrap) {
+    bannerWrap.className = "game-hero-banner";
+    bannerWrap.classList.add(`${bannerSlug}-banner`);
+  }
+
   if (bannerImg) {
     bannerImg.src = getGameBannerUrl_(gameId);
     bannerImg.alt = `${title} banner`;
+
+    bannerImg.className = "game-hero-banner-img";
+    bannerImg.classList.add(`${bannerSlug}-banner-img`);
+
     bannerImg.onerror = function () {
       this.onerror = null;
       this.src = "site/images/game-banners/default.png";
@@ -1841,21 +1998,38 @@ function renderGameTitleBox_() {
 
   if (status === "OPEN") {
     prizeBadgeEl.innerHTML = `
-      <span class="hero-pill-tooltip" data-tooltip="Entry fee">
-        <span class="pill-emoji">🎟️</span> £${entryFee}
-      </span>
-    `;
+    <span class="hero-pill-tooltip" data-tooltip="Entry fee">
+      <span class="pill-emoji">🎟️</span> £${entryFee}
+    </span>
+  `;
     prizeBadgeEl.classList.remove("hidden");
-  } else if (hasPrize) {
-    prizeBadgeEl.innerHTML = `
-      <span class="hero-pill-tooltip" data-tooltip="1st prize">
-        <span class="pill-emoji">💰</span> £${prize}
-      </span>
-    `;
-    prizeBadgeEl.classList.remove("hidden");
+
+    if (prizeInfo.isRollover) {
+      rolloverBadgeEl.innerHTML = getRolloverPillHtml_(game);
+      rolloverBadgeEl.classList.remove("hidden");
+    } else {
+      rolloverBadgeEl.innerHTML = "";
+      rolloverBadgeEl.classList.add("hidden");
+    }
+  } else if (prizeInfo.hasPrize) {
+    prizeBadgeEl.innerHTML = prizeInfo.isRollover
+      ? ""
+      : getPrizePillHtml_(game);
+
+    if (prizeInfo.isRollover) {
+      rolloverBadgeEl.innerHTML = getRolloverPillHtml_(game);
+      rolloverBadgeEl.classList.remove("hidden");
+      prizeBadgeEl.classList.add("hidden");
+    } else {
+      prizeBadgeEl.classList.remove("hidden");
+      rolloverBadgeEl.innerHTML = "";
+      rolloverBadgeEl.classList.add("hidden");
+    }
   } else {
     prizeBadgeEl.innerHTML = "";
     prizeBadgeEl.classList.add("hidden");
+    rolloverBadgeEl.innerHTML = "";
+    rolloverBadgeEl.classList.add("hidden");
   }
 
   const statusText = !entry
@@ -1898,24 +2072,28 @@ function renderGameTitleBox_() {
     const showGwReportBtn = hasCurrentGwPick_();
 
     metaEl.innerHTML = `
-      <div class="lobby-status-actions-row" style="margin-top:12px;">
-        ${entry ? `
-          <div class="lobby-meta-line" style="margin:0;">
-            <span class="lobby-meta-key">Your status:</span>
-            <span class="player-status-pill ${playerUi.pillClass}">
-              <span>${playerUi.text}</span>
-              <span class="state ${playerUi.stateClass}">${playerUi.icon}</span>
-            </span>
-          </div>
-        ` : `<div></div>`}
+    ${bio ? `
+      <div class="game-hero-bio">${escapeHtml(bio)}</div>
+    ` : ``}
 
-        <div class="lobby-card-actions" style="margin:0;">
-          ${!entry || entry.approved ? `` : `
-            <button id="gameTitlePayBtn" class="btn btn-primary" type="button">Payment details</button>
-          `}
+    <div class="lobby-status-actions-row" style="margin-top:12px;">
+      ${entry ? `
+        <div class="lobby-meta-line" style="margin:0;">
+          <span class="lobby-meta-key">Your status:</span>
+          <span class="player-status-pill ${playerUi.pillClass}">
+            <span>${playerUi.text}</span>
+            <span class="state ${playerUi.stateClass}">${playerUi.icon}</span>
+          </span>
         </div>
+      ` : `<div></div>`}
+
+      <div class="lobby-card-actions" style="margin:0;">
+        ${!entry || entry.approved ? `` : `
+          <button id="gameTitlePayBtn" class="btn btn-primary" type="button">Payment details</button>
+        `}
       </div>
-    `;
+    </div>
+  `;
 
     document.getElementById("gameTitlePayBtn")?.addEventListener("click", () => {
       showPaymentDetailsModal_();
@@ -1929,18 +2107,22 @@ function renderGameTitleBox_() {
     const showGwReportBtn = hasCurrentGwPick_();
 
     metaEl.innerHTML = `
-      <div class="lobby-status-actions-row" style="margin-top:12px;">
-        ${entry ? `
-          <div class="lobby-meta-line" style="margin:0;">
-            <span class="lobby-meta-key">Your status:</span>
-            <span class="player-status-pill ${playerUi.pillClass}">
-              <span>${playerUi.text}</span>
-              <span class="state ${playerUi.stateClass}">${playerUi.icon}</span>
-            </span>
-          </div>
-        ` : `<div></div>`}
-      </div>
-    `;
+    ${bio ? `
+      <div class="game-hero-bio">${escapeHtml(bio)}</div>
+    ` : ``}
+
+    <div class="lobby-status-actions-row" style="margin-top:12px;">
+      ${entry ? `
+        <div class="lobby-meta-line" style="margin:0;">
+          <span class="lobby-meta-key">Your status:</span>
+          <span class="player-status-pill ${playerUi.pillClass}">
+            <span>${playerUi.text}</span>
+            <span class="state ${playerUi.stateClass}">${playerUi.icon}</span>
+          </span>
+        </div>
+      ` : `<div></div>`}
+    </div>
+  `;
 
     return;
   }
@@ -2582,11 +2764,19 @@ async function refreshRemainingPlayersCount() {
 }
 
 
-function payInstructionsHtml_(entryFee = 10) {
+function payInstructionsHtml_(entryFee = 10, game = null) {
+  const prizeInfo = parsePrizeInfo_(game?.prize);
+
   return `
     <div class="pay-modal">
       <div class="pay-card">
         <div><strong>Entry fee:</strong> £${entryFee}</div>
+
+        ${prizeInfo.isRollover ? `
+          <div style="margin-top:8px;">
+            <strong>Rollover:</strong> ${escapeHtml(prizeInfo.badgeText)}
+          </div>
+        ` : ""}
 
         <div class="pay-details" style="margin-top:8px;line-height:1.5;">
           <strong>Bank transfer details:</strong><br>
@@ -2852,9 +3042,12 @@ function setIconBtnBusyText_(btn, busy, busyText = "…") {
 
 
 function showPaymentDetailsModal_() {
+  const game = getActiveGame_();
+  const entryFee = Number(game?.entryFee || 10);
+
   showSystemModal_(
     "",
-    payInstructionsHtml_(),
+    payInstructionsHtml_(entryFee, game),
     { showActions: true }
   );
 
@@ -4520,10 +4713,14 @@ function renderLobby_() {
   const cardsHtml = (gamesList || []).map(g => {
     const gameId = String(g.id || "");
     const title = String(g.title || gameId);
+    const bio = String(g.bio || "").trim();
+    const bannerSlug = slugifyGameTitle_(title);
     const status = String(g.status || "OPEN").toUpperCase();
-    const prize = Number(g.prize || 0);
-    const hasPrize = Number.isFinite(prize) && prize > 0;
+    const prizeInfo = parsePrizeInfo_(g?.prize);
     const winner = String(g.winner || "").trim();
+    const hasRealWinner = winner && winner.toLowerCase() !== "no winner";
+    const winnerImageUrl = getWinnerImageUrl_(gameId);
+    const prizeText = getPrizeDisplayText_(g);
     const entry = getMyEntryForGame_(gameId);
 
     const counts = lobbyCountsByGame[gameId];
@@ -4542,11 +4739,11 @@ function renderLobby_() {
     const lateRegistrationOpen = isGameLateRegistrationOpen_(g);
     const canRegisterNow = isGameRegistrationOpenNow_(g);
 
+    const isNewGame = status === "OPEN" && canRegisterNow;
+
     const deadlineIso = lateRegistrationOpen ? lateDeadlineIso : normalDeadlineIso;
 
     const showLobbyCountdown = status === "OPEN" && !!deadlineIso && canRegisterNow;
-
-
 
     let actionsHtml = "";
 
@@ -4572,13 +4769,27 @@ function renderLobby_() {
 
     return `
       <div class="game-hero-card lobby-hero-card" style="margin-bottom:16px;">
-        <div class="game-hero-banner lobby-hero-banner">
-          <img
-            class="game-hero-banner-img"
-            src="${escapeAttr(getGameBannerUrl_(gameId))}"
-            alt="${escapeAttr(title)} banner"
-            onerror="this.onerror=null;this.src='site/images/game-banners/default.png';"
-          />
+        <div class="game-hero-banner lobby-hero-banner ${escapeAttr(bannerSlug)}-banner ${status === "FINISHED" ? "game-banner--finished" : ""}">
+        <img
+          class="game-hero-banner-img ${escapeAttr(bannerSlug)}-banner-img"
+          src="${escapeAttr(getGameBannerUrl_(gameId))}"
+          alt="${escapeAttr(title)} banner"
+          onerror="this.onerror=null;this.src='site/images/game-banners/default.png';"
+        />
+
+        ${isNewGame ? `
+          <div class="game-new-badge">NEW</div>
+        ` : ``}
+
+        <div>
+          <button
+            class="hero-nav-btn"
+            type="button"
+            data-lobby-info="${escapeAttr(gameId)}"
+            aria-label="Competition info"
+          >i</button>
+        </div>
+
 
           <div>
             <button
@@ -4596,24 +4807,28 @@ function renderLobby_() {
 
             ${status === "OPEN" || status === "FINISHED"
         ? `
-                  <span class="game-hero-badge">
-                    <span class="hero-pill-tooltip" data-tooltip="Entry fee">
-                      <span class="pill-emoji">🎟️</span> £${Number(g.entryFee || 0)}
+                    <span class="game-hero-badge">
+                      <span class="hero-pill-tooltip" data-tooltip="Entry fee">
+                        <span class="pill-emoji">🎟️</span> £${Number(g.entryFee || 0)}
+                      </span>
                     </span>
-                  </span>
-                `
+                  `
         : ``
       }
 
-            ${hasPrize
+            ${prizeInfo.isRollover
         ? `
-                  <span class="game-hero-badge">
-                    <span class="hero-pill-tooltip" data-tooltip="1st prize">
-                      <span class="pill-emoji">💰</span> £${prize}
+                    <span class="game-hero-badge">
+                      ${getRolloverPillHtml_(g)}
                     </span>
-                  </span>
-                `
-        : ``
+                  `
+        : prizeInfo.hasPrize
+          ? `
+                    <span class="game-hero-badge">
+                      ${getPrizePillHtml_(g)}
+                    </span>
+                  `
+          : ``
       }
           </div>
 
@@ -4638,9 +4853,41 @@ function renderLobby_() {
             </button>
           </div>
 
+          ${bio ? `
+            <div class="lobby-game-bio">${escapeHtml(bio)}</div>
+          ` : ``}
+
           <div class="lobby-bottom-main">
             <div class="lobby-fit">
               <div class="lobby-fit-left">
+              ${status === "FINISHED"
+        ? `
+                    <div class="lobby-meta-line">
+                      <span class="lobby-meta-key">Winner:</span>
+                      <strong class="lobby-meta-key2">${escapeHtml(winner || "No Winner")}</strong>
+
+                      ${hasRealWinner ? `
+                        <button
+                          type="button"
+                          class="winner-photo-btn"
+                          data-winner-photo="1"
+                          data-game-title="${escapeAttr(title)}"
+                          data-winner-name="${escapeAttr(winner)}"
+                          data-prize-text="${escapeAttr(prizeText)}"
+                          data-image-url="${escapeAttr(winnerImageUrl)}"
+                          aria-label="View winner image"
+                          title="View winner image"
+                        >
+                          <svg viewBox="0 0 24 24" aria-hidden="true" class="winner-photo-btn__icon">
+                            <rect x="3" y="5" width="18" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="15.5" cy="10" r="1.8" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <path d="M5 16l4.5-4 3.2 3 3.3-2.8L19 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                        </button>
+                      ` : ``}
+                    </div>
+                  `
+        : ``}
 
           ${status === "OPEN" && !entry && canRegisterNow
         ? `
@@ -4661,13 +4908,10 @@ function renderLobby_() {
           : ``
       }
               </div>
-
-              
             </div>
           </div>
 
           ${showLobbyCountdown && !entry ? `
-            
             <div class="lobby-deadline-panel lobby-deadline-panel--red" data-countdown="${escapeAttr(deadlineIso)}">
               <div class="lobby-deadline-panel-head">
                 <div class="lobby-deadline-panel-line">
@@ -4702,7 +4946,26 @@ function renderLobby_() {
             </div>
           ` : ``}
             <div class="lobby-status-actions-row">
-              ${sessionEmail && entry ? `
+
+            ${sessionEmail && entry ? (
+              status === "FINISHED"
+                ? `
+                  <div class="lobby-meta-line" style="margin:0;">
+                    <span class="lobby-meta-key">Finished:</span>
+                    <strong class="lobby-meta-key2">
+                      ${
+                        entry?.placing
+                          ? `${entry.placing}${ordinalSuffix_(entry.placing)}`
+                          : entry?.alive === false
+                            ? "Eliminated"
+                            : "—"
+                      }
+                      ${counts?.total ? ` of ${counts.total}` : ""}
+                      ${entry?.placing === 1 ? " 🏆" : ""}
+                    </strong>
+                  </div>
+                `
+                : `
                   <div class="lobby-meta-line" style="margin:0;">
                     <span class="lobby-meta-key">Your status:</span>
                     <span class="player-status-pill ${getPlayerStatusUi_(g, entry).pillClass}">
@@ -4712,17 +4975,18 @@ function renderLobby_() {
                       </span>
                     </span>
                   </div>
-                ` : `<div></div>`}
+                `
+            ) : `<div></div>`}
 
-                              ${actionsHtml ? `
-                                <div class="lobby-card-actions" style="margin:0;">
-                                  ${actionsHtml}
-                                </div>
-                              ` : ``}
-                            </div>
-                        </div>
-                      </div>
-                    `;
+              ${actionsHtml ? `
+                <div class="lobby-card-actions" style="margin:0;">
+                  ${actionsHtml}
+                </div>
+              ` : ``}
+            </div>
+        </div>
+      </div>
+    `;
   }).join("");
 
   const profileDisplayName =
@@ -4905,7 +5169,7 @@ async function joinGame_(gameId, triggerBtn = null) {
           <p style="margin:0 0 12px;">
             Once approved you will be able to make your first selection.
           </p>
-          ${payInstructionsHtml_(entryFee)}
+          ${payInstructionsHtml_(entryFee, game)}
         </div>
       `,
       { showActions: false }
@@ -6093,6 +6357,31 @@ gameweekSelect?.addEventListener("change", () => {
   renderFixturesTab();
 });
 
+lobbyView.querySelectorAll("[data-winner-photo]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    openWinnerPhotoModal_(
+      btn.getAttribute("data-game-title") || "",
+      btn.getAttribute("data-winner-name") || "",
+      btn.getAttribute("data-prize-text") || "",
+      btn.getAttribute("data-image-url") || ""
+    );
+  });
+});
+
+lobbyView?.addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-winner-photo]");
+  if (!btn) return;
+
+  e.preventDefault();
+  e.stopPropagation();
+
+  openWinnerPhotoModal_(
+    btn.getAttribute("data-game-title") || "",
+    btn.getAttribute("data-winner-name") || "",
+    btn.getAttribute("data-prize-text") || "",
+    btn.getAttribute("data-image-url") || ""
+  );
+});
 
 
 submitPickBtn?.addEventListener("click", () => {
