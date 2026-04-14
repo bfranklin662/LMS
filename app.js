@@ -1775,13 +1775,13 @@ function getGameBannerStatusText_(game, entry) {
   }
 
   if (!entry) {
-    if (lateRegistrationOpen) return "Late registration";
-    if (registrationOpenNow) return "Registration open";
-    if (firstDeadlinePassed) return "Registration closed";
-    return "Registration open";
+    if (lateRegistrationOpen) return "Late reg";
+    if (registrationOpenNow) return "Registering";
+    if (firstDeadlinePassed) return "Reg closed";
+    return "Registering";
   }
 
-  return "Registration open";
+  return "Registering";
 }
 
 function slugifyGameTitle_(title) {
@@ -1854,7 +1854,9 @@ function getGameBannerStatusClass_(game, entry) {
   if (text === "Pending") return "game-status-pill--running";
   if (text.startsWith("Running:")) return "game-status-pill--running";
   if (text.startsWith("Finished:")) return "game-status-pill--finished";
-  if (text === "Registration closed") return "game-status-pill--finished";
+  if (text === "Registration closed" || text === "Reg closed") {
+    return "game-status-pill--finished";
+  }
 
   return "game-status-pill--open";
 }
