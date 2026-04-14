@@ -145,9 +145,6 @@ const connectionWrap = document.getElementById("connectionWrap");
 const connectionInput = document.getElementById("connectionInput");
 const lobbyView = document.getElementById("lobbyView");
 
-const daySelect = document.getElementById("daySelect");
-let selectedDayKey = "ALL";
-
 let entriesReqId = 0;
 let remainingReqId = 0;
 let activeTab2 = "selection"; // track current tab
@@ -308,6 +305,10 @@ let lastEntryApprovedByGame = {};
 
 let lastLobbyRenderSig = "";
 
+let fixturePickCountsByGw = new Map();      // gwId -> Map(fixtureKey => {home, away})
+let fixturePickRowsByGw = new Map();        // gwId -> raw gw report rows
+let fixturePickLoadPromisesByGw = new Map(); // gwId -> Promise
+
 
 /*******************************
  * HELPERS
@@ -415,6 +416,256 @@ async function fetchMyEntries_() {
 function getMyEntryForGame_(gameId) {
   const gid = String(gameId || "");
   return (myEntries || []).find(e => String(e.gameId || "") === gid) || null;
+}
+
+function getFixturePickCountKeyApp_(gwId, homeTeam, awayTeam) {
+  return [
+    String(gwId || "").trim().toUpperCase(),
+    normTeam_(homeTeam),
+    normTeam_(awayTeam)
+  ].join("::");
+}
+
+function shouldShowFixturePickDataForGw_(gwId) {
+  const gw = gameweeks.find(g => String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase());
+  if (!gw) return false;
+
+  const started = Date.now() >= gw.deadline.getTime();
+  if (!started) return false;
+
+  const isCurrentGw = String(gwId || "").toUpperCase() === String(currentGwId || "").toUpperCase();
+
+  // replicate the same protection you already use for "View all"
+  if (isCurrentGw) {
+    const currentPick = getPickForGw(currentGwId);
+    const lateSubmittingNow = canLateSubmitCurrentGw_() && !currentPick?.team;
+    if (lateSubmittingNow) return false;
+  }
+
+  return true;
+}
+
+function buildFixturePickCountsForGw_(gwId, rows) {
+  const counts = new Map();
+  const gw = gameweeks.find(g => String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase());
+  if (!gw) return counts;
+
+  for (const row of rows || []) {
+    const selection = String(row?.selection || "").trim();
+    if (!selection) continue;
+
+    const fixture = findFixtureForTeam(gw, selection);
+    if (!fixture) continue;
+
+    const fixtureKey = getFixturePickCountKeyApp_(fixture.gwId, fixture.home, fixture.away);
+
+    if (!counts.has(fixtureKey)) {
+      counts.set(fixtureKey, {
+        home: {
+          team: fixture.home,
+          count: 0,
+          pending: 0,
+          win: 0,
+          loss: 0
+        },
+        away: {
+          team: fixture.away,
+          count: 0,
+          pending: 0,
+          win: 0,
+          loss: 0
+        }
+      });
+    }
+
+    const bucket = counts.get(fixtureKey);
+
+    const target =
+      areTeamsSame_(selection, fixture.home) ? bucket.home :
+        areTeamsSame_(selection, fixture.away) ? bucket.away :
+          null;
+
+    if (!target) continue;
+
+    target.count += 1;
+
+    const outcome = normalizeOutcome_(row?.outcome);
+    if (outcome === "WIN") target.win += 1;
+    else if (outcome === "LOSS") target.loss += 1;
+    else target.pending += 1;
+  }
+
+  return counts;
+}
+
+async function ensureFixturePickDataForGw_(gwId) {
+  const key = String(gwId || "").trim().toUpperCase();
+
+  if (!shouldShowFixturePickDataForGw_(key)) return;
+  if (fixturePickCountsByGw.has(key) && fixturePickRowsByGw.has(key)) return;
+
+  if (fixturePickLoadPromisesByGw.has(key)) {
+    return fixturePickLoadPromisesByGw.get(key);
+  }
+
+  const p = (async () => {
+    let rows = await fetchGwReportRows_(key);
+    rows = Array.isArray(rows) ? rows : [];
+
+    // only actual selections count toward fixture badges
+    rows = rows.filter(r => String(r?.selection || "").trim());
+
+    fixturePickRowsByGw.set(key, rows);
+    fixturePickCountsByGw.set(key, buildFixturePickCountsForGw_(key, rows));
+  })().finally(() => {
+    fixturePickLoadPromisesByGw.delete(key);
+  });
+
+  fixturePickLoadPromisesByGw.set(key, p);
+  return p;
+}
+
+function getFixturePickCountsForApp_(fixture) {
+  const gwKey = String(fixture?.gwId || "").trim().toUpperCase();
+  const fixtureMap = fixturePickCountsByGw.get(gwKey);
+  if (!fixtureMap) return null;
+
+  const key = getFixturePickCountKeyApp_(fixture.gwId, fixture.home, fixture.away);
+  return fixtureMap.get(key) || null;
+}
+
+function getPickBadgeClassApp_(sideStats) {
+  if (!sideStats || !sideStats.count) return "pick-badge pick-badge-none";
+  if (sideStats.pending > 0) return "pick-badge pick-badge-pending";
+  if (sideStats.win > 0) return "pick-badge pick-badge-win";
+  if (sideStats.loss > 0) return "pick-badge pick-badge-loss";
+  return "pick-badge pick-badge-none";
+}
+
+function renderFixturePickBadgeApp_(sideStats, fixture, side) {
+  if (!sideStats || !sideStats.count) return "";
+
+  const title =
+    sideStats.pending > 0
+      ? `${sideStats.count} pick${sideStats.count === 1 ? "" : "s"} pending`
+      : sideStats.win > 0
+        ? `${sideStats.count} pick${sideStats.count === 1 ? "" : "s"} won`
+        : `${sideStats.count} pick${sideStats.count === 1 ? "" : "s"} lost`;
+
+  return `
+    <button
+      type="button"
+      class="${getPickBadgeClassApp_(sideStats)} fixture-pick-badge-btn"
+      data-fixture-pick-badge="1"
+      data-gw-id="${escapeAttr(fixture.gwId || "")}"
+      data-home="${escapeAttr(fixture.home || "")}"
+      data-away="${escapeAttr(fixture.away || "")}"
+      data-side="${escapeAttr(side || "")}"
+      title="${escapeAttr(title)}"
+      aria-label="${escapeAttr(title)}"
+      style="
+        width:22px;
+        height:22px;
+        min-width:22px;
+        border-radius:999px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:0;
+      "
+    >
+      ${sideStats.count}
+    </button>
+  `;
+}
+
+function getRowsForFixtureSideApp_(gwId, homeTeam, awayTeam, side) {
+  const key = String(gwId || "").trim().toUpperCase();
+  const rows = fixturePickRowsByGw.get(key) || [];
+  const wantedSide = String(side || "").trim().toLowerCase();
+
+  return rows
+    .filter(row => {
+      const selection = String(row?.selection || "").trim();
+      if (!selection) return false;
+
+      const sameHome = areTeamsSame_(selection, homeTeam);
+      const sameAway = areTeamsSame_(selection, awayTeam);
+
+      return wantedSide === "home" ? sameHome : sameAway;
+    })
+    .sort((a, b) => String(a?.name || "").localeCompare(String(b?.name || "")));
+}
+
+function openFixturePickBadgeModal_(gwId, homeTeam, awayTeam, side) {
+  if (!shouldShowFixturePickDataForGw_(gwId)) return;
+
+  const rows = getRowsForFixtureSideApp_(gwId, homeTeam, awayTeam, side);
+  const pickedTeam = side === "home" ? homeTeam : awayTeam;
+
+  showSystemModal_(
+    `${getDisplayTeamName_(pickedTeam)} picks`,
+    rows.length
+      ? `
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${rows.map(row => `
+            <div style="padding:10px 12px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+              <div style="font-weight:700;">${escapeHtml(row?.name || "Unknown player")}</div>
+              <div class="muted small">
+                ${escapeHtml(simplifyClub_(row?.clubTeam || "—"))}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `
+      : `<div class="muted">No picks found.</div>`,
+    { showActions: false }
+  );
+}
+
+function bindFixturePickBadgeEvents_() {
+  document.querySelectorAll('[data-fixture-pick-badge="1"]').forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      openFixturePickBadgeModal_(
+        btn.getAttribute("data-gw-id") || "",
+        btn.getAttribute("data-home") || "",
+        btn.getAttribute("data-away") || "",
+        btn.getAttribute("data-side") || ""
+      );
+    });
+  });
+}
+
+function getLeagueFixturePickCountApp_(fixtures) {
+  let total = 0;
+
+  for (const f of fixtures || []) {
+    const counts = getFixturePickCountsForApp_(f);
+    if (!counts) continue;
+
+    total += Number(counts.home?.count || 0);
+    total += Number(counts.away?.count || 0);
+  }
+
+  return total;
+}
+
+function renderLeaguePickBadgeApp_(fixtures) {
+  const total = getLeagueFixturePickCountApp_(fixtures);
+  if (!total) return "";
+
+  return `
+    <span
+      class="pick-badge pick-badge-pending"
+      title="${escapeAttr(`${total} total pick${total === 1 ? "" : "s"} in this league`)}"
+      aria-label="${escapeAttr(`${total} total pick${total === 1 ? "" : "s"} in this league`)}"
+    >
+      ${total}
+    </span>
+  `;
 }
 
 async function handleLobbyApprovalChanges_() {
@@ -866,6 +1117,7 @@ function buildGameweeks(fixturesArr, game) {
     const actualNum = gwNumFromId(f.gwId);
     if (!Number.isFinite(actualNum)) continue;
     if (actualNum < startGwNum) continue;
+    if (!gameIncludesLeague_(f.league, game)) continue;
 
     if (!map.has(f.gwId)) map.set(f.gwId, { id: f.gwId, fixtures: [] });
     map.get(f.gwId).fixtures.push(f);
@@ -909,23 +1161,35 @@ function buildGameweeks(fixturesArr, game) {
 
 function applyDeadlinesToGameweeks_(gws) {
   return (gws || []).map(gw => {
-    const row = deadlinesByGw.get(String(gw.id || "").toUpperCase());
-    if (!row) return gw;
+    const sortedFixtures = [...(gw.fixtures || [])].sort((a, b) => a.kickoff - b.kickoff);
+
+    const firstKickoff = sortedFixtures[0]?.kickoff || gw.firstKickoff || null;
+    const lastKickoff = sortedFixtures[sortedFixtures.length - 1]?.kickoff || gw.lastKickoff || null;
+
+    if (!firstKickoff || !lastKickoff) {
+      return gw;
+    }
+
+    const deadline = new Date(
+      firstKickoff.getTime() - DEADLINE_HOURS_BEFORE_FIRST_FIXTURE * 60 * 60 * 1000
+    );
+
+    const lateDeadline = new Date(lastKickoff.getTime());
 
     return {
       ...gw,
-      deadline: row.normalDeadlineIso ? new Date(row.normalDeadlineIso) : gw.deadline,
-      lateDeadline: row.lateDeadlineIso ? new Date(row.lateDeadlineIso) : gw.lateDeadline,
-      firstKickoff: row.firstKickoffIso ? new Date(row.firstKickoffIso) : gw.firstKickoff,
-      lastKickoff: row.lastKickoffIso ? new Date(row.lastKickoffIso) : gw.lastKickoff,
-      endCutoff: row.lateDeadlineIso ? new Date(row.lateDeadlineIso) : gw.endCutoff
+      firstKickoff,
+      lastKickoff,
+      deadline,
+      lateDeadline,
+      endCutoff: lateDeadline
     };
   });
 }
 
 function getGameweeksForGame_(game) {
   if (!game || !fixtures.length) return [];
-  return applyDeadlinesToGameweeks_(buildGameweeks(fixtures, game));
+  return applyDeadlinesToGameweeks_(buildGameweeks(fixtures, game), game);
 }
 
 function shouldShowGwReportRow_(row, gwId) {
@@ -990,6 +1254,18 @@ function getCurrentGame_() {
   if (open) return open;
 
   return null;
+}
+
+function formatGwDropdownLabel_(gw) {
+  const first = gw?.start ? formatDateUK(gw.start) : "";
+  const lastKickoff = gw?.lastKickoff || gw?.firstKickoff || null;
+  const lastDay = lastKickoff ? startOfDay(lastKickoff) : null;
+  const last = lastDay ? formatDateUK(lastDay) : "";
+
+  if (!first) return gw.displayGwId || gw.id || "GW";
+  if (!last || first === last) return `${gw.displayGwId || gw.id} (${first})`;
+
+  return `${gw.displayGwId || gw.id} (${first} - ${last})`;
 }
 
 function wasAliveForGwFromEntry_(entry, gwId) {
@@ -3572,7 +3848,7 @@ function formatResultStatusLabelApp_(status) {
   return s.toUpperCase();
 }
 
-function renderFixturesTab() {
+async function renderFixturesTab() {
   const viewGw = gameweeks.find(g => g.id === viewingGwId);
   if (!viewGw) return;
 
@@ -3580,23 +3856,33 @@ function renderFixturesTab() {
   renderStatusBox();
   renderPickCardState();
 
-
-  // ✅ Enable/disable submit based on CURRENT gw (not viewing gw)
   const curGw = gameweeks.find(g => g.id === currentGwId);
   if (curGw) {
     const locked = Date.now() >= curGw.deadline.getTime();
-    if (submitPickBtn) submitPickBtn.disabled = locked || !sessionUser?.approved || sessionUser?.alive === false;
+    if (submitPickBtn) {
+      submitPickBtn.disabled = locked || !sessionUser?.approved || sessionUser?.alive === false;
+    }
   }
 
-  // ✅ Keep these tied to CURRENT gw
-  startDeadlineTimer();   // reads currentGwId
-  updateTeamDatalist();   // reads currentGwId
+  startDeadlineTimer();
+  updateTeamDatalist();
 
-  // ----------------------------
-  // Fixtures list uses VIEWING GW only
-  // ----------------------------
   if (!fixturesList) return;
   fixturesList.innerHTML = "";
+
+  const showPickData = shouldShowFixturePickDataForGw_(viewGw.id);
+
+  if (showPickData && !fixturePickCountsByGw.has(String(viewGw.id || "").toUpperCase())) {
+    ensureFixturePickDataForGw_(viewGw.id)
+      .then(() => {
+        if (String(viewingGwId || "").toUpperCase() === String(viewGw.id || "").toUpperCase()) {
+          renderFixturesTab();
+        }
+      })
+      .catch((err) => {
+        console.warn("Fixture pick data failed to load", err);
+      });
+  }
 
   const byDay = new Map();
   for (const f of viewGw.fixtures) {
@@ -3609,39 +3895,11 @@ function renderFixturesTab() {
 
   const dayKeys = Array.from(byDay.keys()).sort();
 
-  // Day dropdown options
   if (daySelect) {
-    if (selectedDayKey !== "ALL" && !dayKeys.includes(selectedDayKey)) {
-      selectedDayKey = "ALL";
-    }
-
-    daySelect.innerHTML = "";
-
-    const optAll = document.createElement("option");
-    optAll.value = "ALL";
-    optAll.textContent = "All days";
-    daySelect.appendChild(optAll);
-
-    for (const dk of dayKeys) {
-      const d = new Date(dk);
-      const opt = document.createElement("option");
-      opt.value = dk;
-      opt.textContent = formatDateUK(d);
-      daySelect.appendChild(opt);
-    }
-
-    daySelect.value = selectedDayKey;
-
-    if (!daySelect.dataset.bound) {
-      daySelect.dataset.bound = "1";
-      daySelect.addEventListener("change", () => {
-        selectedDayKey = daySelect.value;
-        renderFixturesTab();
-      });
-    }
+    daySelect.classList.add("hidden");
   }
 
-  const renderKeys = (selectedDayKey === "ALL") ? dayKeys : [selectedDayKey];
+  const renderKeys = dayKeys;
 
   for (const dk of renderKeys) {
     const dayDate = new Date(dk);
@@ -3652,11 +3910,11 @@ function renderFixturesTab() {
     const head = document.createElement("div");
     head.className = "day-head";
     head.innerHTML = `
-  <div >
+      <div>
         <div class="day-title">${formatDateUK(dayDate)}</div>
         <div class="day-sub">Fixtures</div>
-      </div >
-  `;
+      </div>
+    `;
     dayGroup.appendChild(head);
 
     const leagueMap = new Map();
@@ -3673,13 +3931,21 @@ function renderFixturesTab() {
 
       const details = document.createElement("details");
       details.className = "league-details";
-      details.open = false; // ✅ start collapsed
+      details.open = false;
 
       const summary = document.createElement("summary");
       summary.className = "league-summary";
-      summary.textContent = `${leagueName} (${list.length})`;
+      summary.innerHTML = `
+        <span class="league-left">
+          ${escapeHtml(leagueName)} (${list.length})
+        </span>
+        ${showPickData ? `
+          <span class="league-summary-right">
+            ${renderLeaguePickBadgeApp_(list)}
+          </span>
+        ` : `<span class="league-summary-right"></span>`}
+      `;
       details.appendChild(summary);
-
 
       const container = document.createElement("div");
       container.className = "league-group";
@@ -3695,6 +3961,10 @@ function renderFixturesTab() {
         const leftLogo = getTeamLogo_(f.home);
         const rightLogo = getTeamLogo_(f.away);
 
+        const pickCounts = showPickData ? getFixturePickCountsForApp_(f) : null;
+        const homePickStats = pickCounts?.home || null;
+        const awayPickStats = pickCounts?.away || null;
+
         row.innerHTML = `
           <div class="fixture-row-main" style="min-width:0;width:100%;">
             <div
@@ -3703,21 +3973,61 @@ function renderFixturesTab() {
                 display:grid;
                 grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
                 align-items:center;
-                gap:6px;
+                gap:10px;
+                width:100%;
+                min-width:0;
               "
             >
-              <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;text-align:right;">
+              <div
+                style="
+                  position:relative;
+                  display:grid;
+                  grid-template-columns:minmax(0,1fr) 22px;
+                  align-items:center;
+                  gap:8px;
+                  min-width:0;
+                  text-align:right;
+                  padding-left:${homePickStats ? "30px" : "0"};
+                "
+              >
+                ${homePickStats ? `
+                  <div
+                    style="
+                      position:absolute;
+                      left:0;
+                      top:50%;
+                      transform:translateY(-50%);
+                      width:22px;
+                      height:22px;
+                      display:flex;
+                      align-items:center;
+                      justify-content:center;
+                      z-index:2;
+                    "
+                  >
+                    ${renderFixturePickBadgeApp_(homePickStats, f, "home")}
+                  </div>
+                ` : ""}
+
                 <div
-                  class="team-name"
-                  style="min-width:0;white-space:normal;line-height:1.15;display:flex;align-items:center;min-height:22px;"
+                  class="team-name team-name-home"
+                  style="
+                    min-width:0;
+                    line-height:1.15;
+                    text-align:right;
+                    white-space:normal;
+                    word-break:normal;
+                    overflow-wrap:normal;
+                  "
                 >
-                  ${escapeHtml(f.home)}
+                  ${escapeHtml(displayTeamNameForFixture_(f.home))}
                 </div>
+
                 <img
-                  src="${escapeHtml(leftLogo)}"
-                  alt="${escapeHtml(f.home)}"
+                  src="${escapeAttr(leftLogo)}"
+                  alt="${escapeAttr(f.home)}"
                   class="team-logo"
-                  style="display:block;flex:0 0 auto;"
+                  style="display:block;width:22px;height:22px;object-fit:contain;"
                   onerror="this.onerror=null;this.src='site/images/team-default.png';"
                 />
               </div>
@@ -3726,20 +4036,58 @@ function renderFixturesTab() {
                 ${renderFixtureMiddleBoxApp_(f)}
               </div>
 
-              <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;text-align:left;">
+              <div
+                style="
+                  position:relative;
+                  display:grid;
+                  grid-template-columns:22px minmax(0,1fr);
+                  align-items:center;
+                  gap:8px;
+                  min-width:0;
+                  text-align:left;
+                  padding-right:${awayPickStats ? "30px" : "0"};
+                "
+              >
                 <img
-                  src="${escapeHtml(rightLogo)}"
-                  alt="${escapeHtml(f.away)}"
+                  src="${escapeAttr(rightLogo)}"
+                  alt="${escapeAttr(f.away)}"
                   class="team-logo"
-                  style="display:block;flex:0 0 auto;"
+                  style="display:block;width:22px;height:22px;object-fit:contain;"
                   onerror="this.onerror=null;this.src='site/images/team-default.png';"
                 />
+
                 <div
-                  class="team-name"
-                  style="min-width:0;white-space:normal;line-height:1.15;display:flex;align-items:center;min-height:22px;"
+                  class="team-name team-name-away"
+                  style="
+                    min-width:0;
+                    line-height:1.15;
+                    text-align:left;
+                    white-space:normal;
+                    word-break:normal;
+                    overflow-wrap:normal;
+                  "
                 >
-                  ${escapeHtml(f.away)}
+                  ${escapeHtml(displayTeamNameForFixture_(f.away))}
                 </div>
+
+                ${awayPickStats ? `
+                  <div
+                    style="
+                      position:absolute;
+                      right:0;
+                      top:50%;
+                      transform:translateY(-50%);
+                      width:22px;
+                      height:22px;
+                      display:flex;
+                      align-items:center;
+                      justify-content:center;
+                      z-index:2;
+                    "
+                  >
+                    ${renderFixturePickBadgeApp_(awayPickStats, f, "away")}
+                  </div>
+                ` : ""}
               </div>
             </div>
 
@@ -3748,7 +4096,6 @@ function renderFixturesTab() {
             </div>
           </div>
         `;
-
 
         container.appendChild(row);
       }
@@ -3759,6 +4106,8 @@ function renderFixturesTab() {
 
     fixturesList.appendChild(dayGroup);
   }
+
+  bindFixturePickBadgeEvents_();
 }
 
 /*******************************
@@ -5816,7 +6165,7 @@ function renderGameweekSelect() {
   for (const gw of gameweeks) {
     const opt = document.createElement("option");
     opt.value = gw.id;
-    opt.textContent = `${gw.displayGwId} (${formatDateUK(gw.start)})`;
+    opt.textContent = formatGwDropdownLabel_(gw);
     gameweekSelect.appendChild(opt);
   }
 

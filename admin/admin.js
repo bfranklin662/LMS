@@ -277,34 +277,11 @@ bulkResolveModal?.addEventListener("click", (e) => {
   if (e.target === bulkResolveModal) closeBulkResolveModal();
 });
 
-function ensureResolvedList_() {
-  let list = document.getElementById("resolvedSubmissionsList");
-  if (list) return list;
 
-  const resolvedCard = Array.from(subsContainer.querySelectorAll(".fixtures-card"))
-    .find(card => card.querySelector("h3")?.textContent?.trim() === "Resolved");
-
-  if (!resolvedCard) return null;
-
-  list = document.createElement("div");
-  list.id = "resolvedSubmissionsList";
-  list.className = "list";
-  resolvedCard.appendChild(list);
-  return list;
-}
 
 function renderFixtureChangesSummary_() {
   if (!fixtureChangesSummary) return;
   fixtureChangesSummary.innerHTML = buildFixtureChangesSummaryHtml_();
-}
-
-function removeEmptyPendingGroups_() {
-  subsContainer.querySelectorAll("[data-pending-day-group='1']").forEach(group => {
-    const list = group.querySelector(".list");
-    if (!list || !list.children.length) {
-      group.remove();
-    }
-  });
 }
 
 
@@ -334,26 +311,6 @@ function setFixtureScanDatesFromSelectedGw_() {
   }
 }
 
-function updateSubmissionSummaryCounts_() {
-  let pending = 0;
-  let resolved = 0;
-
-  for (const v of seenSubs.values()) {
-    if (v.isResolved) resolved++;
-    else pending++;
-  }
-
-  if (subsPendingCount) subsPendingCount.textContent = "";
-  if (subsResolvedCount) subsResolvedCount.textContent = "";
-
-  const game = adminGames.find(g => String(g.id) === String(selectedGameId));
-  const gameLabel = game?.title || selectedGameId;
-
-  if (subsMeta) {
-    subsMeta.textContent = `${gameLabel} • Pending: ${pending} • Resolved: ${resolved} • Total: ${pending + resolved}`;
-  }
-}
-
 async function loadDeadlinesFile_() {
   const res = await fetch(`../site/data/gameweek-deadlines.json?ts=${Date.now()}`, { cache: "no-store" });
   if (!res.ok) throw new Error("Failed to load gameweek deadlines");
@@ -377,6 +334,22 @@ function formatDeadlineForInputishDisplay_(iso) {
   }).format(d);
 }
 
+function getAdminLeagueKeysForSelectedGame_() {
+  const leagues = getAdminGameCompetitions_(getSelectedGame_());
+
+  const map = {
+    "premier league": "premier-league",
+    "championship": "championship",
+    "league one": "league-one",
+    "league two": "league-two",
+    "fa cup": "fa-cup"
+  };
+
+  return leagues
+    .map(name => map[String(name || "").trim().toLowerCase()])
+    .filter(Boolean);
+}
+
 async function updateFixtureDeadlineInfo_() {
   if (!fixtureFirstDeadlineText || !fixtureLateDeadlineText) return;
 
@@ -387,22 +360,56 @@ async function updateFixtureDeadlineInfo_() {
     return;
   }
 
-  try {
-    const data = await loadDeadlinesFile_();
-    const deadlines = Array.isArray(data.deadlines) ? data.deadlines : [];
+  const fixtures = [];
 
-    const actualGwId = gw.actualGwId || getActualGwIdForSelectedGame_(gw.gwId);
+  for (const day of gw.days || []) {
+    for (const league of day.leagues || []) {
+      for (const fx of league.fixtures || []) {
+        const date = String(fx.date || "").trim();
+        const time = String(fx.time || "").trim() || "12:00";
+        const kickoff = new Date(`${date}T${time}:00`);
 
-    const row = deadlines.find(d =>
-      String(d.gwId || "").trim().toUpperCase() === String(actualGwId || "").trim().toUpperCase()
-    );
-
-    fixtureFirstDeadlineText.textContent = formatDeadlineForInputishDisplay_(row?.normalDeadlineIso);
-    fixtureLateDeadlineText.textContent = formatDeadlineForInputishDisplay_(row?.lateDeadlineIso);
-  } catch (err) {
-    fixtureFirstDeadlineText.textContent = "Failed to load";
-    fixtureLateDeadlineText.textContent = "Failed to load";
+        if (!isNaN(kickoff.getTime())) {
+          fixtures.push(kickoff);
+        }
+      }
+    }
   }
+
+  fixtures.sort((a, b) => a - b);
+
+  if (!fixtures.length) {
+    fixtureFirstDeadlineText.textContent = "—";
+    fixtureLateDeadlineText.textContent = "—";
+    return;
+  }
+
+  const firstKickoff = fixtures[0];
+  const lastKickoff = fixtures[fixtures.length - 1];
+
+  const normalDeadline = new Date(firstKickoff.getTime() - 60 * 60 * 1000);
+  const lateDeadline = lastKickoff;
+
+  fixtureFirstDeadlineText.textContent = formatDeadlineForInputishDisplay_(normalDeadline.toISOString());
+  fixtureLateDeadlineText.textContent = formatDeadlineForInputishDisplay_(lateDeadline.toISOString());
+}
+
+function getAdminGameCompetitions_(game = getSelectedGame_()) {
+  const raw = String(game?.competitions || "").trim();
+
+  if (!raw) {
+    return ["Premier League", "Championship", "League One", "League Two"];
+  }
+
+  return raw
+    .split(",")
+    .map(s => s.trim())
+    .filter(Boolean);
+}
+
+function adminGameIncludesLeague_(leagueName, game = getSelectedGame_()) {
+  const allowed = getAdminGameCompetitions_(game).map(x => x.toLowerCase());
+  return allowed.includes(String(leagueName || "").trim().toLowerCase());
 }
 
 /*******************************
@@ -423,6 +430,8 @@ const seenSubs = new Map();   // key -> { outcome, el, gwId, isResolved }
 let selectedGameId = "";
 let adminGames = [];
 
+let adminPickCountsByFixture = new Map();
+
 let fixtureAdminServerAvailable = false;
 
 const FIXTURE_SOURCES = [
@@ -440,13 +449,11 @@ let fixtureScanStatusTimer = null;
 let fixtureScanStatusIndex = 0;
 
 function startFixtureScanLoading_() {
+  const leagueNames = getAdminGameCompetitions_(getSelectedGame_());
+
   const messages = [
     "Scraping data from Flashscore",
-    "Checking Premier League fixtures",
-    "Checking Championship fixtures",
-    "Checking League One fixtures",
-    "Checking League Two fixtures",
-    "Checking FA Cup fixtures"
+    ...leagueNames.map(name => `Checking ${name} fixtures`)
   ];
 
   fixtureScanStatusIndex = 0;
@@ -486,12 +493,15 @@ async function updateResultsForSelectedGw_() {
   setBtnLoading(updateResultsBtn, true);
 
   try {
+    const leagueKeys = getAdminLeagueKeysForSelectedGame_();
+
     const data = await fixtureApi("/results/update-gw", {
       adminKey,
       actualGwId,
       from,
       to,
-      league: "all",
+      league: leagueKeys.length === 1 ? leagueKeys[0] : "all",
+      allowedLeagueKeys: leagueKeys,
       useTestFiles: false
     });
 
@@ -713,7 +723,11 @@ function bindFixtureEditorEvents_() {
 async function loadGroupedFixturesViewFallback_() {
   const allFixtures = [];
 
+  const game = getSelectedGame_();
+
   for (const source of FIXTURE_SOURCES) {
+    if (!adminGameIncludesLeague_(source.league, game)) continue;
+
     try {
       const res = await fetch(`${source.url}?ts=${Date.now()}`, { cache: "no-store" });
       if (!res.ok) continue;
@@ -1038,57 +1052,6 @@ function resetSelectedGwScanState_() {
   });
 }
 
-async function rescanResultsForSelectedGw_(from, to) {
-  const selectedGw = (adminFixtureGameweeks || []).find(
-    gw => String(gw.gwId) === String(adminFixtureSelectedGw)
-  );
-
-  if (!selectedGw) {
-    throw new Error("No gameweek selected.");
-  }
-
-  const actualGwId = selectedGw.actualGwId || getActualGwIdForSelectedGame_(selectedGw.gwId);
-
-  const data = await fixtureApi("/results/rescan-gw", {
-    adminKey,
-    actualGwId,
-    from,
-    to,
-    league: "all",
-    useTestFiles: false
-  });
-
-  const scannedFixtures = Array.isArray(data.fixtures) ? data.fixtures : [];
-  const scanByFixtureId = new Map(scannedFixtures.map(fx => [fx.fixtureId, fx]));
-
-  adminFixtureGameweeks = adminFixtureGameweeks.map(gw => {
-    if (String(gw.gwId) !== String(adminFixtureSelectedGw)) return gw;
-
-    return {
-      ...gw,
-      days: (gw.days || []).map(day => ({
-        ...day,
-        leagues: (day.leagues || []).map(league => ({
-          ...league,
-          fixtures: (league.fixtures || []).map(fx => {
-            const scanned = scanByFixtureId.get(fx.fixtureId);
-            return scanned
-              ? {
-                ...fx,
-                ...scanned,
-                scanStatus: "scanned"
-              }
-              : fx;
-          })
-        }))
-      }))
-    };
-  });
-
-  renderAdminFixturesTabView_();
-  updateCommitVisibility_();
-}
-
 function bindLeagueRemoveAllEvents_() {
   document.querySelectorAll(".league-remove-all-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
@@ -1275,8 +1238,11 @@ function renderAdminFixturesTabView_() {
         ${(day.leagues || []).slice().sort(compareLeagueDisplayOrder_).map(league => `
           <details class="league-details ${isLeagueMarkedRemoved_(day.dayKey, league.leagueKey) ? 'is-league-removed' : ''}">
             <summary class="league-summary">
-              <span class="league-left">
-                ${escapeHtml(league.leagueLabel)} (${(league.fixtures || []).length})
+              <span class="league-left" style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+                <span>${escapeHtml(league.leagueLabel)} (${(league.fixtures || []).length})</span>
+                <span style="margin-left:auto;">
+                  ${renderLeaguePickBadge_(league)}
+                </span>
               </span>
 
               <span class="league-summary-right">
@@ -1310,6 +1276,7 @@ function renderAdminFixturesTabView_() {
   bindDayToggleEvents_();
   bindLeagueRemoveAllEvents_();
   renderFixtureChangesSummary_();
+  bindPickBadgeEvents_();
 }
 
 function populateAdminFixtureFilters_() {
@@ -1366,7 +1333,6 @@ async function setTab(name) {
 
   if (name === "submissions") {
     try {
-      submissionsLoadedOnce = true;
       await Promise.all([
         refreshSubmissionsIncremental({ full: true }),
         renderAutomationStatus_()
@@ -1379,7 +1345,11 @@ async function setTab(name) {
   if (name === "fixtures") {
     try {
       if (fixturesMeta) fixturesMeta.textContent = "Loading fixtures…";
-      await loadGroupedFixturesView();
+
+      await Promise.all([
+        loadGroupedFixturesView(),
+        refreshSubmissionsIncremental({ full: true })
+      ]);
     } catch (e) {
       console.error("loadGroupedFixturesView failed:", e);
       if (fixturesMeta) fixturesMeta.textContent = "Failed to load fixtures.";
@@ -1521,129 +1491,6 @@ function isSelectedGwComplete_() {
 /*******************************
  * Submissions helpers
  *******************************/
-
-
-function getResolvedFixtureGroupRows_(rowData, outcome) {
-  const gwKey = String(rowData.gwId || "").toUpperCase();
-  const pickKey = normTeamKey_(rowData.pick || "");
-  const wantedOutcome = String(outcome || "").toUpperCase();
-
-  return Array.from(seenSubs.values())
-    .filter(v => {
-      if (!v?.rowData) return false;
-      if (!v.isResolved) return false;
-
-      const r = v.rowData;
-      const sameGw = String(r.gwId || "").toUpperCase() === gwKey;
-      const samePick = normTeamKey_(r.pick || "") === pickKey;
-      const sameOutcome = String(v.outcome || "").toUpperCase() === wantedOutcome;
-
-      const a = findFixtureForPick_(r.gwId, r.pick);
-      const b = findFixtureForPick_(rowData.gwId, rowData.pick);
-
-      const sameFixture =
-        (!!a && !!b &&
-          normTeamKey_(a.home) === normTeamKey_(b.home) &&
-          normTeamKey_(a.away) === normTeamKey_(b.away)) ||
-        (!a && !b);
-
-      return sameGw && samePick && sameOutcome && sameFixture;
-    })
-    .map(v => v.rowData);
-}
-
-function ensurePendingWrap_() {
-  let pendingWrap = document.getElementById("pendingSubmissionsWrap");
-  if (pendingWrap) return pendingWrap;
-
-  pendingWrap = document.createElement("div");
-  pendingWrap.className = "fixtures-card";
-  pendingWrap.style.marginBottom = "12px";
-  pendingWrap.id = "pendingSubmissionsWrap";
-
-  const pendingTitle = document.createElement("h3");
-  pendingTitle.style.marginTop = "0";
-  pendingTitle.textContent = "Pending submissions";
-  pendingWrap.appendChild(pendingTitle);
-
-  subsContainer.prepend(pendingWrap);
-  return pendingWrap;
-}
-
-function ensurePendingDayGroup_(dayKey, dayLabel) {
-  const pendingWrap = ensurePendingWrap_();
-
-  let dayGroup = pendingWrap.querySelector(`[data-day-key="${CSS.escape(dayKey)}"]`);
-  if (dayGroup) return dayGroup;
-
-  dayGroup = document.createElement("div");
-  dayGroup.setAttribute("data-pending-day-group", "1");
-  dayGroup.setAttribute("data-day-key", dayKey);
-
-  const dayTitle = document.createElement("div");
-  dayTitle.className = "muted small";
-  dayTitle.style.margin = "14px 0 8px";
-  dayTitle.innerHTML = `<strong>${escapeHtml(dayLabel)}</strong>`;
-  dayGroup.appendChild(dayTitle);
-
-  // insert in date order
-  const existingGroups = Array.from(pendingWrap.querySelectorAll('[data-pending-day-group="1"]'));
-  let inserted = false;
-
-  for (const existing of existingGroups) {
-    const existingKey = existing.getAttribute("data-day-key") || "";
-    if (dayKey < existingKey) {
-      pendingWrap.appendChild(dayGroup);
-      inserted = true;
-      break;
-    }
-    if (dayKey > existingKey) {
-      pendingWrap.insertBefore(dayGroup, existing);
-      inserted = true;
-      break;
-    }
-  }
-
-  if (!inserted) pendingWrap.appendChild(dayGroup);
-
-  return dayGroup;
-}
-
-function ensurePendingFixtureBlockForRows_(rows) {
-  if (!rows?.length) return null;
-
-  const first = rows[0];
-  const dayGroup = ensurePendingDayGroup_(first.dayKey, first.dayLabel);
-  const fixtureGroupKey = getPendingFixtureGroupKey_(first);
-
-  let existingBlock = dayGroup.querySelector(`[data-fixture-group-key="${CSS.escape(fixtureGroupKey)}"]`);
-  if (existingBlock) return existingBlock;
-
-  const block = renderPendingFixtureBlock_(rows);
-  block.setAttribute("data-fixture-group-key", fixtureGroupKey);
-
-  // insert by kickoff within the day
-  const existingBlocks = Array.from(dayGroup.querySelectorAll('[data-pending-fixture-block="1"]'));
-  let inserted = false;
-
-  for (const existing of existingBlocks) {
-    const existingKey = existing.getAttribute("data-fixture-group-key") || "";
-    if (fixtureGroupKey < existingKey) {
-      dayGroup.appendChild(block);
-      inserted = true;
-      break;
-    }
-    if (fixtureGroupKey > existingKey) {
-      dayGroup.insertBefore(block, existing);
-      inserted = true;
-      break;
-    }
-  }
-
-  if (!inserted) dayGroup.appendChild(block);
-
-  return block;
-}
 
 
 const DEFAULT_TEAM_LOGO = "../site/images/team-default.png";
@@ -1814,7 +1661,11 @@ function formatFixtureResultDisplay_(fixture) {
 async function loadAdminFixtures_() {
   const loaded = [];
 
+  const game = getSelectedGame_();
+
   for (const source of FIXTURE_SOURCES) {
+    if (!adminGameIncludesLeague_(source.league, game)) continue;
+
     try {
       const res = await fetch(source.url, { cache: "no-store" });
       if (!res.ok) continue;
@@ -1968,6 +1819,209 @@ function formatAdminDateShort_(dateStr) {
   }).format(d);
 }
 
+
+
+function getLeaguePickCount_(league) {
+  let total = 0;
+
+  for (const fx of league.fixtures || []) {
+    const counts = getAdminFixturePickCounts_(fx);
+    if (!counts) continue;
+
+    total += Number(counts.home?.count || 0);
+    total += Number(counts.away?.count || 0);
+  }
+
+  return total;
+}
+
+function renderLeaguePickBadge_(league) {
+  const total = getLeaguePickCount_(league);
+  if (!total) return "";
+
+  return `
+    <span
+      class="pick-badge pick-badge-pending"
+      title="${escapeHtml(`${total} total pick${total === 1 ? "" : "s"} in this league`)}"
+      aria-label="${escapeHtml(`${total} total pick${total === 1 ? "" : "s"} in this league`)}"
+    >
+      ${total}
+    </span>
+  `;
+}
+
+function getFixturePickCountKey_(gwId, homeTeam, awayTeam) {
+  return [
+    String(gwId || "").trim().toUpperCase(),
+    normTeamKey_(homeTeam),
+    normTeamKey_(awayTeam)
+  ].join("::");
+}
+
+function buildAdminPickCounts_(rows) {
+  const counts = new Map();
+
+  for (const row of rows || []) {
+    const fixture = findFixtureForPick_(row.gwId, row.pick);
+    if (!fixture) continue;
+
+    const fixtureKey = getFixturePickCountKey_(fixture.gwId, fixture.home, fixture.away);
+    const pickKey = normTeamKey_(row.pick);
+
+    if (!counts.has(fixtureKey)) {
+      counts.set(fixtureKey, {
+        home: {
+          team: fixture.home,
+          count: 0,
+          pending: 0,
+          win: 0,
+          loss: 0
+        },
+        away: {
+          team: fixture.away,
+          count: 0,
+          pending: 0,
+          win: 0,
+          loss: 0
+        }
+      });
+    }
+
+    const bucket = counts.get(fixtureKey);
+    const target =
+      normTeamKey_(fixture.home) === pickKey ? bucket.home :
+        normTeamKey_(fixture.away) === pickKey ? bucket.away :
+          null;
+
+    if (!target) continue;
+
+    target.count += 1;
+
+    const outcome = String(row.outcome || "PENDING").trim().toUpperCase();
+    if (outcome === "WIN") target.win += 1;
+    else if (outcome === "LOSS") target.loss += 1;
+    else target.pending += 1;
+  }
+
+  return counts;
+}
+
+function getAdminFixturePickCounts_(fx) {
+  const key = getFixturePickCountKey_(fx.gwId, fx.team1, fx.team2);
+  return adminPickCountsByFixture.get(key) || null;
+}
+
+function getPickBadgeClass_(sideStats) {
+  if (!sideStats || !sideStats.count) return "pick-badge pick-badge-none";
+  if (sideStats.pending > 0) return "pick-badge pick-badge-pending";
+  if (sideStats.win > 0) return "pick-badge pick-badge-win";
+  if (sideStats.loss > 0) return "pick-badge pick-badge-loss";
+  return "pick-badge pick-badge-none";
+}
+
+function renderPickBadge_(sideStats, fx, side) {
+  if (!sideStats || !sideStats.count) return "";
+
+  const title =
+    sideStats.pending > 0
+      ? `${sideStats.count} pick${sideStats.count === 1 ? "" : "s"} pending`
+      : sideStats.win > 0
+        ? `${sideStats.count} pick${sideStats.count === 1 ? "" : "s"} won`
+        : `${sideStats.count} pick${sideStats.count === 1 ? "" : "s"} lost`;
+
+  return `
+    <button
+      type="button"
+      class="${getPickBadgeClass_(sideStats)} admin-pick-badge-btn"
+      data-pick-badge="1"
+      data-gw-id="${escapeHtml(fx.gwId || "")}"
+      data-home="${escapeHtml(fx.team1 || "")}"
+      data-away="${escapeHtml(fx.team2 || "")}"
+      data-side="${escapeHtml(side || "")}"
+      title="${escapeHtml(title)}"
+      aria-label="${escapeHtml(title)}"
+      style="
+        width:22px;
+        height:22px;
+        min-width:22px;
+        border-radius:999px;
+        display:inline-flex;
+        align-items:center;
+        justify-content:center;
+        padding:0;
+      "
+    >
+      ${sideStats.count}
+    </button>
+  `;
+}
+
+function getRowsForFixtureSide_(gwId, homeTeam, awayTeam, side) {
+  const wantedGw = String(gwId || "").trim().toUpperCase();
+  const wantedHome = normTeamKey_(homeTeam);
+  const wantedAway = normTeamKey_(awayTeam);
+  const wantedSide = String(side || "").trim().toLowerCase();
+
+  const rows = (window.__adminSubmissionRows || []).filter(row => {
+    const fixture = row.fixture;
+    if (!fixture) return false;
+
+    const sameGw = String(fixture.gwId || "").trim().toUpperCase() === wantedGw;
+    const sameHome = normTeamKey_(fixture.home) === wantedHome;
+    const sameAway = normTeamKey_(fixture.away) === wantedAway;
+
+    if (!sameGw || !sameHome || !sameAway) return false;
+
+    const pickedHome = normTeamKey_(row.pick) === wantedHome;
+    const pickedAway = normTeamKey_(row.pick) === wantedAway;
+
+    return wantedSide === "home" ? pickedHome : pickedAway;
+  });
+
+  return rows.sort((a, b) => String(a.name || "").localeCompare(String(b.name || "")));
+}
+
+function openPickBadgeModal_(gwId, homeTeam, awayTeam, side) {
+  const rows = getRowsForFixtureSide_(gwId, homeTeam, awayTeam, side);
+  const pickedTeam = side === "home" ? homeTeam : awayTeam;
+
+  openBulkResolveModal({
+    title: `${pickedTeam} picks`,
+    html: rows.length
+      ? `
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          ${rows.map(row => `
+            <div style="padding:10px 12px;border:1px solid rgba(255,255,255,0.08);border-radius:12px;">
+              <div style="font-weight:700;">${escapeHtml(row.name || "")}</div>
+              <div class="muted small">${escapeHtml(row.gwId || "")} • ${escapeHtml(row.pick || "")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `
+      : `<div class="muted">No picks found.</div>`,
+    onConfirm: async () => { }
+  });
+
+  if (bulkResolveConfirmBtn) bulkResolveConfirmBtn.textContent = "Close";
+  if (bulkResolveCancelBtn) bulkResolveCancelBtn.classList.add("hidden");
+}
+
+function bindPickBadgeEvents_() {
+  document.querySelectorAll('[data-pick-badge="1"]').forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      openPickBadgeModal_(
+        btn.getAttribute("data-gw-id") || "",
+        btn.getAttribute("data-home") || "",
+        btn.getAttribute("data-away") || "",
+        btn.getAttribute("data-side") || ""
+      );
+    });
+  });
+}
+
 function getDayAddToggleState_(day) {
   const changeFixtures = [];
 
@@ -2098,6 +2152,10 @@ function renderFixtureEditorRow_(fx) {
   const leftLogo = getTeamLogo_(fx.team1);
   const rightLogo = getTeamLogo_(fx.team2);
 
+  const pickCounts = getAdminFixturePickCounts_(fx);
+  const homePickStats = pickCounts?.home || null;
+  const awayPickStats = pickCounts?.away || null;
+
   let changeLine = "";
   if (fx.change?.type === "update") {
     const beforeLine = formatFixtureDateTimeDisplay(fx.change.beforeDate, fx.change.beforeTime);
@@ -2174,8 +2232,7 @@ function renderFixtureEditorRow_(fx) {
       data-fixture-id="${escapeHtml(fx.fixtureId)}"
       style="position:relative;"
     >
-
-      <div style="width:100%;">
+      <div style="width:100%;min-width:0;">
         <div class="fixture-row-main" style="min-width:0;">
 
           <div
@@ -2184,18 +2241,61 @@ function renderFixtureEditorRow_(fx) {
               display:grid;
               grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);
               align-items:center;
-              gap:6px;
+              gap:10px;
+              width:100%;
+              min-width:0;
             "
           >
-            <div style="display:flex;align-items:center;justify-content:flex-end;gap:6px;min-width:0;text-align:right;">
-              <div class="team-name" style="min-width:0;white-space:normal;line-height:1.15;display:flex;align-items:center;min-height:22px;">
+            <div
+              style="
+                position:relative;
+                display:grid;
+                grid-template-columns:minmax(0,1fr) 22px;
+                align-items:center;
+                gap:8px;
+                min-width:0;
+                text-align:right;
+                padding-left:${homePickStats ? "30px" : "0"};
+              "
+            >
+              ${homePickStats ? `
+                <div
+                  style="
+                    position:absolute;
+                    left:0;
+                    top:50%;
+                    transform:translateY(-50%);
+                    width:22px;
+                    height:22px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    z-index:2;
+                  "
+                >
+                  ${renderPickBadge_(homePickStats, fx, "home")}
+                </div>
+              ` : ""}
+
+              <div
+                class="team-name"
+                style="
+                  min-width:0;
+                  line-height:1.15;
+                  text-align:right;
+                  white-space:normal;
+                  word-break:normal;
+                  overflow-wrap:normal;
+                "
+              >
                 ${escapeHtml(fx.team1)}
               </div>
+
               <img
                 src="${escapeHtml(leftLogo)}"
                 alt="${escapeHtml(fx.team1)}"
                 class="team-logo"
-                style="display:block;flex:0 0 auto;"
+                style="display:block;width:22px;height:22px;object-fit:contain;"
                 onerror="this.onerror=null;this.src='../site/images/team-default.png';"
               />
             </div>
@@ -2204,21 +2304,62 @@ function renderFixtureEditorRow_(fx) {
               ${renderFixtureMiddleBox_(fx)}
             </div>
 
-            <div style="display:flex;align-items:center;justify-content:flex-start;gap:6px;min-width:0;text-align:left;">
+            <div
+              style="
+                position:relative;
+                display:grid;
+                grid-template-columns:22px minmax(0,1fr);
+                align-items:center;
+                gap:8px;
+                min-width:0;
+                text-align:left;
+                padding-right:${awayPickStats ? "30px" : "0"};
+              "
+            >
               <img
                 src="${escapeHtml(rightLogo)}"
                 alt="${escapeHtml(fx.team2)}"
                 class="team-logo"
-                style="display:block;flex:0 0 auto;"
+                style="display:block;width:22px;height:22px;object-fit:contain;"
                 onerror="this.onerror=null;this.src='../site/images/team-default.png';"
               />
-              <div class="team-name" style="min-width:0;white-space:normal;line-height:1.15;display:flex;align-items:center;min-height:22px;">
+
+              <div
+                class="team-name"
+                style="
+                  min-width:0;
+                  line-height:1.15;
+                  text-align:left;
+                  white-space:normal;
+                  word-break:normal;
+                  overflow-wrap:normal;
+                "
+              >
                 ${escapeHtml(fx.team2)}
               </div>
+
+              ${awayPickStats ? `
+                <div
+                  style="
+                    position:absolute;
+                    right:0;
+                    top:50%;
+                    transform:translateY(-50%);
+                    width:22px;
+                    height:22px;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    z-index:2;
+                  "
+                >
+                  ${renderPickBadge_(awayPickStats, fx, "away")}
+                </div>
+              ` : ""}
             </div>
           </div>
 
-          <div class="fixture-datetime muted" style="text-align:center;margin-top:2px;line-height:1.1;">
+          <div class="fixture-datetime muted" style="text-align:center;margin-top:4px;line-height:1.1;">
             ${hasScore ? formatResultStatusLabel_(fx.resultStatus) : ""}
           </div>
 
@@ -2230,7 +2371,7 @@ function renderFixtureEditorRow_(fx) {
         <div style="position:absolute;top:12px;right:12px;z-index:2;">
           ${actionHtml}
         </div>
-      ` : ``}
+      ` : ""}
 
       ${statusLine}
     </div>
@@ -2294,11 +2435,15 @@ async function loadGroupedFixturesView() {
   let usedFallback = false;
 
   try {
+    const leagueKeys = getAdminLeagueKeysForSelectedGame_();
+
     data = await fixtureApi("/fixtures/editor-view", {
       adminKey,
-      league: "all",
+      league: leagueKeys.length === 1 ? leagueKeys[0] : "all",
+      allowedLeagueKeys: leagueKeys,
       useTestFiles: false
     });
+
     fixtureAdminServerAvailable = true;
   } catch (err) {
     console.warn("Fixture admin server unavailable, using JSON fallback view.", err);
@@ -2420,9 +2565,12 @@ async function commitFixtureSync() {
       throw new Error("Choose both commit dates.");
     }
 
+    const leagueKeys = getAdminLeagueKeysForSelectedGame_();
+
     const data = await fixtureApi("/commit", {
       adminKey,
-      league: "all",
+      league: leagueKeys.length === 1 ? leagueKeys[0] : "all",
+      allowedLeagueKeys: leagueKeys,
       from,
       to,
       actualGwId: selectedGwObj?.actualGwId || null,
@@ -2479,192 +2627,16 @@ async function commitFixtureSync() {
   }
 }
 
-function applyResolvedStateToRow_(targetRow, newOutcome) {
-  const key = makeSubKey(targetRow, targetRow.gwId);
-  const cached = seenSubs.get(key);
-  if (!cached || !cached.el) return;
-
-  cached.outcome = newOutcome;
-  cached.isResolved = true;
-
-  if (cached.rowData) {
-    cached.rowData.outcome = newOutcome;
-  }
-
-  applyOutcomeStyles(cached.el, newOutcome);
-
-  const controls = cached.el.querySelector(".admin-controls");
-  if (controls) {
-    controls.innerHTML = `
-      <div class="admin-submission-actions">
-        <span class="state ${newOutcome === "WIN" ? "good" : "bad"}">${newOutcome === "WIN" ? "✓" : "✕"}</span>
-        <button class="btn btn-ghost" data-unresolve="1" type="button">Unresolve</button>
-      </div>
-    `;
-  }
-
-  const resolvedList = ensureResolvedList_();
-  if (resolvedList) {
-    resolvedList.prepend(cached.el);
-  }
-
-  bindResolvedRowEvents_(cached.el, targetRow, newOutcome);
+async function setPickOutcomeDirect_(row, newOutcome) {
+  return api({
+    action: "adminSetPickOutcome",
+    adminKey,
+    email: row.email,
+    gameId: selectedGameId,
+    gwId: row.gwId,
+    outcome: newOutcome
+  });
 }
-
-function bindResolvedRowEvents_(rowEl, rowData, currentOutcome) {
-  const unresolveBtn = rowEl.querySelector('button[data-edit="1"], button[data-unresolve="1"]');
-  if (!unresolveBtn) return;
-
-  unresolveBtn.textContent = "Unresolve";
-  unresolveBtn.setAttribute("data-unresolve", "1");
-  unresolveBtn.removeAttribute("data-edit");
-  unresolveBtn.className = "btn btn-ghost";
-
-  unresolveBtn.onclick = () => {
-    const rowsToUnresolve = Array.from(seenSubs.values())
-      .filter(v => {
-        const r = v.rowData;
-        return v.isResolved &&
-          r &&
-          String(r.gwId || "").toUpperCase() === String(rowData.gwId || "").toUpperCase() &&
-          normTeamKey_(r.pick) === normTeamKey_(rowData.pick);
-      })
-      .map(v => v.rowData);
-
-    const count = rowsToUnresolve.length;
-    const teamName = rowData.pick || "this team";
-
-    openBulkResolveModal({
-      title: "Confirm unresolve",
-      html: `
-        <p style="margin:0;line-height:1.5;">
-          Are you sure you want to unresolve <strong>${escapeHtml(teamName)}</strong>?
-        </p>
-      `,
-      onConfirm: async () => {
-        const buttonsToSpin = [];
-
-        try {
-          rowsToUnresolve.forEach(r => {
-            const key = makeSubKey(r, r.gwId);
-            const cached = seenSubs.get(key);
-            const btn = cached?.el?.querySelector('button[data-unresolve="1"]');
-            if (btn) {
-              buttonsToSpin.push(btn);
-              setBtnLoading(btn, true);
-            }
-          });
-
-          await Promise.all(
-            rowsToUnresolve.map(r => setPickOutcomeDirect_(r, "PENDING"))
-          );
-
-          await refreshSubmissionsIncremental({ full: true });
-          showMsg(`${rowsToUnresolve.length} ${teamName} pick(s) unresolved`, true);
-        } catch (e) {
-          showMsg(String(e.message || e), false);
-        } finally {
-          buttonsToSpin.forEach(btn => setBtnLoading(btn, false));
-        }
-      }
-    });
-  };
-}
-
-
-function renderSubmissionRow(row) {
-  const div = document.createElement("div");
-  div.className = "list-item admin-submission-row";
-
-  let outcome = String(row.outcome || "PENDING").toUpperCase();
-
-  const fixture = findFixtureForPick_(row.gwId, row.pick);
-  const kickoff = fixture?.kickoff || null;
-
-  let fixtureLine = "Fixture not found";
-  let dateTimeLine = "";
-  let resultLine = "";
-
-  if (fixture) {
-    const isHome = normTeamKey_(fixture.home) === normTeamKey_(row.pick);
-    const opponent = isHome ? fixture.away : fixture.home;
-    resultLine = formatFixtureResultDisplay_(fixture);
-
-    fixtureLine = `vs ${opponent}`;
-
-    const datePart = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Europe/London",
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit"
-    }).format(fixture.kickoff);
-
-    const timePart = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Europe/London",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false
-    }).format(fixture.kickoff);
-
-    dateTimeLine = `${datePart} ${timePart}`;
-  }
-
-  const renderResolvedControls = (o) => `
-    <div class="admin-submission-actions">
-      <span class="state ${o === "WIN" ? "good" : "bad"}">${o === "WIN" ? "✓" : "✕"}</span>
-      <button class="btn btn-ghost" data-unresolve="1" type="button">Unresolve</button>
-    </div>
-  `;
-
-  div.innerHTML = `
-    <div class="admin-submission-main">
-      <div class="admin-submission-head">
-        <div class="admin-submission-name">
-          ${escapeHtml(row.name || "")}
-          <span class="admin-submission-gw">- ${escapeHtml(row.gwId || "")}</span>
-        </div>
-        <div class="admin-controls">
-          ${isResolved(outcome) ? renderResolvedControls(outcome) : ""}
-        </div>
-      </div>
-
-      <div class="admin-submission-pickline">
-        <img
-          class="admin-submission-logo"
-          src="${escapeHtml(getTeamLogo_(row.pick || ""))}"
-          alt="${escapeHtml(row.pick || "")} logo"
-          onerror="this.onerror=null;this.src='../site/images/team-default.png';"
-        />
-        <span class="admin-submission-pick">${escapeHtml(row.pick || "—")}</span>
-      </div>
-
-      <div class="admin-submission-fixtureline">
-        <span class="admin-submission-fixture">${escapeHtml(fixtureLine)}</span>
-        <span class="admin-submission-time">${escapeHtml(dateTimeLine)}</span>
-      </div>
-
-      ${resultLine ? `
-        <div class="admin-submission-fixtureline" style="margin-top:4px;">
-          <span style="font-weight:800;">${escapeHtml(resultLine)}</span>
-        </div>
-      ` : ""}
-    </div>
-  `;
-
-  applyOutcomeStyles(div, outcome);
-
-  if (isResolved(outcome)) {
-    bindResolvedRowEvents_(div, row, outcome);
-  }
-
-  return {
-    el: div,
-    outcome,
-    isResolved: isResolved(outcome),
-    kickoff
-  };
-}
-
 
 /*******************************
  * Submissions load
@@ -2697,6 +2669,51 @@ function restoreOpenLeagueStates_(states) {
   });
 }
 
+function formatSubmissionMetaLine_(fixture) {
+  if (!fixture?.kickoff) return "";
+
+  const datePart = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    day: "2-digit",
+    month: "2-digit",
+    year: "2-digit"
+  }).format(fixture.kickoff);
+
+  const timePart = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/London",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false
+  }).format(fixture.kickoff);
+
+  return `${datePart} ${timePart}`;
+}
+
+function getPendingStatusText_(fixture) {
+  if (!fixture) {
+    return {
+      top: "Fixture not found",
+      bottom: "Check fixture data"
+    };
+  }
+
+  const hasScore =
+    Number.isInteger(fixture.homeScore) &&
+    Number.isInteger(fixture.awayScore);
+
+  if (!hasScore) {
+    return {
+      top: "Awaiting result",
+      bottom: "Not ready yet"
+    };
+  }
+
+  return {
+    top: formatFixtureResultDisplay_(fixture),
+    bottom: "Waiting for auto-resolve"
+  };
+}
+
 function renderPendingFixtureBlock_(rows) {
   const first = rows[0];
   const fixture = first?.fixture || null;
@@ -2711,7 +2728,7 @@ function renderPendingFixtureBlock_(rows) {
 
   let opponent = "Opponent unknown";
   let dateTimeLine = "";
-  let resultLine = "";
+  const status = getPendingStatusText_(fixture);
 
   if (fixture) {
     const isHomePick = normTeamKey_(fixture.home) === pickedTeamKey;
@@ -2720,27 +2737,11 @@ function renderPendingFixtureBlock_(rows) {
     if (isHomePick) opponent = fixture.away;
     else if (isAwayPick) opponent = fixture.home;
 
-    const datePart = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Europe/London",
-      day: "2-digit",
-      month: "2-digit",
-      year: "2-digit"
-    }).format(fixture.kickoff);
-
-    const timePart = new Intl.DateTimeFormat("en-GB", {
-      timeZone: "Europe/London",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false
-    }).format(fixture.kickoff);
-
-    dateTimeLine = `${datePart} ${timePart}`;
-    resultLine = formatFixtureResultDisplay_(fixture);
+    dateTimeLine = formatSubmissionMetaLine_(fixture);
   }
 
   wrap.innerHTML = `
     <div class="admin-fixture-resolve-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:10px;min-width:0;">
           <img
@@ -2749,36 +2750,27 @@ function renderPendingFixtureBlock_(rows) {
             style="width:22px;height:22px;object-fit:contain;flex:0 0 auto;"
             onerror="this.onerror=null;this.src='../site/images/team-default.png';"
           />
-          <div style="font-weight:800;line-height:1.15;">
+          <div style="font-weight:800;line-height:1.15;min-width:0;">
             ${escapeHtml(pickedTeam || "Unknown team")}
           </div>
         </div>
 
         <div class="muted" style="margin-top:6px;">
           vs ${escapeHtml(opponent)}
-        </div> 
-      </div>
-
-      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:8px;flex:0 0 auto;">
-        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-          <div class="muted small" style="white-space:nowrap;">
-            ${escapeHtml(dateTimeLine)}
-          </div>
-          ${resultLine ? `
-            <div style="font-weight:800;white-space:nowrap;">
-              ${escapeHtml(resultLine)}
-            </div>
-          ` : `
-            <div class="muted small" style="white-space:nowrap;">
-              Awaiting final score
-            </div>
-          `}
-          <div class="muted small" style="white-space:nowrap;">
-            ${resultLine ? "Waiting for auto-resolve" : "Not ready yet"}
-          </div>
         </div>
       </div>
 
+      <div style="display:flex;flex-direction:column;align-items:flex-end;justify-content:flex-start;gap:4px;flex:0 0 auto;">
+        <div class="muted small" style="white-space:nowrap;">
+          ${escapeHtml(dateTimeLine)}
+        </div>
+        <div style="font-weight:800;white-space:nowrap;">
+          ${escapeHtml(status.top)}
+        </div>
+        <div class="muted small" style="white-space:nowrap;">
+          ${escapeHtml(status.bottom)}
+        </div>
+      </div>
     </div>
   `;
 
@@ -2794,7 +2786,9 @@ function renderPendingFixtureBlock_(rows) {
 
     playerRow.innerHTML = `
       <div class="list-left">
-        <div class="list-title" style="font-weight:700;">${escapeHtml(row.name || "")} - ${escapeHtml(row.gwId || "")}</div>
+        <div class="list-title" style="font-weight:700;">
+          ${escapeHtml(row.name || "")} - ${escapeHtml(row.gwId || "")}
+        </div>
       </div>
     `;
 
@@ -2811,6 +2805,119 @@ function renderPendingFixtureBlock_(rows) {
   });
 
   wrap.appendChild(playersList);
+  return wrap;
+}
+
+function buildRecentActivityGroups_(rows) {
+  const groups = new Map();
+
+  for (const row of rows) {
+    const fixture = row.fixture || null;
+    const outcome = String(row.outcome || "").toUpperCase();
+
+    const key = fixture
+      ? `${String(row.gwId || "").toUpperCase()}::${normTeamKey_(fixture.home)}::${normTeamKey_(fixture.away)}::${outcome}`
+      : `${String(row.gwId || "").toUpperCase()}::${normTeamKey_(row.pick || "")}::no_fixture::${outcome}`;
+
+    if (!groups.has(key)) {
+      groups.set(key, {
+        gwId: row.gwId,
+        outcome,
+        fixture,
+        rows: []
+      });
+    }
+
+    groups.get(key).rows.push(row);
+  }
+
+  return Array.from(groups.values()).sort((a, b) => {
+    const at = a.fixture?.kickoff ? a.fixture.kickoff.getTime() : 0;
+    const bt = b.fixture?.kickoff ? b.fixture.kickoff.getTime() : 0;
+    return bt - at;
+  });
+}
+
+function renderRecentActivityCard_(group) {
+  const firstRow = group.rows[0];
+  const fixture = group.fixture;
+  const count = group.rows.length;
+  const outcome = String(group.outcome || "").toUpperCase();
+
+  const wrap = document.createElement("div");
+  wrap.className = `list-item admin-submission-row ${outcome === "WIN" ? "row-win" : "row-loss"}`;
+
+  let title = "Resolved activity";
+  let subtitle = "";
+  let resultLine = "";
+  let pickedTeam = "";
+
+  if (fixture) {
+    title = `${fixture.home} vs ${fixture.away}`;
+    subtitle = formatSubmissionMetaLine_(fixture);
+    resultLine = formatFixtureResultDisplay_(fixture);
+    pickedTeam = firstRow.pick || "";
+  } else {
+    title = firstRow.pick || "Unknown team";
+    subtitle = firstRow.gwId || "";
+  }
+
+  wrap.innerHTML = `
+    <div class="admin-submission-main">
+      <div class="admin-submission-head">
+        <div class="admin-submission-name">
+          ${escapeHtml(title)}
+        </div>
+        <div class="admin-controls">
+          <button class="btn btn-ghost" data-unresolve-group="1" type="button">Unresolve</button>
+        </div>
+      </div>
+
+      <div class="admin-submission-fixtureline">
+        <span class="admin-submission-fixture">
+          ${escapeHtml(`${count} pick${count === 1 ? "" : "s"} resolved • ${outcome}`)}
+        </span>
+        <span class="admin-submission-time">${escapeHtml(subtitle)}</span>
+      </div>
+
+      ${resultLine ? `
+        <div class="admin-submission-fixtureline" style="margin-top:4px;">
+          <span style="font-weight:800;">${escapeHtml(resultLine)}</span>
+          ${pickedTeam ? `<span class="muted">• ${escapeHtml(pickedTeam)}</span>` : ``}
+        </div>
+      ` : ``}
+    </div>
+  `;
+
+  const btn = wrap.querySelector('button[data-unresolve-group="1"]');
+  if (btn) {
+    btn.addEventListener("click", () => {
+      openBulkResolveModal({
+        title: "Confirm unresolve",
+        html: `
+          <p style="margin:0;line-height:1.5;">
+            Are you sure you want to unresolve this fixture group?
+          </p>
+        `,
+        onConfirm: async () => {
+          try {
+            setBtnLoading(btn, true);
+
+            await Promise.all(
+              group.rows.map(row => setPickOutcomeDirect_(row, "PENDING"))
+            );
+
+            await refreshSubmissionsIncremental({ full: true });
+            showMsg(`${group.rows.length} pick(s) unresolved`, true);
+          } catch (e) {
+            showMsg(String(e.message || e), false);
+          } finally {
+            setBtnLoading(btn, false);
+          }
+        }
+      });
+    });
+  }
 
   return wrap;
 }
@@ -2855,7 +2962,7 @@ async function refreshSubmissionsIncremental({ full = false } = {}) {
       gameId: selectedGameId
     });
 
-    let allRows = (Array.isArray(data.rows) ? data.rows : []).map(r => ({
+    const allRows = (Array.isArray(data.rows) ? data.rows : []).map(r => ({
       ...r,
       gameId: selectedGameId,
       gwId: String(r.gwId || "").trim().toUpperCase()
@@ -2873,6 +2980,8 @@ async function refreshSubmissionsIncremental({ full = false } = {}) {
       };
     });
 
+    adminPickCountsByFixture = buildAdminPickCounts_(enriched);
+
     window.__adminSubmissionRows = enriched;
 
     const pendingRows = enriched
@@ -2884,14 +2993,8 @@ async function refreshSubmissionsIncremental({ full = false } = {}) {
         return String(a.name || "").localeCompare(String(b.name || ""));
       });
 
-    const resolvedRows = enriched
-      .filter(r => r.resolved)
-      .sort((a, b) => {
-        const at = a.kickoff ? a.kickoff.getTime() : 0;
-        const bt = b.kickoff ? b.kickoff.getTime() : 0;
-        if (bt !== at) return bt - at;
-        return String(a.name || "").localeCompare(String(b.name || ""));
-      });
+    const resolvedRows = enriched.filter(r => r.resolved);
+    const recentActivityGroups = buildRecentActivityGroups_(resolvedRows);
 
     const pendingGrouped = new Map();
     for (const row of pendingRows) {
@@ -2950,53 +3053,44 @@ async function refreshSubmissionsIncremental({ full = false } = {}) {
 
     subsContainer.appendChild(pendingWrap);
 
-    const resolvedWrap = document.createElement("div");
-    resolvedWrap.className = "fixtures-card";
+    const activityWrap = document.createElement("div");
+    activityWrap.className = "fixtures-card";
 
-    const resolvedTitle = document.createElement("h3");
-    resolvedTitle.style.marginTop = "0";
-    resolvedTitle.textContent = "Resolved";
-    resolvedWrap.appendChild(resolvedTitle);
+    const activityTitle = document.createElement("h3");
+    activityTitle.style.marginTop = "0";
+    activityTitle.textContent = "Recent activity";
+    activityWrap.appendChild(activityTitle);
 
-    if (!resolvedRows.length) {
+    if (!recentActivityGroups.length) {
       const empty = document.createElement("div");
       empty.className = "muted";
-      empty.textContent = "No resolved submissions.";
-      resolvedWrap.appendChild(empty);
+      empty.textContent = "No recent activity.";
+      activityWrap.appendChild(empty);
     } else {
       const list = document.createElement("div");
       list.className = "list";
-      list.id = "resolvedSubmissionsList";
+      list.id = "recentActivityList";
 
-      for (const row of resolvedRows) {
-        const rendered = renderSubmissionRow(row);
-        list.appendChild(rendered.el);
+      recentActivityGroups.slice(0, 12).forEach(group => {
+        list.appendChild(renderRecentActivityCard_(group));
+      });
 
-        const key = makeSubKey(row, row.gwId);
-        seenSubs.set(key, {
-          outcome: rendered.outcome,
-          el: rendered.el,
-          gwId: row.gwId,
-          isResolved: rendered.isResolved,
-          rowData: row
-        });
-      }
-
-      resolvedWrap.appendChild(list);
+      activityWrap.appendChild(list);
     }
 
-    subsContainer.appendChild(resolvedWrap);
+    subsContainer.appendChild(activityWrap);
 
     const pending = pendingRows.length;
-    const resolved = resolvedRows.length;
-
     const game = adminGames.find(g => String(g.id) === String(selectedGameId));
     const gameLabel = game?.title || selectedGameId;
 
     if (subsPendingCount) subsPendingCount.textContent = `(${pending})`;
-    if (subsResolvedCount) subsResolvedCount.textContent = `(${resolved})`;
+    if (subsResolvedCount) subsResolvedCount.textContent = "";
     if (subsMeta) {
-      subsMeta.textContent = `${gameLabel} • Pending: ${pending} • Resolved: ${resolved} • Total: ${pending + resolved}`;
+      subsMeta.textContent = `${gameLabel} • Pending: ${pending}`;
+    }
+    if (!fixturesPanel?.classList.contains("hidden")) {
+      renderAdminFixturesTabView_();
     }
   } catch (e) {
     console.error("refreshSubmissionsIncremental failed:", e);
@@ -3024,12 +3118,15 @@ async function rescanFixturesForSelectedGw_(from, to) {
 
   const actualGwId = selectedGw.actualGwId || getActualGwIdForSelectedGame_(selectedGw.gwId);
 
+  const leagueKeys = getAdminLeagueKeysForSelectedGame_();
+
   const data = await fixtureApi("/fixtures/rescan-gw", {
     adminKey,
     actualGwId,
     from,
     to,
-    league: "all",
+    league: leagueKeys.length === 1 ? leagueKeys[0] : "all",
+    allowedLeagueKeys: leagueKeys,
     useTestFiles: false
   });
 
@@ -3179,7 +3276,6 @@ async function loginWithKey(key) {
 
     localStorage.setItem(LS_ADMIN_KEY, adminKey);
 
-    submissionsLoadedOnce = false;
     seenSubs.clear();
     if (subsContainer) subsContainer.innerHTML = "";
 
@@ -3214,7 +3310,6 @@ function logout() {
   subsContainer && (subsContainer.innerHTML = "");
   subsMeta && (subsMeta.textContent = "");
 
-  submissionsLoadedOnce = false;
   seenSubs.clear();
 
   exitPanel();
@@ -3227,16 +3322,19 @@ function logout() {
 
 adminGameSelect?.addEventListener("change", async () => {
   selectedGameId = adminGameSelect.value || "";
-  submissionsLoadedOnce = false;
   seenSubs.clear();
   subsContainer && (subsContainer.innerHTML = "");
 
   try {
+    await loadAdminFixtures_();
     await loadApprovals();
 
     if (!subsPanel?.classList.contains("hidden")) {
-      submissionsLoadedOnce = true;
       await refreshSubmissionsIncremental({ full: true });
+    }
+
+    if (!fixturesPanel?.classList.contains("hidden")) {
+      await loadGroupedFixturesView();
     }
   } catch (e) {
     showMsg(String(e.message || e), false);

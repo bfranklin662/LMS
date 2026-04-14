@@ -57,10 +57,16 @@ async function handleFixturesEditorView(body, res) {
 
   const {
     league = "all",
+    allowedLeagueKeys = [],
     useTestFiles = false
   } = body;
 
-  const targets = getTargetFiles({ league, useTestFiles });
+  let targets = getTargetFiles({ league, useTestFiles });
+
+  if (Array.isArray(allowedLeagueKeys) && allowedLeagueKeys.length) {
+    const allowed = new Set(allowedLeagueKeys.map(String));
+    targets = targets.filter(t => allowed.has(t.key));
+  }
   const allFixtures = [];
 
   for (const target of targets) {
@@ -163,8 +169,18 @@ async function handleFixturesRescanGw(body, res) {
     from,
     to,
     league = "all",
+    allowedLeagueKeys = [],
     useTestFiles = false
   } = body;
+
+  const actualGwKey = String(actualGwId).trim().toUpperCase();
+
+  let targets = getTargetFiles({ league, useTestFiles });
+
+  if (Array.isArray(allowedLeagueKeys) && allowedLeagueKeys.length) {
+    const allowed = new Set(allowedLeagueKeys.map(String));
+    targets = targets.filter(t => allowed.has(t.key));
+  }
 
   if (!actualGwId) {
     throw new Error("Missing actualGwId");
@@ -174,8 +190,7 @@ async function handleFixturesRescanGw(body, res) {
     throw new Error("Missing from/to");
   }
 
-  const actualGwKey = String(actualGwId).trim().toUpperCase();
-  const targets = getTargetFiles({ league, useTestFiles });
+
   const fixtures = [];
   const leagueSummaries = [];
 
@@ -205,6 +220,7 @@ async function handleFixturesRescanGw(body, res) {
       removeMissing: true,
       addMissing: true,
       dryRun: true,
+      forceGwId: actualGwKey
     });
 
     console.log(`--- ${target.file} sync output start ---`);
@@ -248,14 +264,6 @@ async function handleFixturesRescanGw(body, res) {
 
         return (sameBeforeTeams && sameBeforeDate) || (sameAfterTeams && sameAfterDate);
       });
-
-      if (String(m.team1 || "").includes("Crystal Palace")) {
-        console.log("[DEBUG Palace row]", {
-          local: m,
-          updatedFound: updated || null,
-          allUpdated: result.updated || []
-        });
-      }
 
       if (updated) {
         status = "updated";
@@ -422,6 +430,7 @@ async function handleResultsUpdateGw(body, res) {
     from,
     to,
     league = "all",
+    allowedLeagueKeys = [],
     useTestFiles = false
   } = body;
 
@@ -429,7 +438,12 @@ async function handleResultsUpdateGw(body, res) {
   if (!from || !to) throw new Error("Missing from/to");
 
   const actualGwKey = String(actualGwId).trim().toUpperCase();
-  const targets = getTargetFiles({ league, useTestFiles });
+  let targets = getTargetFiles({ league, useTestFiles });
+
+  if (Array.isArray(allowedLeagueKeys) && allowedLeagueKeys.length) {
+    const allowed = new Set(allowedLeagueKeys.map(String));
+    targets = targets.filter(t => allowed.has(t.key));
+  }
   const results = [];
 
   for (const target of targets) {
@@ -845,6 +859,7 @@ async function handleCommit(body, res) {
 
   const {
     league = "all",
+    allowedLeagueKeys = [],
     from,
     to,
     actualGwId,
@@ -857,7 +872,12 @@ async function handleCommit(body, res) {
     throw new Error("Missing from/to");
   }
 
-  const targets = getTargetFiles({ league, useTestFiles });
+  let targets = getTargetFiles({ league, useTestFiles });
+
+  if (Array.isArray(allowedLeagueKeys) && allowedLeagueKeys.length) {
+    const allowed = new Set(allowedLeagueKeys.map(String));
+    targets = targets.filter(t => allowed.has(t.key));
+  }
   const results = [];
   let deadlinesOutput = "";
 
@@ -983,10 +1003,6 @@ const server = http.createServer(async (req, res) => {
 
   try {
     const body = await parseBody(req);
-
-    if (req.url === "/fixtures/view") {
-      return await handleFixturesView(body, res);
-    }
 
     if (req.url === "/fixtures/editor-view") {
       return await handleFixturesEditorView(body, res);

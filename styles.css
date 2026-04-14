@@ -1741,8 +1741,7 @@ details[open]>summary.collapse-summary .caret {
 /* Prevent fixture rows from wrapping onto multiple lines */
 .fixture-main,
 .fixture-teams,
-.team-inline,
-.team-name {
+.team-inline {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4058,4 +4057,153 @@ button:disabled {
 
 .admin-card {
   padding: 10px 8px;
+}
+
+.pick-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  border: 1px solid rgba(255,255,255,0.14);
+  flex: 0 0 auto;
+}
+
+.pick-badge-win {
+  background: rgba(86, 214, 110, 0.18);
+  border-color: rgba(86, 214, 110, 0.45);
+  color: #b8ffbf;
+}
+
+.pick-badge-loss {
+  background: rgba(255, 77, 77, 0.18);
+  border-color: rgba(255, 77, 77, 0.45);
+  color: #ff9e9e;
+}
+
+.pick-badge-pending {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+  color: #e8e8e8;
+}
+
+.pick-badge-none {
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.08);
+  color: #999;
+}
+
+.league-summary .pick-badge,
+.day-head .pick-badge {
+  min-width: 20px;
+  height: 20px;
+  font-size: 11px;
+  padding: 0 6px;
+}
+
+.admin-pick-badge-btn,
+.pick-badge {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  padding: 0 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.admin-pick-badge-btn {
+  border: 1px solid rgba(255,255,255,0.14);
+  cursor: pointer;
+}
+
+.admin-pick-badge-btn:hover {
+  transform: scale(1.05);
+}
+
+.admin-pick-badge-btn:active {
+  transform: scale(0.98);
+}
+
+.team-name {
+  min-width: 0;
+  line-height: 1.15;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.fixture-pick-badge-slot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-width: 22px;
+}
+
+.team-name-home,
+.team-name-away {
+  min-width: 0;
+  line-height: 1.15;
+  word-break: keep-all;
+  overflow-wrap: normal;
+}
+
+.team-name-home {
+  text-align: right;
+}
+
+.team-name-away {
+  text-align: left;
+}
+
+.fixture-pick-badge-btn {
+  border: 1px solid rgba(255,255,255,0.14);
+  cursor: pointer;
+  background: transparent;
+}
+
+.fixture-pick-badge-btn:hover {
+  transform: scale(1.05);
+}
+
+.fixture-pick-badge-btn:active {
+  transform: scale(0.98);
+}
+
+.fixture-row .team-name {
+  min-width: 0;
+  line-height: 1.15;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.fixture-row .team-name-home,
+.fixture-row .team-name-away {
+  display: block;
+}
+
+.league-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.league-left {
+  min-width: 0;
+}
+
+.league-summary-right {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 0 0 auto;
 }
