@@ -1193,16 +1193,6 @@
     },
     {
       "gwId": "GW13",
-      "date": "2026-04-16",
-      "team1": "Peterborough",
-      "team2": "Port Vale",
-      "time": "19:45",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Barnsley",
       "team2": "Bradford City",

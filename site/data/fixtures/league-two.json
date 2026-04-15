@@ -1313,26 +1313,6 @@
     },
     {
       "gwId": "GW13",
-      "date": "2026-04-16",
-      "team1": "Bromley",
-      "team2": "Cambridge United",
-      "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW13",
-      "date": "2026-04-18",
-      "team1": "Crawley Town",
-      "team2": "Shrewsbury",
-      "time": "12:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Barrow",
       "team2": "Walsall",

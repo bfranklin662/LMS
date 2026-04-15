@@ -3852,8 +3852,11 @@ function getUnstartedTeamsForGw_(gwId) {
 
 
 function isGameLateRegistrationOpen_(game) {
+  const status = String(game?.status || "").toUpperCase();
+  if (status !== "OPEN") return false;
+
   const firstGw = getGameFirstGw_(game);
-  if (!firstGw?.lateDeadline) return false;
+  if (!firstGw?.deadline || !firstGw?.lateDeadline) return false;
 
   const nowMs = Date.now();
   return nowMs >= firstGw.deadline.getTime() && nowMs < firstGw.lateDeadline.getTime();
@@ -3864,7 +3867,9 @@ function isGameRegistrationOpenNow_(game) {
   if (status !== "OPEN") return false;
 
   const firstGw = getGameFirstGw_(game);
-  if (!firstGw?.lateDeadline) return false;
+
+  // Don't falsely show "closed" if fixtures/deadlines haven't loaded yet
+  if (!firstGw?.deadline || !firstGw?.lateDeadline) return true;
 
   return Date.now() < firstGw.lateDeadline.getTime();
 }
@@ -4892,23 +4897,25 @@ function renderLobby_() {
         : ``}
 
           ${status === "OPEN" && !entry && canRegisterNow
-        ? `
-                <div class="lobby-meta-line">
-                  <span class="lobby-meta-key">Entry fee:</span>
-                  <strong class="lobby-meta-key2">£${Number(g.entryFee || 0)}</strong>
-                </div>
+            ? `
+              <div class="lobby-meta-line">
+                <span class="lobby-meta-key">Entry fee:</span>
+                <strong class="lobby-meta-key2">£${Number(g.entryFee || 0)}</strong>
+              </div>
 
+              ${deadlineIso ? `
                 <div class="lobby-meta-line">
                   <span class="lobby-meta-key">${lateRegistrationOpen ? "Late entry deadline:" : "Entry deadline:"}</span>
                   <div class="lobby-meta-key2">
                     <strong>${escapeHtml(formatDeadlineDay_(deadlineIso))} · ${escapeHtml(formatDeadlineTime_(deadlineIso))}</strong>
                   </div>
                 </div>
-              `
-        : status === "OPEN" && !entry && !canRegisterNow
-          ? `<div class="lobby-meta-line">Registration closed</div>`
-          : ``
-      }
+              ` : ``}
+            `
+            : status === "OPEN" && !entry && firstGw?.lateDeadline && !canRegisterNow
+              ? `<div class="lobby-meta-line">Registration closed</div>`
+              : ``
+          }
               </div>
             </div>
           </div>

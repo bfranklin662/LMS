@@ -1223,16 +1223,6 @@
     },
     {
       "gwId": "GW13",
-      "date": "2026-04-17",
-      "team1": "Blackburn Rovers",
-      "team2": "Coventry",
-      "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Derby County",
       "team2": "Oxford Utd",
