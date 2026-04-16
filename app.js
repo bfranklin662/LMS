@@ -1777,7 +1777,6 @@ function getGameBannerStatusText_(game, entry) {
   if (!entry) {
     if (lateRegistrationOpen) return "Late reg";
     if (registrationOpenNow) return "Registering";
-    if (firstDeadlinePassed) return "Reg closed";
     return "Registering";
   }
 
@@ -1854,12 +1853,10 @@ function getGameBannerStatusClass_(game, entry) {
   if (text === "Pending") return "game-status-pill--running";
   if (text.startsWith("Running:")) return "game-status-pill--running";
   if (text.startsWith("Finished:")) return "game-status-pill--finished";
-  if (text === "Registration closed" || text === "Reg closed") {
-    return "game-status-pill--finished";
-  }
 
   return "game-status-pill--open";
 }
+
 
 function getPlayersBadgeHtml_(game, counts) {
   const gameId = String(game?.id || "");
@@ -4788,15 +4785,6 @@ function renderLobby_() {
           <div class="game-new-badge">NEW</div>
         ` : ``}
 
-        <div>
-          <button
-            class="hero-nav-btn"
-            type="button"
-            data-lobby-info="${escapeAttr(gameId)}"
-            aria-label="Competition info"
-          >i</button>
-        </div>
-
 
           <div>
             <button
@@ -4897,7 +4885,7 @@ function renderLobby_() {
         : ``}
 
           ${status === "OPEN" && !entry && canRegisterNow
-            ? `
+        ? `
               <div class="lobby-meta-line">
                 <span class="lobby-meta-key">Entry fee:</span>
                 <strong class="lobby-meta-key2">£${Number(g.entryFee || 0)}</strong>
@@ -4912,10 +4900,8 @@ function renderLobby_() {
                 </div>
               ` : ``}
             `
-            : status === "OPEN" && !entry && firstGw?.lateDeadline && !canRegisterNow
-              ? `<div class="lobby-meta-line">Registration closed</div>`
-              : ``
-          }
+        : ``
+      }
               </div>
             </div>
           </div>
@@ -4957,24 +4943,23 @@ function renderLobby_() {
             <div class="lobby-status-actions-row">
 
             ${sessionEmail && entry ? (
-              status === "FINISHED"
-                ? `
+        status === "FINISHED"
+          ? `
                   <div class="lobby-meta-line" style="margin:0;">
                     <span class="lobby-meta-key">Finished:</span>
                     <strong class="lobby-meta-key2">
-                      ${
-                        entry?.placing
-                          ? `${entry.placing}${ordinalSuffix_(entry.placing)}`
-                          : entry?.alive === false
-                            ? "Eliminated"
-                            : "—"
-                      }
+                      ${entry?.placing
+            ? `${entry.placing}${ordinalSuffix_(entry.placing)}`
+            : entry?.alive === false
+              ? "Eliminated"
+              : "—"
+          }
                       ${counts?.total ? ` of ${counts.total}` : ""}
                       ${entry?.placing === 1 ? " 🏆" : ""}
                     </strong>
                   </div>
                 `
-                : `
+          : `
                   <div class="lobby-meta-line" style="margin:0;">
                     <span class="lobby-meta-key">Your status:</span>
                     <span class="player-status-pill ${getPlayerStatusUi_(g, entry).pillClass}">
@@ -4985,7 +4970,7 @@ function renderLobby_() {
                     </span>
                   </div>
                 `
-            ) : `<div></div>`}
+      ) : `<div></div>`}
 
               ${actionsHtml ? `
                 <div class="lobby-card-actions" style="margin:0;">
