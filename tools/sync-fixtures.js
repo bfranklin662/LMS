@@ -13,43 +13,43 @@ const FLASHSCORE_URL =
 // For now we only test League One.
 const FILE_CONFIG = {
   "site/data/fixtures/league-one-test.json": {
-    url: "https://www.flashscore.co.uk/football/england/league-one/results/",
+    url: "https://www.flashscore.co.uk/football/england/league-one/fixtures/",
     label: "League One",
   },
   "site/data/fixtures/league-one.json": {
-    url: "https://www.flashscore.co.uk/football/england/league-one/results/",
+    url: "https://www.flashscore.co.uk/football/england/league-one/fixtures/",
     label: "League One",
   },
   "site/data/fixtures/league-two-test.json": {
-    url: "https://www.flashscore.co.uk/football/england/league-two/results/",
+    url: "https://www.flashscore.co.uk/football/england/league-two/fixtures/",
     label: "League Two",
   },
   "site/data/fixtures/league-two.json": {
-    url: "https://www.flashscore.co.uk/football/england/league-two/results/",
+    url: "https://www.flashscore.co.uk/football/england/league-two/fixtures/",
     label: "League Two",
   },
   "site/data/fixtures/championship-test.json": {
-    url: "https://www.flashscore.co.uk/football/england/championship/results/",
+    url: "https://www.flashscore.co.uk/football/england/championship/fixtures/",
     label: "Championship",
   },
   "site/data/fixtures/championship.json": {
-    url: "https://www.flashscore.co.uk/football/england/championship/results/",
+    url: "https://www.flashscore.co.uk/football/england/championship/fixtures/",
     label: "Championship",
   },
   "site/data/fixtures/premier-league-test.json": {
-    url: "https://www.flashscore.co.uk/football/england/premier-league/results/",
+    url: "https://www.flashscore.co.uk/football/england/premier-league/fixtures/",
     label: "Premier League",
   },
   "site/data/fixtures/premier-league.json": {
-    url: "https://www.flashscore.co.uk/football/england/premier-league/results/",
+    url: "https://www.flashscore.co.uk/football/england/premier-league/fixtures/",
     label: "Premier League",
   },
   "site/data/fixtures/fa-cup-test.json": {
-    url: "https://www.flashscore.co.uk/football/england/fa-cup/results/",
+    url: "https://www.flashscore.co.uk/football/england/fa-cup/fixtures/",
     label: "FA Cup",
   },
   "site/data/fixtures/fa-cup.json": {
-    url: "https://www.flashscore.co.uk/football/england/fa-cup/results/",
+    url: "https://www.flashscore.co.uk/football/england/fa-cup/fixtures/",
     label: "FA Cup",
   },
 };

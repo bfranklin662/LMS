@@ -234,6 +234,12 @@ async function handleFixturesRescanGw(body, res) {
       added: (result.added || []).length
     });
 
+    console.log("[RESCAN RESULT]", target.file, {
+      updated: result.updated,
+      removed: result.removed,
+      added: result.added
+    });
+
     leagueSummaries.push({
       leagueLabel: target.label,
       updated: (result.updated || []).length,
@@ -578,11 +584,15 @@ async function runSync({ file, from, to, removeMissing, addMissing, dryRun, opsF
     let stderr = "";
 
     child.stdout.on("data", (d) => {
-      stdout += d.toString();
+      const text = d.toString();
+      stdout += text;
+      process.stdout.write(`[sync stdout] ${text}`);
     });
 
     child.stderr.on("data", (d) => {
-      stderr += d.toString();
+      const text = d.toString();
+      stderr += text;
+      process.stderr.write(`[sync stderr] ${text}`);
     });
 
     child.on("error", reject);
@@ -964,6 +974,12 @@ async function runGenerateDeadlines() {
       cwd: BASE_DIR,
       env: process.env,
     });
+
+    const timeoutMs = 120000; // 2 minutes
+
+    const timeout = setTimeout(() => {
+      child.kill("SIGTERM");
+    }, timeoutMs);
 
     let stdout = "";
     let stderr = "";
