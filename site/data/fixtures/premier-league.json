@@ -916,10 +916,10 @@
       "date": "2026-04-18",
       "team1": "Tottenham",
       "team2": "Brighton",
-      "time": "17:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "16:30",
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
