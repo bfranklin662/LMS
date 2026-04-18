@@ -1226,30 +1226,30 @@
       "date": "2026-04-18",
       "team1": "Derby County",
       "team2": "Oxford Utd",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Millwall",
       "team2": "QPR",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Portsmouth",
       "team2": "Leicester City",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",

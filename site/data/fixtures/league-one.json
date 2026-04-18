@@ -1196,20 +1196,20 @@
       "date": "2026-04-18",
       "team1": "Barnsley",
       "team2": "Bradford City",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Bolton",
       "team2": "Huddersfield",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 3,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",

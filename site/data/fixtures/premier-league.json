@@ -886,10 +886,10 @@
       "date": "2026-04-18",
       "team1": "Brentford",
       "team2": "Fulham",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
