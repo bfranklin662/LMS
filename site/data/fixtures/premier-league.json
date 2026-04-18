@@ -896,20 +896,20 @@
       "date": "2026-04-18",
       "team1": "Leeds",
       "team2": "Wolves",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Newcastle",
       "team2": "Bournemouth",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",

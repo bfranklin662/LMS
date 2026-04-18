@@ -1256,70 +1256,70 @@
       "date": "2026-04-18",
       "team1": "Bristol City",
       "team2": "Norwich City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 2,
+      "awayScore": 4,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Hull City",
       "team2": "Birmingham",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Preston",
       "team2": "West Brom",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Sheffield Wed",
       "team2": "Charlton",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Swansea",
       "team2": "Southampton",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Watford",
       "team2": "Sheffield United",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-18",
       "team1": "Wrexham",
       "team2": "Stoke City",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
