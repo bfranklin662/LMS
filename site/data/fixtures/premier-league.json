@@ -936,30 +936,30 @@
       "date": "2026-04-19",
       "team1": "Aston Villa",
       "team2": "Sunderland",
-      "time": "14:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "13:00",
+      "homeScore": 4,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-19",
       "team1": "Everton",
       "team2": "Liverpool",
-      "time": "14:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "13:00",
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
       "date": "2026-04-19",
       "team1": "Nottingham Forest",
       "team2": "Burnley",
-      "time": "14:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "13:00",
+      "homeScore": 4,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
