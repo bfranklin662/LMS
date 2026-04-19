@@ -1306,10 +1306,10 @@
       "date": "2026-04-19",
       "team1": "Port Vale",
       "team2": "Wigan Athletic",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW14",
