@@ -1296,10 +1296,10 @@
       "date": "2026-04-19",
       "team1": "Peterborough",
       "team2": "Burton",
-      "time": "13:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "12:00",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
