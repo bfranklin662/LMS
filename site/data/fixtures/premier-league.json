@@ -966,10 +966,10 @@
       "date": "2026-04-19",
       "team1": "Manchester City",
       "team2": "Arsenal",
-      "time": "16:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:30",
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW13",
