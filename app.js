@@ -405,7 +405,7 @@ function getTeamLogo_(teamName) {
 }
 
 async function fetchGames_() {
-  const data = await api({ action: "getGames" });
+  const data = await api({ action: "getGames", email: currentUser?.email || "" });
   gamesList = Array.isArray(data.games) ? data.games : [];
 }
 

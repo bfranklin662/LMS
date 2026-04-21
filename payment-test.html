@@ -1,0 +1,302 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Payment Test</title>
+  <style>
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+      background:#120000;
+      color:#fff;
+      display:flex;
+      justify-content:center;
+    }
+    .phone{
+      width:420px;
+      min-height:100vh;
+      background:#140000;
+      padding:20px;
+    }
+    .card{
+      background:#1d0c0c;
+      border:1px solid #2a1a1a;
+      border-radius:18px;
+      padding:16px;
+      margin-bottom:14px;
+    }
+    .title{font-size:20px;font-weight:800;margin-bottom:6px}
+    .muted{color:#b8b8b8;font-size:14px}
+    .input{
+      width:100%;
+      box-sizing:border-box;
+      padding:14px;
+      border-radius:12px;
+      border:1px solid #3a2424;
+      background:#0f0a0a;
+      color:#fff;
+      margin-top:12px;
+    }
+    .btn{
+      width:100%;
+      border:none;
+      border-radius:12px;
+      padding:14px;
+      font-weight:700;
+      cursor:pointer;
+      margin-top:12px;
+    }
+    .btn-primary{background:#ff3b3b;color:#fff}
+    .btn-secondary{background:#2c1a1a;color:#fff}
+    .btn-copy{background:#1f2b1f;color:#fff}
+    .refBox{
+      margin-top:12px;
+      padding:16px;
+      border-radius:14px;
+      background:#0b0b0b;
+      border:1px solid #244f24;
+      text-align:center;
+    }
+    .refLabel{
+      color:#a7a7a7;
+      font-size:13px;
+      margin-bottom:8px;
+    }
+    .refCode{
+      font-size:28px;
+      font-weight:900;
+      letter-spacing:2px;
+      color:#7dff9a;
+    }
+    .detailRow{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:12px 0;
+      border-bottom:1px solid #2a1a1a;
+    }
+    .detailRow:last-child{border-bottom:none}
+    .detailValue{font-weight:700}
+    .sheetOverlay{
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.45);
+      display:none;
+    }
+    .sheetOverlay.show{display:block}
+    .sheet{
+      position:fixed;
+      left:50%;
+      transform:translateX(-50%);
+      bottom:-100%;
+      width:420px;
+      max-width:100%;
+      background:#1a0a0a;
+      border-radius:22px 22px 0 0;
+      padding:18px;
+      box-sizing:border-box;
+      transition:.3s ease;
+      box-shadow:0 -10px 40px rgba(0,0,0,.6);
+    }
+    .sheet.show{bottom:0}
+    .grabber{
+      width:42px;
+      height:5px;
+      border-radius:99px;
+      background:#666;
+      margin:0 auto 12px;
+    }
+    .status{
+      margin-top:12px;
+      padding:12px;
+      border-radius:12px;
+      font-weight:600;
+    }
+    .pending{background:#3a2d09;color:#ffd86a}
+    .approved{background:#12341a;color:#89ff9e}
+    .error{background:#3a1111;color:#ff9d9d}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="phone">
+    <div class="card">
+      <div class="title">Payment test</div>
+      <div class="muted">Create a test registration, then pay £10 with the generated reference.</div>
+
+      <input id="emailInput" class="input" type="email" placeholder="Enter test email" />
+
+      <button id="registerBtn" class="btn btn-primary">Register test entry</button>
+
+      <div id="registerStatus" class="status hidden"></div>
+    </div>
+  </div>
+
+  <div id="overlay" class="sheetOverlay"></div>
+
+  <div id="paymentSheet" class="sheet">
+    <div class="grabber"></div>
+    <div class="title">Pay by bank transfer</div>
+    <div class="muted">Send £10 and use the reference below for automatic approval.</div>
+
+    <div class="refBox">
+      <div class="refLabel">Payment reference</div>
+      <div id="paymentRef" class="refCode">LMS----</div>
+    </div>
+
+    <button id="copyRefBtn" class="btn btn-primary">Copy reference</button>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="detailRow">
+        <div>
+          <div class="muted">Account name</div>
+          <div class="detailValue">Polytechnic LMS</div>
+        </div>
+        <button class="btn btn-secondary" style="width:auto;margin-top:0;padding:10px 12px;" data-copy="Polytechnic LMS">Copy</button>
+      </div>
+
+      <div class="detailRow">
+        <div>
+          <div class="muted">Sort code</div>
+          <div class="detailValue">60-83-71</div>
+        </div>
+        <button class="btn btn-secondary" style="width:auto;margin-top:0;padding:10px 12px;" data-copy="60-83-71">Copy</button>
+      </div>
+
+      <div class="detailRow">
+        <div>
+          <div class="muted">Account number</div>
+          <div class="detailValue">12345678</div>
+        </div>
+        <button class="btn btn-secondary" style="width:auto;margin-top:0;padding:10px 12px;" data-copy="12345678">Copy</button>
+      </div>
+    </div>
+
+    <button id="checkStatusBtn" class="btn btn-copy">Check approval status</button>
+    <button id="closeBtn" class="btn btn-secondary">Close</button>
+
+    <div id="paymentStatus" class="status hidden"></div>
+  </div>
+
+  <script>
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwzLgtPENgWjJjANZLgBeDn2RKzHzRbek5rg1tjMHXsabl3qyZ2XpQn-T5Fq2AAKA64/exec";
+
+    console.log("WEB_APP_URL =", WEB_APP_URL);
+
+    let currentEmail = "";
+    let currentRef = "";
+
+    const registerBtn = document.getElementById("registerBtn");
+    const emailInput = document.getElementById("emailInput");
+    const registerStatus = document.getElementById("registerStatus");
+    const paymentSheet = document.getElementById("paymentSheet");
+    const overlay = document.getElementById("overlay");
+    const paymentRefEl = document.getElementById("paymentRef");
+    const paymentStatus = document.getElementById("paymentStatus");
+
+    function showRegisterStatus(message, type) {
+      registerStatus.className = "status " + type;
+      registerStatus.textContent = message;
+      registerStatus.classList.remove("hidden");
+    }
+
+    function showPaymentStatus(message, type) {
+      paymentStatus.className = "status " + type;
+      paymentStatus.textContent = message;
+      paymentStatus.classList.remove("hidden");
+    }
+
+    function openSheet() {
+      overlay.classList.add("show");
+      paymentSheet.classList.add("show");
+    }
+
+    function closeSheet() {
+      overlay.classList.remove("show");
+      paymentSheet.classList.remove("show");
+    }
+
+    async function postJson(payload) {
+      const res = await fetch(WEB_APP_URL, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify(payload)
+      });
+      return res.json();
+    }
+
+    registerBtn.addEventListener("click", async () => {
+      const email = emailInput.value.trim();
+      if (!email) {
+        showRegisterStatus("Enter an email first.", "error");
+        return;
+      }
+
+      registerBtn.disabled = true;
+      showRegisterStatus("Creating test registration...", "pending");
+
+      try {
+        const result = await postJson({
+          action: "createTestRegistration",
+          email
+        });
+
+        if (!result.ok) throw new Error(result.error || "Failed");
+
+        currentEmail = email;
+        currentRef = result.paymentRef;
+        paymentRefEl.textContent = currentRef;
+
+        showRegisterStatus("Test registration created. Approved = FALSE.", "approved");
+        paymentStatus.classList.add("hidden");
+        openSheet();
+      } catch (err) {
+        showRegisterStatus("Error: " + err.message, "error");
+      } finally {
+        registerBtn.disabled = false;
+      }
+    });
+
+    document.getElementById("copyRefBtn").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(currentRef);
+      showPaymentStatus("Reference copied.", "approved");
+    });
+
+    document.querySelectorAll("[data-copy]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        await navigator.clipboard.writeText(btn.dataset.copy);
+        showPaymentStatus("Copied.", "approved");
+      });
+    });
+
+    document.getElementById("checkStatusBtn").addEventListener("click", async () => {
+      if (!currentEmail || !currentRef) return;
+
+      showPaymentStatus("Checking status...", "pending");
+
+      try {
+        const result = await postJson({
+          action: "getTestRegistrationStatus",
+          email: currentEmail,
+          paymentRef: currentRef
+        });
+
+        if (!result.ok) throw new Error(result.error || "Failed");
+
+        if (result.approved === true) {
+          showPaymentStatus("Payment received. Entry approved.", "approved");
+        } else {
+          showPaymentStatus("Still pending. No matching approved payment yet.", "pending");
+        }
+      } catch (err) {
+        showPaymentStatus("Error: " + err.message, "error");
+      }
+    });
+
+    document.getElementById("closeBtn").addEventListener("click", closeSheet);
+    overlay.addEventListener("click", closeSheet);
+  </script>
+</body>
+</html>
