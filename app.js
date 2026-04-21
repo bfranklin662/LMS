@@ -405,10 +405,7 @@ function getTeamLogo_(teamName) {
 }
 
 async function fetchGames_() {
-  const savedUser = JSON.parse(localStorage.getItem("polyUser") || "null");
-  const viewerEmail = String(savedUser?.email || "").trim().toLowerCase();
-
-  const data = await api({ action: "getGames", email: viewerEmail });
+  const data = await api({ action: "getGames" });
   gamesList = Array.isArray(data.games) ? data.games : [];
 }
 
