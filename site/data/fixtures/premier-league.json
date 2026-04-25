@@ -1026,10 +1026,10 @@
       "date": "2026-04-25",
       "team1": "Fulham",
       "team2": "Aston Villa",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW14",
