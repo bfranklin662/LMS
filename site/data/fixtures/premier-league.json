@@ -1036,30 +1036,30 @@
       "date": "2026-04-25",
       "team1": "Liverpool",
       "team2": "Crystal Palace",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW14",
       "date": "2026-04-25",
       "team1": "West Ham",
       "team2": "Everton",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW14",
       "date": "2026-04-25",
       "team1": "Wolves",
       "team2": "Tottenham",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW14",
