@@ -1066,10 +1066,10 @@
       "date": "2026-04-25",
       "team1": "Arsenal",
       "team2": "Newcastle",
-      "time": "17:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "16:30",
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW14",
