@@ -1074,12 +1074,12 @@
     {
       "gwId": "GW14",
       "date": "2026-04-27",
-      "team1": "Man United",
+      "team1": "Manchester United",
       "team2": "Brentford",
-      "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "19:00",
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW15",
