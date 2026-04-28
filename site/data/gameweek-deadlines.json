@@ -86,10 +86,10 @@
     },
     {
       "gwId": "GW13",
-      "normalDeadlineIso": "2026-04-18T11:30:00.000Z",
-      "lateDeadlineIso": "2026-04-20T19:00:00.000Z",
-      "firstKickoffIso": "2026-04-18T11:30:00.000Z",
-      "lastKickoffIso": "2026-04-20T19:00:00.000Z"
+      "normalDeadlineIso": "2026-04-18T10:30:00.000Z",
+      "lateDeadlineIso": "2026-04-20T18:00:00.000Z",
+      "firstKickoffIso": "2026-04-18T10:30:00.000Z",
+      "lastKickoffIso": "2026-04-20T18:00:00.000Z"
     },
     {
       "gwId": "GW14",

@@ -404,9 +404,61 @@ function getTeamLogo_(teamName) {
   return TEAM_LOGO_MAP.get(key) || DEFAULT_TEAM_LOGO;
 }
 
-async function fetchGames_() {
-  const data = await api({ action: "getGames" });
+async function fetchGames_(viewerEmail = "") {
+  console.log("fetchGames_ viewerEmail =", viewerEmail);
+
+  const data = await api({
+    action: "getGames",
+    email: viewerEmail || ""
+  });
+
+  console.log("getGames response =", data);
+
   gamesList = Array.isArray(data.games) ? data.games : [];
+}
+
+function isPaymentWorkflowGame_(gameId) {
+  return String(gameId || "").trim() === "payment_test_game";
+}
+
+function paymentRefStorageKey_(gameId, email = sessionEmail) {
+  return `lms_payment_ref::${String(email || "").trim().toLowerCase()}::${String(gameId || "").trim()}`;
+}
+
+function saveStoredPaymentRef_(gameId, paymentRef, email = sessionEmail) {
+  if (!paymentRef) return;
+  localStorage.setItem(paymentRefStorageKey_(gameId, email), String(paymentRef));
+}
+
+function getStoredPaymentRef_(gameId, email = sessionEmail) {
+  return localStorage.getItem(paymentRefStorageKey_(gameId, email)) || "";
+}
+
+function copyTextSafe_(text) {
+  const value = String(text || "");
+  if (!value) return Promise.resolve(false);
+
+  if (navigator.clipboard?.writeText) {
+    return navigator.clipboard.writeText(value).then(() => true).catch(() => false);
+  }
+
+  const ta = document.createElement("textarea");
+  ta.value = value;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+
+  document.body.removeChild(ta);
+  return Promise.resolve(ok);
 }
 
 async function fetchMyEntries_() {
@@ -698,12 +750,50 @@ async function handleLobbyApprovalChanges_() {
     lastEntryApprovedByGame[gid] = isApproved_(entry);
   }
 
-  showSplash(true);
-
   try {
     await fetchGames_();
     await refreshLobbyCounts_();
     renderLobby_();
+
+    // IMPORTANT: do not auto-enter payment workflow game
+    if (isPaymentWorkflowGame_(gameId)) {
+      const msg = document.getElementById("paymentSheetMsg");
+      const statusBtn = document.getElementById("paymentCheckStatusBtn");
+
+      if (msg) {
+        msg.innerHTML = `
+          <div class="payment-status-card payment-status-card--approved">
+            <div class="payment-status-card__icon">✓</div>
+            <div class="payment-status-card__content">
+              <div class="payment-status-card__title">Approved</div>
+              <div class="payment-status-card__text">Your payment has been matched successfully.</div>
+            </div>
+          </div>
+          <button
+            id="paymentEnterGameBtn"
+            class="btn btn-primary payment-sheet-v3__primary"
+            type="button"
+            style="margin-top:10px;"
+          >
+            Enter game
+          </button>
+        `;
+        msg.classList.remove("hidden", "bad");
+        msg.classList.add("good");
+
+        document.getElementById("paymentEnterGameBtn")?.addEventListener("click", async () => {
+          closeModal(systemModal);
+          await enterGame_(gameId);
+        }, { once: true });
+      }
+
+      if (statusBtn) {
+        statusBtn.textContent = "Approved ✓";
+        statusBtn.disabled = true;
+      }
+
+      return true;
+    }
 
     await enterGame_(gameId);
 
@@ -722,8 +812,6 @@ async function handleLobbyApprovalChanges_() {
   } catch (err) {
     console.warn("Lobby approval transition failed", err);
     return false;
-  } finally {
-    showSplash(false);
   }
 }
 
@@ -1371,11 +1459,17 @@ function getAutoEnterGameIdForSession_() {
   const currentGameId = String(currentGame.id || "");
   if (!currentGameId) return null;
 
-  const hasEntryForCurrentGame = (myEntries || []).some(
+  const entry = (myEntries || []).find(
     e => String(e?.gameId || "") === currentGameId
   );
 
-  return hasEntryForCurrentGame ? currentGameId : null;
+  if (!entry) return null;
+
+  if (isPaymentWorkflowGame_(currentGameId) && !entry.approved) {
+    return null;
+  }
+
+  return currentGameId;
 }
 
 function getRunningStatusText_() {
@@ -2762,32 +2856,123 @@ async function refreshRemainingPlayersCount() {
   }
 }
 
+function payInstructionsHtml_({
+  gameTitle = "Payment Test Game",
+  paymentRef = "",
+  entryFee = 10,
+  loading = false,
+  error = ""
+} = {}) {
+  const ref = String(paymentRef || "").trim();
+  const hasRef = !!ref;
 
-function payInstructionsHtml_(entryFee = 10, game = null) {
-  const prizeInfo = parsePrizeInfo_(game?.prize);
+  const refLabel = loading
+    ? "Generating payment reference..."
+    : "Payment reference";
 
   return `
-    <div class="pay-modal">
-      <div class="pay-card">
-        <div><strong>Entry fee:</strong> £${entryFee}</div>
-
-        ${prizeInfo.isRollover ? `
-          <div style="margin-top:8px;">
-            <strong>Rollover:</strong> ${escapeHtml(prizeInfo.badgeText)}
+    <div class="payment-sheet-v3">
+      <div class="payment-sheet-v3__header">
+        <div class="payment-sheet-v3__title">Pay by bank transfer</div>
+        <div class="payment-sheet-v3__fee">Entry fee: £${entryFee}</div>
+      </div>
+      <div class="payment-sheet-v3__eyebrow">
+          Unique reference for automatic approval
+      </div>
+      <div class="payment-sheet-v3__section">
+        <div class="payment-sheet-v3__ref-card ${loading ? "is-loading" : ""}">
+          <div class="payment-sheet-v3__ref-label">${escapeHtml(refLabel)}</div>
+          <div class="payment-sheet-v3__ref-value">
+            ${loading ? `<span class="dots" aria-label="Loading"></span>` : (hasRef ? escapeHtml(ref) : "—")}
           </div>
-        ` : ""}
-
-        <div class="pay-details" style="margin-top:8px;line-height:1.5;">
-          <strong>Bank transfer details:</strong><br>
-          Account name: Nicholas Horne<br>
-          Account number: 78664226<br>
-          Sort code: 60-83-71<br>
-          Reference: <strong>Poly LMS</strong>
         </div>
       </div>
-      <div style="margin-top:14px;" class="muted small">
-        If you have already sent the money please be patient, your account will be approved as soon as possible.
+
+      <div class="payment-sheet-v3__section payment-sheet-v3__section--tight">
+        <button
+          id="paymentCopyRefBtn"
+          class="btn btn-primary payment-sheet-v3__primary"
+          type="button"
+          ${hasRef && !loading ? "" : "disabled"}
+        >
+          Copy reference
+        </button>
       </div>
+
+      <div class="payment-sheet-v3__section">
+        <div class="payment-sheet-v3__bank-card">
+          <div class="payment-sheet-v3__bank-row">
+            <div class="payment-sheet-v3__bank-text">
+              <div class="payment-sheet-v3__field-label">Account name</div>
+              <div class="payment-sheet-v3__field-value">Nicholas Horne</div>
+            </div>
+            <button
+              class="payment-icon-copy"
+              type="button"
+              data-copy-text="Nicholas Horne"
+              aria-label="Copy account name"
+              title="Copy account name"
+            >
+              ⧉
+            </button>
+          </div>
+
+          <div class="payment-sheet-v3__bank-row">
+            <div class="payment-sheet-v3__bank-text">
+              <div class="payment-sheet-v3__field-label">Sort code</div>
+              <div class="payment-sheet-v3__field-value">60-83-71</div>
+            </div>
+            <button
+              class="payment-icon-copy"
+              type="button"
+              data-copy-text="60-83-71"
+              aria-label="Copy sort code"
+              title="Copy sort code"
+            >
+              ⧉
+            </button>
+          </div>
+
+          <div class="payment-sheet-v3__bank-row">
+            <div class="payment-sheet-v3__bank-text">
+              <div class="payment-sheet-v3__field-label">Account number</div>
+              <div class="payment-sheet-v3__field-value">78664226</div>
+            </div>
+            <button
+              class="payment-icon-copy"
+              type="button"
+              data-copy-text="78664226"
+              aria-label="Copy account number"
+              title="Copy account number"
+            >
+              ⧉
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="payment-sheet-v3__section payment-sheet-v3__section--tight">
+        <button
+          id="paymentCheckStatusBtn"
+          class="btn btn-secondary payment-sheet-v3__secondary"
+          type="button"
+          ${hasRef && !loading ? "" : "disabled"}
+        >
+          Check approval status
+        </button>
+      </div>
+
+      <div class="payment-sheet-v3__section payment-sheet-v3__section--tight">
+        <button
+          id="paymentCancelBtn"
+          class="btn btn-ghost payment-sheet-v3__ghost"
+          type="button"
+        >
+          Cancel
+        </button>
+      </div>
+
+      <div id="paymentSheetMsg" class="msg hidden" style="margin-top:10px;"></div>
     </div>
   `;
 }
@@ -2866,18 +3051,34 @@ function showConfirmModal_(title, html, { confirmText = "Confirm", cancelText = 
   openModal(modalEl);
 }
 
-function showSystemModal_(title, html, { showActions = true } = {}) {
+function showSystemModal_(title, html, { showActions = true, variant = "default" } = {}) {
   const systemModal = document.getElementById("systemModal");
   const titleEl = document.getElementById("systemModalTitle");
   const bodyEl = document.getElementById("systemModalBody");
   const actionsEl = document.getElementById("systemModalActions");
+  const cardEl = systemModal?.querySelector(".modal-card");
 
-  if (!systemModal || !titleEl || !bodyEl || !actionsEl) return;
+  if (!systemModal || !titleEl || !bodyEl || !actionsEl || !cardEl) return;
 
   closeAllModals();
 
   titleEl.textContent = title || "";
   bodyEl.innerHTML = html || "";
+
+  systemModal.classList.remove("modal-sheet");
+  cardEl.classList.remove("modal-card--sheet");
+  bodyEl.classList.remove("system-modal-body--sheet");
+  titleEl.classList.remove("system-modal-title--hidden");
+
+  if (variant === "sheet") {
+    systemModal.classList.add("modal-sheet");
+    cardEl.classList.add("modal-card--sheet");
+    bodyEl.classList.add("system-modal-body--sheet");
+
+    if (!title) {
+      titleEl.classList.add("system-modal-title--hidden");
+    }
+  }
 
   if (showActions) {
     actionsEl.classList.remove("hidden");
@@ -2891,6 +3092,20 @@ function showSystemModal_(title, html, { showActions = true } = {}) {
   }
 
   openModal(systemModal);
+}
+
+function setSystemModalVariant_(variant = "default") {
+  const modal = document.getElementById("systemModal");
+  const card = modal?.querySelector(".modal-card");
+  if (!modal || !card) return;
+
+  modal.classList.remove("modal-sheet");
+  card.classList.remove("modal-card--sheet");
+
+  if (variant === "sheet") {
+    modal.classList.add("modal-sheet");
+    card.classList.add("modal-card--sheet");
+  }
 }
 
 
@@ -3040,18 +3255,201 @@ function setIconBtnBusyText_(btn, busy, busyText = "…") {
 }
 
 
-function showPaymentDetailsModal_() {
-  const game = getActiveGame_();
+function showPaymentDetailsModal_(gameId = activeGameId) {
+  const game = (gamesList || []).find(g => String(g.id || "") === String(gameId || ""));
   const entryFee = Number(game?.entryFee || 10);
+
+  if (isPaymentWorkflowGame_(gameId)) {
+    const paymentRef = getStoredPaymentRef_(gameId);
+    showPaymentWorkflowModal_(gameId, paymentRef);
+    return;
+  }
 
   showSystemModal_(
     "",
-    payInstructionsHtml_(entryFee, game),
+    payInstructionsHtml_({
+      gameTitle: String(game?.title || "Competition").trim(),
+      paymentRef: "",
+      entryFee
+    }),
     { showActions: true }
   );
 
   const titleEl = document.getElementById("systemModalTitle");
   if (titleEl) titleEl.textContent = "";
+}
+
+function bindPaymentSheetActions_({ gameId, paymentRef }) {
+  document.querySelectorAll("[data-copy-text]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const text = btn.getAttribute("data-copy-text") || "";
+      const original = btn.innerHTML;
+      const ok = await copyTextSafe_(text);
+
+      btn.innerHTML = ok ? "✓" : "!";
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.innerHTML = original;
+        btn.disabled = false;
+      }, 1000);
+    });
+  });
+
+  document.getElementById("paymentCopyRefBtn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("paymentCopyRefBtn");
+    const original = btn.textContent;
+    const ok = await copyTextSafe_(paymentRef);
+
+    btn.textContent = ok ? "Copied" : "Copy failed";
+
+    setTimeout(() => {
+      btn.textContent = original;
+    }, 1200);
+  });
+
+  document.getElementById("paymentCheckStatusBtn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("paymentCheckStatusBtn");
+    const msg = document.getElementById("paymentSheetMsg");
+    if (!btn || !msg || !sessionEmail || !paymentRef) return;
+
+    setBtnLoading(btn, true);
+
+    try {
+      const data = await api({
+        action: "getTestRegistrationStatus",
+        email: sessionEmail,
+        paymentRef
+      });
+
+      if (data.approved) {
+        msg.innerHTML = `
+        <div class="payment-status-card payment-status-card--approved">
+          <div class="payment-status-card__icon">✓</div>
+          <div class="payment-status-card__content">
+            <div class="payment-status-card__title">Approved</div>
+            <div class="payment-status-card__text">Your payment has been matched successfully.</div>
+          </div>
+        </div>
+
+        <button
+          id="paymentEnterGameBtn"
+          class="btn btn-primary payment-sheet-v3__primary"
+          type="button"
+          style="margin-top:10px;"
+        >
+          Enter game
+        </button>
+      `;
+        msg.classList.remove("hidden", "bad");
+        msg.classList.add("good");
+
+        btn.textContent = "Approved ✓";
+        btn.disabled = true;
+
+        await fetchMyEntries_();
+        snapshotLobbyApprovalStates_();
+        await refreshLobbyCounts_().catch(() => { });
+        renderLobby_();
+
+        document.getElementById("paymentEnterGameBtn")?.addEventListener("click", async () => {
+          closeModal(systemModal);
+          await enterGame_(gameId);
+        }, { once: true });
+
+        return;
+      }
+
+      msg.innerHTML = `
+      <div class="payment-status-card payment-status-card--pending">
+        <div class="payment-status-card__icon">…</div>
+        <div class="payment-status-card__content">
+          <div class="payment-status-card__title">Still awaiting confirmation</div>
+          <div class="payment-status-card__text">We have not matched your payment yet.</div>
+        </div>
+      </div>
+    `;
+      msg.classList.remove("hidden", "good");
+      msg.classList.add("bad");
+
+    } catch (err) {
+      const errText = String(err.message || err).toLowerCase();
+
+      const friendlyText = errText.includes("registration not found")
+        ? "Your registration is still being prepared. Please wait a few seconds and try again."
+        : String(err.message || err);
+
+      msg.innerHTML = `
+      <div class="payment-status-card payment-status-card--pending">
+        <div class="payment-status-card__icon">…</div>
+        <div class="payment-status-card__content">
+          <div class="payment-status-card__title">Not ready yet</div>
+          <div class="payment-status-card__text">${escapeHtml(friendlyText)}</div>
+        </div>
+      </div>
+    `;
+      msg.classList.remove("hidden", "good");
+      msg.classList.add("bad");
+    } finally {
+      setBtnLoading(btn, false);
+    }
+  });
+
+  document.getElementById("paymentCancelBtn")?.addEventListener("click", async () => {
+    const btn = document.getElementById("paymentCancelBtn");
+    if (!btn || !sessionEmail || !gameId) return;
+
+    setBtnLoading(btn, true);
+
+    try {
+      await api({
+        action: "leaveGame",
+        email: sessionEmail,
+        gameId
+      });
+
+      localStorage.removeItem(paymentRefStorageKey_(gameId));
+
+      await fetchMyEntries_();
+      snapshotLobbyApprovalStates_();
+      renderLobby_();
+      refreshLobbyCounts_().catch(() => { });
+
+      closeModal(systemModal);
+    } catch (err) {
+      const msg = document.getElementById("paymentSheetMsg");
+      if (msg) {
+        msg.textContent = String(err.message || err);
+        msg.classList.remove("hidden", "good");
+        msg.classList.add("bad");
+      }
+    } finally {
+      setBtnLoading(btn, false);
+    }
+  });
+}
+
+function showPaymentWorkflowModal_(gameId, paymentRef = "", { loading = false, error = "" } = {}) {
+  const game = (gamesList || []).find(g => String(g.id || "") === String(gameId || ""));
+  const title = String(game?.title || "Payment Test Game").trim();
+  const entryFee = Number(game?.entryFee || 10);
+
+  showSystemModal_(
+    "",
+    payInstructionsHtml_({
+      gameTitle: title,
+      paymentRef,
+      entryFee,
+      loading,
+      error
+    }),
+    { showActions: false, variant: "sheet" }
+  );
+
+  const titleEl = document.getElementById("systemModalTitle");
+  if (titleEl) titleEl.textContent = "";
+
+  bindPaymentSheetActions_({ gameId, paymentRef });
 }
 
 
@@ -4764,7 +5162,11 @@ function renderLobby_() {
         actionsHtml = "";
       }
     } else if (status === "OPEN" && !entry.approved) {
-      actionsHtml = `<button class="btn btn-primary" type="button" data-enter-game="${escapeAttr(gameId)}">Enter game →</button>`;
+      if (isPaymentWorkflowGame_(gameId)) {
+        actionsHtml = `<button class="btn btn-primary" type="button" data-pay-game="${escapeAttr(gameId)}">Payment details</button>`;
+      } else {
+        actionsHtml = `<button class="btn btn-primary" type="button" data-enter-game="${escapeAttr(gameId)}">Enter game →</button>`;
+      }
     } else {
       actionsHtml = entry?.alive === false
         ? `<button class="btn btn-ghost" type="button" data-enter-game="${escapeAttr(gameId)}">View game →</button>`
@@ -5072,7 +5474,8 @@ function renderLobby_() {
 
   lobbyView.querySelectorAll("[data-pay-game]").forEach(btn => {
     btn.addEventListener("click", () => {
-      showPaymentDetailsModal_();
+      const gameId = btn.getAttribute("data-pay-game");
+      showPaymentDetailsModal_(gameId);
     });
   });
 
@@ -5131,15 +5534,74 @@ async function joinGame_(gameId, triggerBtn = null) {
     return;
   }
 
-  const game = (gamesList || []).find(g => String(g.id) === String(gameId));
-  const entryFee = Number(game?.entryFee || 10);
-
   joinGameBusy = true;
   setBtnLoading(triggerBtn, true);
-  showSplash(true);
 
   try {
-    await api(
+    if (isPaymentWorkflowGame_(gameId)) {
+      const game = (gamesList || []).find(g => String(g.id) === String(gameId));
+      const entryFee = Number(game?.entryFee || 10);
+
+      // OPEN THE PAYMENT SHEET IMMEDIATELY
+      setBtnLoading(triggerBtn, false);
+      showPaymentWorkflowModal_(gameId, "", { loading: true });
+
+      // Backend happens in the background
+      api(
+        {
+          action: "joinGame",
+          email: sessionEmail,
+          gameId
+        },
+        { timeoutMs: 30000 }
+      )
+        .then(async (resp) => {
+          const paymentRef = String(resp?.paymentRef || "").trim();
+
+          if (paymentRef) {
+            saveStoredPaymentRef_(gameId, paymentRef);
+          }
+
+          // redraw sheet with real ref once backend returns
+          showPaymentWorkflowModal_(gameId, paymentRef, { loading: false });
+
+          await fetchMyEntries_();
+          snapshotLobbyApprovalStates_();
+          renderLobby_();
+          refreshLobbyCounts_().catch(() => {});
+        })
+        .catch((err) => {
+          console.warn("Payment workflow join failed", err);
+
+          showPaymentWorkflowModal_(gameId, "", {
+            loading: false,
+            error: String(err.message || err)
+          });
+
+          const msg = document.getElementById("paymentSheetMsg");
+          if (msg) {
+            msg.innerHTML = `
+              <div class="payment-status-card payment-status-card--pending">
+                <div class="payment-status-card__icon">!</div>
+                <div class="payment-status-card__content">
+                  <div class="payment-status-card__title">Could not start registration</div>
+                  <div class="payment-status-card__text">${escapeHtml(String(err.message || err))}</div>
+                </div>
+              </div>
+            `;
+            msg.classList.remove("hidden", "good");
+            msg.classList.add("bad");
+          }
+        })
+        .finally(() => {
+          joinGameBusy = false;
+        });
+
+      return;
+    }
+
+    // non-payment workflow games keep old behaviour
+    const resp = await api(
       {
         action: "joinGame",
         email: sessionEmail,
@@ -5148,43 +5610,53 @@ async function joinGame_(gameId, triggerBtn = null) {
       { timeoutMs: 30000 }
     );
 
-    await fetchMyEntries_();
-    snapshotLobbyApprovalStates_();
+    const game = (gamesList || []).find(g => String(g.id) === String(gameId));
+    const entryFee = Number(game?.entryFee || 10);
 
-    await enterGame_(gameId);
+    showSplash(true);
 
-    showSystemModal_(
-      "Registration",
-      `
-        <div style="line-height:1.5;">
-          <p style="margin:0 0 10px;">
-            To register for the game please pay the registration fee.
-          </p>
-          <p style="margin:0 0 12px;">
-            Once approved you will be able to make your first selection.
-          </p>
-          ${payInstructionsHtml_(entryFee, game)}
-        </div>
-      `,
-      { showActions: false }
-    );
+    try {
+      await fetchMyEntries_();
+      snapshotLobbyApprovalStates_();
 
-    refreshLobbyCounts_().catch(() => { });
+      await enterGame_(gameId);
+
+      showSystemModal_(
+        "Registration",
+        `
+          <div style="line-height:1.5;">
+            <p style="margin:0 0 10px;">
+              To register for the game please pay the registration fee.
+            </p>
+            <p style="margin:0 0 12px;">
+              Once approved you will be able to make your first selection.
+            </p>
+            ${payInstructionsHtml_({
+              gameTitle: String(game?.title || "Competition").trim(),
+              paymentRef: "",
+              entryFee
+            })}
+          </div>
+        `,
+        { showActions: false }
+      );
+
+      refreshLobbyCounts_().catch(() => {});
+    } finally {
+      showSplash(false);
+    }
+
   } catch (err) {
-    showSplash(false);
-
     showSystemModal_(
       "Registration",
-      `
-        <div style="line-height:1.5;">
-          <p style="margin:0;">${escapeHtml(String(err.message || err))}</p>
-        </div>
-      `,
+      `<div style="line-height:1.5;"><p style="margin:0;">${escapeHtml(String(err.message || err))}</p></div>`,
       { showActions: false }
     );
   } finally {
-    setBtnLoading(triggerBtn, false);
-    joinGameBusy = false;
+    if (joinGameBusy) {
+      setBtnLoading(triggerBtn, false);
+      joinGameBusy = false;
+    }
   }
 }
 
@@ -6059,7 +6531,7 @@ registerForm.addEventListener("submit", async (e) => {
     });
 
     await refreshAccountProfile_();
-    await fetchGames_();
+    await fetchGames_(sessionEmail);
     await fetchMyEntries_();
     snapshotLobbyApprovalStates_();
     showLobby_();
@@ -6111,7 +6583,7 @@ loginForm.addEventListener("submit", async (e) => {
     sessionUser = data.user;
 
     await refreshAccountProfile_();
-    await fetchGames_();
+    await fetchGames_(data.user.email);
     await fetchMyEntries_();
     snapshotLobbyApprovalStates_();
 
@@ -6535,7 +7007,7 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
     sessionUser = null;
 
     try {
-      await fetchGames_();
+      await fetchGames_(sessionEmail);
       await loadFixturesAndDeadlines_();
       showLobby_();
       renderLobby_();
@@ -6553,7 +7025,7 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
     sessionEmail = sess.email;
 
     await refreshAccountProfile_();
-    await fetchGames_();
+    await fetchGames_(sessionEmail);
     await fetchMyEntries_();
     snapshotLobbyApprovalStates_();
     await loadFixturesAndDeadlines_();
