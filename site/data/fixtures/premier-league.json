@@ -1086,10 +1086,10 @@
       "date": "2026-05-01",
       "team1": "Leeds",
       "team2": "Burnley",
-      "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "19:00",
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW15",
