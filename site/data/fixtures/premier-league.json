@@ -1096,30 +1096,30 @@
       "date": "2026-05-02",
       "team1": "Brentford",
       "team2": "West Ham",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW15",
       "date": "2026-05-02",
       "team1": "Newcastle",
       "team2": "Brighton",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW15",
       "date": "2026-05-02",
       "team1": "Wolves",
       "team2": "Sunderland",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW15",
