@@ -1136,10 +1136,10 @@
       "date": "2026-05-03",
       "team1": "Bournemouth",
       "team2": "Crystal Palace",
-      "time": "14:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "13:00",
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW15",
