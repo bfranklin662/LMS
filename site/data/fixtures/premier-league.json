@@ -1176,10 +1176,10 @@
       "date": "2026-05-04",
       "team1": "Everton",
       "team2": "Manchester City",
-      "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "19:00",
+      "homeScore": 3,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW16",
