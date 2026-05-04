@@ -1166,10 +1166,10 @@
       "date": "2026-05-04",
       "team1": "Chelsea",
       "team2": "Nottingham Forest",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "14:00",
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW15",
