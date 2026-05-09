@@ -1186,10 +1186,10 @@
       "date": "2026-05-09",
       "team1": "Liverpool",
       "team2": "Chelsea",
-      "time": "12:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "11:30",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW16",
