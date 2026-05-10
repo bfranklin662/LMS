@@ -1266,10 +1266,10 @@
       "date": "2026-05-10",
       "team1": "West Ham",
       "team2": "Arsenal",
-      "time": "16:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:30",
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW16",
