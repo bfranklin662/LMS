@@ -1283,20 +1283,10 @@
     },
     {
       "gwId": "GW17",
-      "date": "2026-05-17",
-      "team1": "Arsenal",
-      "team2": "Burnley",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW17",
-      "date": "2026-05-17",
+      "date": "2026-05-15",
       "team1": "Aston Villa",
       "team2": "Liverpool",
-      "time": "15:00",
+      "time": "20:00",
       "homeScore": null,
       "awayScore": null,
       "resultStatus": "pending"
@@ -1304,9 +1294,9 @@
     {
       "gwId": "GW17",
       "date": "2026-05-17",
-      "team1": "Bournemouth",
-      "team2": "Manchester City",
-      "time": "15:00",
+      "team1": "Manchester United",
+      "team2": "Nottingham Forest",
+      "time": "12:30",
       "homeScore": null,
       "awayScore": null,
       "resultStatus": "pending"
@@ -1316,16 +1306,6 @@
       "date": "2026-05-17",
       "team1": "Brentford",
       "team2": "Crystal Palace",
-      "time": "15:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
-    },
-    {
-      "gwId": "GW17",
-      "date": "2026-05-17",
-      "team1": "Chelsea",
-      "team2": "Tottenham",
       "time": "15:00",
       "homeScore": null,
       "awayScore": null,
@@ -1354,8 +1334,8 @@
     {
       "gwId": "GW17",
       "date": "2026-05-17",
-      "team1": "Manchester United",
-      "team2": "Nottingham Forest",
+      "team1": "Wolves",
+      "team2": "Fulham",
       "time": "15:00",
       "homeScore": null,
       "awayScore": null,
@@ -1366,17 +1346,37 @@
       "date": "2026-05-17",
       "team1": "Newcastle",
       "team2": "West Ham",
-      "time": "15:00",
+      "time": "17:30",
       "homeScore": null,
       "awayScore": null,
       "resultStatus": "pending"
     },
     {
       "gwId": "GW17",
-      "date": "2026-05-17",
-      "team1": "Wolves",
-      "team2": "Fulham",
-      "time": "15:00",
+      "date": "2026-05-18",
+      "team1": "Arsenal",
+      "team2": "Burnley",
+      "time": "20:00",
+      "homeScore": null,
+      "awayScore": null,
+      "resultStatus": "pending"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-19",
+      "team1": "Bournemouth",
+      "team2": "Manchester City",
+      "time": "19:30",
+      "homeScore": null,
+      "awayScore": null,
+      "resultStatus": "pending"
+    },
+    {
+      "gwId": "GW17",
+      "date": "2026-05-19",
+      "team1": "Chelsea",
+      "team2": "Tottenham",
+      "time": "20:15",
       "homeScore": null,
       "awayScore": null,
       "resultStatus": "pending"

@@ -93,10 +93,10 @@
     },
     {
       "gwId": "GW14",
-      "normalDeadlineIso": "2026-04-21T19:00:00.000Z",
-      "lateDeadlineIso": "2026-04-27T19:00:00.000Z",
-      "firstKickoffIso": "2026-04-21T19:00:00.000Z",
-      "lastKickoffIso": "2026-04-27T19:00:00.000Z"
+      "normalDeadlineIso": "2026-04-21T18:00:00.000Z",
+      "lateDeadlineIso": "2026-04-27T18:00:00.000Z",
+      "firstKickoffIso": "2026-04-21T18:00:00.000Z",
+      "lastKickoffIso": "2026-04-27T18:00:00.000Z"
     },
     {
       "gwId": "GW15",
@@ -114,10 +114,10 @@
     },
     {
       "gwId": "GW17",
-      "normalDeadlineIso": "2026-05-17T14:00:00.000Z",
-      "lateDeadlineIso": "2026-05-17T14:00:00.000Z",
-      "firstKickoffIso": "2026-05-17T14:00:00.000Z",
-      "lastKickoffIso": "2026-05-17T14:00:00.000Z"
+      "normalDeadlineIso": "2026-05-15T19:00:00.000Z",
+      "lateDeadlineIso": "2026-05-19T19:15:00.000Z",
+      "firstKickoffIso": "2026-05-15T19:00:00.000Z",
+      "lastKickoffIso": "2026-05-19T19:15:00.000Z"
     },
     {
       "gwId": "GW18",
