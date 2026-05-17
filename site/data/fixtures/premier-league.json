@@ -1346,10 +1346,10 @@
       "date": "2026-05-17",
       "team1": "Newcastle",
       "team2": "West Ham",
-      "time": "17:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "16:30",
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW17",
