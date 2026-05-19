@@ -1366,20 +1366,20 @@
       "date": "2026-05-19",
       "team1": "Bournemouth",
       "team2": "Manchester City",
-      "time": "19:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "18:30",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW17",
       "date": "2026-05-19",
       "team1": "Chelsea",
       "team2": "Tottenham",
-      "time": "20:15",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "19:15",
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
