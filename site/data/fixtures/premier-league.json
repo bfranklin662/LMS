@@ -1386,100 +1386,100 @@
       "date": "2026-05-24",
       "team1": "Brighton",
       "team2": "Manchester United",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Burnley",
       "team2": "Wolves",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Crystal Palace",
       "team2": "Arsenal",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Fulham",
       "team2": "Newcastle",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Liverpool",
       "team2": "Brentford",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Manchester City",
       "team2": "Aston Villa",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 1,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Nottingham Forest",
       "team2": "Bournemouth",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Sunderland",
       "team2": "Chelsea",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "Tottenham",
       "team2": "Everton",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW18",
       "date": "2026-05-24",
       "team1": "West Ham",
       "team2": "Leeds",
-      "time": "16:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "15:00",
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     }
   ]
 }
