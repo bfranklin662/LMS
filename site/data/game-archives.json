@@ -1,0 +1,23 @@
+{
+  "the_run_in": {
+    "registered": 72,
+    "approved": 72,
+    "pending": 0,
+    "remaining": 2,
+    "total": 72
+  },
+  "spring_2026_lms": {
+    "registered": 68,
+    "approved": 68,
+    "pending": 0,
+    "remaining": 0,
+    "total": 68
+  },
+  "jan_2026_lms": {
+    "registered": 70,
+    "approved": 70,
+    "pending": 0,
+    "remaining": 1,
+    "total": 70
+  }
+}

@@ -58,7 +58,10 @@ async function fixtureApi(path, payload) {
 }
 
 async function loadAdminGames() {
-  const data = await api({ action: "getGames" });
+  const data = await api({
+    action: "getGames",
+    email: "nickhorne552@gmail.com"
+  });
   adminGames = Array.isArray(data.games) ? data.games : [];
 
   if (!adminGameSelect) return;
@@ -342,7 +345,8 @@ function getAdminLeagueKeysForSelectedGame_() {
     "championship": "championship",
     "league one": "league-one",
     "league two": "league-two",
-    "fa cup": "fa-cup"
+    "fa cup": "fa-cup",
+    "world cup": "world-cup",
   };
 
   return leagues
@@ -440,6 +444,7 @@ const FIXTURE_SOURCES = [
   { league: "League One", url: "../site/data/fixtures/league-one.json" },
   { league: "League Two", url: "../site/data/fixtures/league-two.json" },
   { league: "FA Cup", url: "../site/data/fixtures/fa-cup.json" },
+  { league: "World Cup", url: "../site/data/fixtures/world-cup.json" },
 ];
 
 let adminFixtures = [];
@@ -616,6 +621,7 @@ async function renderAutomationStatus_() {
  * Tabs
  *******************************/
 const LEAGUE_DISPLAY_ORDER = {
+  "World Cup": 0,
   "FA Cup": 1,
   "Premier League": 2,
   "Championship": 3,

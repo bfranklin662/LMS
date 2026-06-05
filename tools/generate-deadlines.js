@@ -5,11 +5,7 @@ const { DateTime } = require("luxon");
 const PROJECT_ROOT = path.resolve(__dirname, "..");
 
 const FIXTURE_SOURCES = [
-  { league: "Premier League", file: "site/data/fixtures/premier-league.json" },
-  { league: "Championship", file: "site/data/fixtures/championship.json" },
-  { league: "League One", file: "site/data/fixtures/league-one.json" },
-  { league: "League Two", file: "site/data/fixtures/league-two.json" },
-  { league: "FA Cup", file: "site/data/fixtures/fa-cup.json" },
+  { league: "World Cup", file: "site/data/fixtures/world-cup.json" },
 ];
 
 const SOURCE_TIMEZONE = "Europe/London";
@@ -117,7 +113,7 @@ function main() {
   const fixtures = loadAllFixtures();
   const output = buildDeadlines(fixtures);
 
-  const outPath = path.resolve(PROJECT_ROOT, "site/data/gameweek-deadlines.json");
+  const outPath = path.resolve(PROJECT_ROOT, "site/data/gameweek-deadlines-world-cup.json");
   fs.writeFileSync(outPath, JSON.stringify(output, null, 2), "utf8");
 
   console.log(`Generated ${outPath}`);

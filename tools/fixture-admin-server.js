@@ -40,6 +40,11 @@ const FILE_MAP = {
     test: "site/data/fixtures/fa-cup-test.json",
     label: "FA Cup",
   },
+  "world-cup": {
+    live: "site/data/fixtures/world-cup.json",
+    test: "site/data/fixtures/world-cup-test.json",
+    label: "World Cup",
+  },
 };
 
 function sendJson(res, status, data) {
@@ -630,6 +635,7 @@ function parseSectionLines(text, heading) {
 }
 
 const LEAGUE_DISPLAY_ORDER = {
+  "World Cup": 0,
   "FA Cup": 1,
   "Premier League": 2,
   "Championship": 3,

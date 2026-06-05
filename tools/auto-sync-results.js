@@ -1,7 +1,8 @@
 #!/usr/bin/env node
+const path = require("path");
+require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
 
 const fs = require("fs/promises");
-const path = require("path");
 const { spawn } = require("child_process");
 
 const PROJECT_ROOT = path.resolve(__dirname, "..");
@@ -26,6 +27,10 @@ const FILE_CONFIG = [
   {
     file: "site/data/fixtures/fa-cup.json",
     label: "FA Cup",
+  },
+  {
+    file: "site/data/fixtures/world-cup.json",
+    label: "World Cup",
   },
 ];
 

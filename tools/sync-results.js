@@ -51,6 +51,14 @@ const FILE_CONFIG = {
     url: "https://www.flashscore.co.uk/football/england/fa-cup/results/",
     label: "FA Cup",
   },
+  "site/data/fixtures/world-cup-test.json": {
+    url: "https://www.flashscore.co.uk/football/world/world-cup/results/",
+    label: "World Cup",
+  },
+  "site/data/fixtures/world-cup.json": {
+    url: "https://www.flashscore.co.uk/football/world/world-cup/results/",
+    label: "World Cup",
+  },
 };
 
 function buildResultSyncPlan({ localData, scrapedResults, from, to, file }) {

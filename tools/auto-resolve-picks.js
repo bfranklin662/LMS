@@ -15,6 +15,7 @@ const FIXTURE_SOURCES = [
   { league: "League One", file: "site/data/fixtures/league-one.json" },
   { league: "League Two", file: "site/data/fixtures/league-two.json" },
   { league: "FA Cup", file: "site/data/fixtures/fa-cup.json" },
+  { league: "World Cup", file: "site/data/fixtures/world-cup.json" },
 ];
 
 function log(...args) {

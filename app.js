@@ -11,6 +11,7 @@ const FIXTURE_SOURCES = [
   { league: "League One", url: "site/data/fixtures/league-one.json" },
   { league: "League Two", url: "site/data/fixtures/league-two.json" },
   { league: "FA Cup", url: "site/data/fixtures/fa-cup.json" },
+  { league: "World Cup", url: "site/data/fixtures/world-cup.json" },
 ];
 
 const DEADLINE_HOURS_BEFORE_FIRST_FIXTURE = 1;
@@ -40,6 +41,9 @@ const REGISTRATION_CLOSED_HTML = `
 `;
 // ✅ Report card should follow the current GW by default
 const GW_REPORT_GW_ID = null;          // null = use currentGwId
+
+const GAME_ARCHIVES_URL = "site/data/game-archives.json";
+let GAME_ARCHIVES = {};
 
 /*******************************
  * API
@@ -147,7 +151,7 @@ const lobbyView = document.getElementById("lobbyView");
 
 let entriesReqId = 0;
 let remainingReqId = 0;
-let activeTab2 = "selection"; // track current tab
+let activeTab2 = "fixtures";
 
 let entriesLoading = false;
 let lastEntriesSig = "";
@@ -310,6 +314,8 @@ let lastLobbyRenderSig = "";
 let fixturePickCountsByGw = new Map();      // gwId -> Map(fixtureKey => {home, away})
 let fixturePickRowsByGw = new Map();        // gwId -> raw gw report rows
 let fixturePickLoadPromisesByGw = new Map(); // gwId -> Promise
+let enterGameSeq = 0;
+let finishedGamesOpen = false;
 
 
 /*******************************
@@ -418,7 +424,10 @@ async function fetchGames_(viewerEmail = "") {
 }
 
 function isPaymentWorkflowGame_(gameId) {
-  return String(gameId || "").trim() === "payment_test_game";
+  const game = (gamesList || []).find(g => String(g.id || "") === String(gameId || ""));
+  if (!game) return false;
+
+  return String(game.status || "").toUpperCase() === "OPEN";
 }
 
 function paymentRefStorageKey_(gameId, email = sessionEmail) {
@@ -756,7 +765,7 @@ async function handleLobbyApprovalChanges_() {
     renderLobby_();
 
     // IMPORTANT: do not auto-enter payment workflow game
-    if (isPaymentWorkflowGame_(gameId)) {
+    if (false && isPaymentWorkflowGame_(gameId)) {
       const msg = document.getElementById("paymentSheetMsg");
       const statusBtn = document.getElementById("paymentCheckStatusBtn");
 
@@ -798,14 +807,41 @@ async function handleLobbyApprovalChanges_() {
     await enterGame_(gameId);
 
     showSystemModal_(
-      "Registration approved ✅",
+      "",
       `
-        <div style="line-height:1.5;">
-          <p style="margin:0 0 10px;"><strong>You have been approved for ${escapeHtml(gameTitle)}.</strong></p>
-          <p style="margin:0;">You can now make your first selection.</p>
+        <div class="payment-sheet-v3">
+          <div class="payment-status-card payment-status-card--approved" style="margin-bottom:14px;">
+            <div class="payment-status-card__icon">✓</div>
+            <div class="payment-status-card__content">
+              <div class="payment-status-card__title">Registration approved</div>
+              <div class="payment-status-card__text">
+                You have been approved for <strong>${escapeHtml(gameTitle)}</strong>.
+              </div>
+            </div>
+          </div>
+
+          <div style="
+            padding:14px;
+            border-radius:16px;
+            background:rgba(255,255,255,0.06);
+            border:1px solid rgba(255,255,255,0.08);
+            line-height:1.45;
+            margin-bottom:14px;
+          ">
+            You can now make your first selection.
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary payment-sheet-v3__primary"
+            onclick="closeModal(systemModal)"
+            style="width:100%;"
+          >
+            Continue
+          </button>
         </div>
       `,
-      { showActions: false }
+      { showActions: false, variant: "sheet" }
     );
 
     return true;
@@ -1048,7 +1084,8 @@ function convertFixtureGwToGameGw_(fixtureGwId, game) {
 const GAME_BANNERS = {
   "jan_2026_lms": "site/images/game-banners/jan_2026_lms.png",
   "spring_2026_lms": "site/images/game-banners/spring_2026_lms.png",
-  "the_run_in": "site/images/game-banners/the_run_in.png"
+  "the_run_in": "site/images/game-banners/the_run_in.png",
+  "world_cup_26": "site/images/game-banners/world-cup-26.png",
 };
 
 function getGameBannerUrl_(gameId) {
@@ -1091,27 +1128,52 @@ async function refreshLobbyCounts_() {
     const gameId = String(g.id || "");
     if (!gameId) return;
 
+    const status = String(g.status || "").toUpperCase();
+    const archivedCounts = GAME_ARCHIVES[gameId];
+
+    if (status === "FINISHED" && archivedCounts) {
+      lobbyCountsByGame[gameId] = archivedCounts;
+      lobbyCountsLoading[gameId] = false;
+      renderLobby_();
+      return;
+    }
+
     lobbyCountsLoading[gameId] = true;
     renderLobby_();
 
     try {
-      const gwId = String(g.startGw || "GW1").toUpperCase();
-      const data = await api({ action: "getEntries", gameId, gwId });
-      const users = Array.isArray(data.users) ? data.users : [];
+      const fast = await api({ action: "getGameCounts", gameId });
 
-      const approvedUsers = users.filter(u => isApproved_(u));
-      const pendingUsers = users.filter(u => !isApproved_(u));
-      const aliveApprovedUsers = approvedUsers.filter(u => u.alive);
+      if (fast?.counts && Number(fast.counts.registered || 0) > 0) {
+        lobbyCountsByGame[gameId] = fast.counts;
+        return;
+      }
 
-      lobbyCountsByGame[gameId] = {
-        registered: users.length || 0,
-        approved: approvedUsers.length || 0,
-        pending: pendingUsers.length || 0,
-        remaining: aliveApprovedUsers.length || 0,
-        total: users.length || 0
-      };
-    } catch (err) {
-      console.warn("Lobby counts failed for", gameId, err);
+      throw new Error("No Firebase counts returned");
+
+    } catch (firebaseErr) {
+      console.warn("Firebase lobby counts failed, falling back to Sheets", gameId, firebaseErr);
+
+      try {
+        const gwId = String(g.startGw || "GW1").toUpperCase();
+        const data = await api({ action: "getEntries", gameId, gwId });
+        const users = Array.isArray(data.users) ? data.users : [];
+
+        const approvedUsers = users.filter(u => isApproved_(u));
+        const pendingUsers = users.filter(u => !isApproved_(u));
+        const aliveApprovedUsers = approvedUsers.filter(u => u.alive);
+
+        lobbyCountsByGame[gameId] = {
+          registered: users.length || 0,
+          approved: approvedUsers.length || 0,
+          pending: pendingUsers.length || 0,
+          remaining: aliveApprovedUsers.length || 0,
+          total: users.length || 0
+        };
+      } catch (sheetsErr) {
+        console.warn("Sheets lobby counts also failed", gameId, sheetsErr);
+      }
+
     } finally {
       lobbyCountsLoading[gameId] = false;
       renderLobby_();
@@ -1154,17 +1216,29 @@ function gameIncludesLeague_(leagueName, game = getActiveGame_()) {
   return comps.includes(String(leagueName || "").trim().toLowerCase());
 }
 
+function getCountryFlagUrl_(teamName) {
+  const slug = String(teamName || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
 
-// Small reusable HTML renderer
+  return `site/images/flags/${slug}.svg`;
+}
 
 function teamInlineHtml_(teamName, { size = 18, logoPosition = "before", isSelected = false, displayName = null } = {}) {
-  const logo = getTeamLogo_(teamName);
+  const activeGame = getActiveGame_();
+  const useFlags = gameIncludesLeague_("World Cup", activeGame);
+
+  const logo = useFlags ? getCountryFlagUrl_(teamName) : getTeamLogo_(teamName);
+  const fallbackLogo = useFlags ? DEFAULT_TEAM_LOGO : DEFAULT_TEAM_LOGO;
   const shown = displayName || teamName;
 
   const logoImg = `
     <img class="team-logo" src="${escapeAttr(logo)}" alt="${escapeAttr(teamName)} logo"
          width="${size}" height="${size}"
-         onerror="this.onerror=null;this.src='${escapeAttr(DEFAULT_TEAM_LOGO)}';" />
+         onerror="this.onerror=null;this.src='${escapeAttr(fallbackLogo)}';" />
   `;
 
   const nameSpan = `<span class="team-name ${isSelected ? "is-selected" : ""}">${escapeHtml(shown)}</span>`;
@@ -1260,6 +1334,7 @@ function outcomeCls_(outcome) {
 
 async function fetchGwReportRows_(gwId) {
   const data = await api({ action: "getGwReport", gameId: activeGameId, gwId });
+  console.log("getGwReport source:", data.source, data.rows?.length);
   return Array.isArray(data.rows) ? data.rows : [];
 }
 
@@ -1328,13 +1403,23 @@ function buildGameweeks(fixturesArr, game) {
 
 function applyDeadlinesToGameweeks_(gws) {
   return (gws || []).map(gw => {
-    const sortedFixtures = [...(gw.fixtures || [])].sort((a, b) => a.kickoff - b.kickoff);
+    const override = deadlinesByGw.get(String(gw.id || "").toUpperCase());
 
+    const sortedFixtures = [...(gw.fixtures || [])].sort((a, b) => a.kickoff - b.kickoff);
     const firstKickoff = sortedFixtures[0]?.kickoff || gw.firstKickoff || null;
     const lastKickoff = sortedFixtures[sortedFixtures.length - 1]?.kickoff || gw.lastKickoff || null;
 
-    if (!firstKickoff || !lastKickoff) {
-      return gw;
+    if (!firstKickoff || !lastKickoff) return gw;
+
+    if (override?.normalDeadlineIso) {
+      return {
+        ...gw,
+        firstKickoff: override.firstKickoffIso ? new Date(override.firstKickoffIso) : firstKickoff,
+        lastKickoff: override.lastKickoffIso ? new Date(override.lastKickoffIso) : lastKickoff,
+        deadline: new Date(override.normalDeadlineIso),
+        lateDeadline: override.lateDeadlineIso ? new Date(override.lateDeadlineIso) : new Date(lastKickoff),
+        endCutoff: override.lateDeadlineIso ? new Date(override.lateDeadlineIso) : new Date(lastKickoff)
+      };
     }
 
     const deadline = new Date(
@@ -1650,6 +1735,22 @@ async function openGwReportModal_(gwId) {
 
 function showPickConfirmModal_(team, gwId) {
   const canonicalTeam = getCanonicalTeamName_(team);
+  if (isPlaceholderTeam_(canonicalTeam)) {
+    showFixturesMessage("You cannot queue a selection until the team is confirmed.", "bad");
+    setBtnLoading(submitPickBtn, false);
+    return;
+  }
+  const existingPick = getPickForGw(gwId);
+  const isChangingPick = !!existingPick?.team && !areTeamsSame_(existingPick.team, canonicalTeam);
+  const queueMode = isQueuePicksGame_();
+  const futureGw = isFutureGw_(gwId);
+  const isQueuedPick = queueMode && futureGw;
+
+  if (isQueuedPick && !canQueueGw_(gwId)) {
+    showFixturesMessage("You can only queue group stage selections for now.", "bad");
+    setBtnLoading(submitPickBtn, false);
+    return;
+  }
 
   const gw = gameweeks.find(g => g.id === gwId);
   if (!gw) {
@@ -1664,12 +1765,22 @@ function showPickConfirmModal_(team, gwId) {
     return;
   }
 
+  if (isFixtureResolved_(fx)) {
+    setBtnLoading(submitPickBtn, false);
+    showFixturesMessage("That fixture has already finished.", "bad");
+    return;
+  }
+
   const kickoffText = fx.kickoffHasTime
     ? `${formatDateWithOrdinalShortUK(fx.kickoff)} - ${formatTimeUK(fx.kickoff)}`
     : `${formatDateWithOrdinalShortUK(fx.kickoff)}`;
 
   showConfirmModal_(
-    `<span>Confirm selection:</span> <strong>${escapeHtml(canonicalTeam)}?</strong>`,
+    isChangingPick
+      ? `<span>Change ${isQueuedPick ? "queued " : ""}selection to:</span> <strong>${escapeHtml(canonicalTeam)}?</strong>`
+      : isQueuedPick
+        ? `<span>Queue selection for ${escapeHtml(gwLabelShort(gwId))}:</span> <strong>${escapeHtml(canonicalTeam)}?</strong>`
+        : `<span>Confirm selection:</span> <strong>${escapeHtml(canonicalTeam)}?</strong>`,
     `
       <div style="margin-top:10px;">
         <div class="fixture-row">
@@ -1681,14 +1792,20 @@ function showPickConfirmModal_(team, gwId) {
       </div>
     `,
     {
-      confirmText: "Confirm",
+      confirmText: isChangingPick
+        ? "Confirm change"
+        : isQueuedPick
+          ? "Queue selection"
+          : "Confirm",
       cancelText: "Cancel",
-      onConfirm: async () => {
-        await savePick(canonicalTeam);
+      onConfirm: async (confirmBtn) => {
+        setBtnLoading(confirmBtn, true);
+        await savePick(canonicalTeam, gwId);
       }
     }
   );
 }
+
 
 function getActiveGame_() {
   return (gamesList || []).find(g => String(g.id || "") === String(activeGameId || "")) || null;
@@ -1758,7 +1875,8 @@ function getWinnerLineHtml_(winner, remainingCount) {
   const remaining = Number(remainingCount || 0);
 
   if (winnerText) {
-    return `Winner: <strong>${escapeHtml(winnerText)}</strong>`;
+    const label = winnerText.includes(",") ? "Winners" : "Winner";
+    return `${label}: <strong>${escapeHtml(winnerText)}</strong>`;
   }
 
   if (remaining === 0) {
@@ -1951,7 +2069,6 @@ function getGameBannerStatusClass_(game, entry) {
   return "game-status-pill--open";
 }
 
-
 function getPlayersBadgeHtml_(game, counts) {
   const gameId = String(game?.id || "");
   const status = String(game?.status || "").toUpperCase();
@@ -1985,29 +2102,12 @@ function getPlayersBadgeHtml_(game, counts) {
   `;
 }
 
-
-
 function renderGameTitleBox_() {
   const game = getActiveGame_();
   const entry = getMyEntryForGame_(activeGameId);
 
-  const lobbyCounts = lobbyCountsByGame[String(activeGameId || "")];
-
-  const counts = {
-    registered: lastTotalPlayers,
-    total: lastTotalPlayers,
-    remaining: lastRemainingPlayers,
-    approved: lastApprovedPlayers,
-    pending: lastPendingPlayers
-  };
-
-  const hasLocalCounts =
-    lastTotalPlayers != null ||
-    lastRemainingPlayers != null ||
-    lastApprovedPlayers != null ||
-    lastPendingPlayers != null;
-
-  const countsForBadge = hasLocalCounts ? counts : lobbyCounts;
+  const countsForBadge = lobbyCountsByGame[String(activeGameId || "")] || null;
+  const counts = countsForBadge || {};
 
   const remainingCount = Number(counts?.remaining || 0);
   const totalCount = Number(counts?.total || 0);
@@ -2451,26 +2551,22 @@ function dotsHtml_() {
 })();
 
 
-function upsertLocalPick(gwId, team) {
-  gwId = String(gwId || "").trim().toUpperCase(); // ✅ normalize
+function upsertLocalPick(gwId, team, outcome = "PENDING") {
+  const key = String(gwId || "").trim().toUpperCase();
+  const existing = sessionPicks.find(p => String(p.gwId || "").trim().toUpperCase() === key);
 
-  const idx = sessionPicks.findIndex(p => String(p.gwId || "").toUpperCase() === gwId);
-
-  const base = {
-    submittedAt: new Date().toISOString(),
-    gwId,
-    team,
-    outcome: "PENDING"
-  };
-
-  if (idx >= 0) {
-    const prev = sessionPicks[idx];
-    sessionPicks[idx] = { ...prev, ...base, outcome: prev.outcome || "PENDING" };
+  if (existing) {
+    existing.team = team;
+    existing.outcome = outcome;
+    existing.submittedAt = new Date().toISOString();
   } else {
-    sessionPicks.push(base);
+    sessionPicks.push({
+      gwId: key,
+      team,
+      outcome,
+      submittedAt: new Date().toISOString()
+    });
   }
-
-  sessionPicks = Array.isArray(sessionPicks) ? sessionPicks : [];
 }
 
 
@@ -2810,44 +2906,62 @@ let lastApprovedPlayers = null;
 let lastPendingPlayers = null;
 
 async function refreshRemainingPlayersCount() {
+  const gameId = String(activeGameId || "");
+  if (!gameId) return;
+
   const myReq = ++remainingReqId;
 
-  const firstLoad = (lastRemainingPlayers == null || lastTotalPlayers == null);
-  remainingLoading = firstLoad;
-
-  if (firstLoad) renderStatusBox();
+  remainingLoading = true;
+  renderStatusBox();
 
   try {
-    const data = await api({ action: "getEntries", gameId: activeGameId, gwId: currentGwId });
+    // 1. Firebase first
+    const fast = await api({ action: "getGameCounts", gameId });
+
     if (myReq !== remainingReqId) return;
 
-    const users = Array.isArray(data.users) ? data.users : [];
+    if (fast?.counts && Number(fast.counts.registered || 0) > 0) {
+      lobbyCountsByGame[gameId] = fast.counts;
 
-    const approvedUsers = users.filter(u => isApproved_(u));
-    const pendingUsers = users.filter(u => !isApproved_(u));
-    const aliveApprovedUsers = approvedUsers.filter(u => u.alive);
+      lastApprovedPlayers = Number(fast.counts.approved || 0);
+      lastPendingPlayers = Number(fast.counts.pending || 0);
+      lastRemainingPlayers = Number(fast.counts.remaining || 0);
+      lastTotalPlayers = Number(fast.counts.total || fast.counts.registered || 0);
 
-    lastApprovedPlayers = approvedUsers.length;
-    lastPendingPlayers = pendingUsers.length;
-    lastRemainingPlayers = aliveApprovedUsers.length;
-    lastTotalPlayers = users.length;
-
-    const alive = aliveApprovedUsers;
-
-    const started = hasCompetitionStarted_();
-    if (started && alive.length === 1) {
-      competitionOver = true;
-      winnerEmail = String(alive[0]?.email || "").toLowerCase() || null;
-    } else {
-      competitionOver = false;
-      winnerEmail = null;
+      return;
     }
 
-    if (sessionUser?.alive === false) {
-      await refreshMyPlacingIfDead_();
+    throw new Error("No Firebase counts returned");
+
+  } catch (firebaseErr) {
+    console.warn("Firebase game counts failed, falling back to Sheets", firebaseErr);
+
+    try {
+      const data = await api({ action: "getEntries", gameId, gwId: currentGwId });
+      if (myReq !== remainingReqId) return;
+
+      const users = Array.isArray(data.users) ? data.users : [];
+
+      const approvedUsers = users.filter(u => isApproved_(u));
+      const pendingUsers = users.filter(u => !isApproved_(u));
+      const aliveApprovedUsers = approvedUsers.filter(u => u.alive);
+
+      lastApprovedPlayers = approvedUsers.length;
+      lastPendingPlayers = pendingUsers.length;
+      lastRemainingPlayers = aliveApprovedUsers.length;
+      lastTotalPlayers = users.length;
+
+      lobbyCountsByGame[gameId] = {
+        registered: users.length,
+        approved: approvedUsers.length,
+        pending: pendingUsers.length,
+        remaining: aliveApprovedUsers.length,
+        total: users.length
+      };
+    } catch {
+      // ignore
     }
-  } catch {
-    // ignore
+
   } finally {
     remainingLoading = false;
     renderStatusBox();
@@ -2968,7 +3082,7 @@ function payInstructionsHtml_({
           class="btn btn-ghost payment-sheet-v3__ghost"
           type="button"
         >
-          Cancel
+          Cancel registration
         </button>
       </div>
 
@@ -3037,8 +3151,19 @@ function showConfirmModal_(title, html, { confirmText = "Confirm", cancelText = 
   }, { once: true });
 
   document.getElementById("sysConfirmBtn")?.addEventListener("click", async () => {
-    closeModal(modalEl);
-    await onConfirm?.();
+    const confirmBtn = document.getElementById("sysConfirmBtn");
+    const cancelBtn = document.getElementById("sysCancelBtn");
+
+    setBtnLoading(confirmBtn, true);
+    if (cancelBtn) cancelBtn.disabled = true;
+
+    try {
+      await onConfirm?.(confirmBtn);
+    } catch (err) {
+      setBtnLoading(confirmBtn, false);
+      if (cancelBtn) cancelBtn.disabled = false;
+      throw err;
+    }
   }, { once: true });
 
   // If modal is closed by X or overlay, treat as cancel
@@ -3258,6 +3383,12 @@ function setIconBtnBusyText_(btn, busy, busyText = "…") {
 function showPaymentDetailsModal_(gameId = activeGameId) {
   const game = (gamesList || []).find(g => String(g.id || "") === String(gameId || ""));
   const entryFee = Number(game?.entryFee || 10);
+  const entry = getMyEntryForGame_(gameId);
+
+  if (entry && isApproved_(entry)) {
+    enterGame_(gameId);
+    return;
+  }
 
   if (isPaymentWorkflowGame_(gameId)) {
     const paymentRef = getStoredPaymentRef_(gameId);
@@ -3311,48 +3442,62 @@ function bindPaymentSheetActions_({ gameId, paymentRef }) {
   document.getElementById("paymentCheckStatusBtn")?.addEventListener("click", async () => {
     const btn = document.getElementById("paymentCheckStatusBtn");
     const msg = document.getElementById("paymentSheetMsg");
-    if (!btn || !msg || !sessionEmail || !paymentRef) return;
+    if (!btn || !msg || !sessionEmail || !gameId) return;
 
     setBtnLoading(btn, true);
 
     try {
-      const data = await api({
-        action: "getTestRegistrationStatus",
-        email: sessionEmail,
-        paymentRef
-      });
+      await fetchMyEntries_();
 
-      if (data.approved) {
-        msg.innerHTML = `
-        <div class="payment-status-card payment-status-card--approved">
-          <div class="payment-status-card__icon">✓</div>
-          <div class="payment-status-card__content">
-            <div class="payment-status-card__title">Approved</div>
-            <div class="payment-status-card__text">Your payment has been matched successfully.</div>
-          </div>
-        </div>
+      const entry = getMyEntryForGame_(gameId);
 
-        <button
-          id="paymentEnterGameBtn"
-          class="btn btn-primary payment-sheet-v3__primary"
-          type="button"
-          style="margin-top:10px;"
-        >
-          Enter game
-        </button>
-      `;
-        msg.classList.remove("hidden", "bad");
-        msg.classList.add("good");
-
+      if (entry && isApproved_(entry)) {
         btn.textContent = "Approved ✓";
         btn.disabled = true;
 
-        await fetchMyEntries_();
         snapshotLobbyApprovalStates_();
         await refreshLobbyCounts_().catch(() => { });
         renderLobby_();
 
-        document.getElementById("paymentEnterGameBtn")?.addEventListener("click", async () => {
+        showSystemModal_(
+          "",
+          `
+            <div class="payment-sheet-v3">
+              <div class="payment-status-card payment-status-card--approved" style="margin-bottom:14px;">
+                <div class="payment-status-card__icon">✓</div>
+                <div class="payment-status-card__content">
+                  <div class="payment-status-card__title">Registration approved</div>
+                  <div class="payment-status-card__text">
+                    Your payment has been matched successfully.
+                  </div>
+                </div>
+              </div>
+
+              <div style="
+                padding:14px;
+                border-radius:16px;
+                background:rgba(255,255,255,0.06);
+                border:1px solid rgba(255,255,255,0.08);
+                line-height:1.45;
+                margin-bottom:14px;
+              ">
+                You can now make your first selection.
+              </div>
+
+              <button
+                type="button"
+                id="approvedContinueBtn"
+                class="btn btn-primary payment-sheet-v3__primary"
+                style="width:100%;"
+              >
+                Continue
+              </button>
+            </div>
+          `,
+          { showActions: false, variant: "sheet" }
+        );
+
+        document.getElementById("approvedContinueBtn")?.addEventListener("click", async () => {
           closeModal(systemModal);
           await enterGame_(gameId);
         }, { once: true });
@@ -3364,30 +3509,56 @@ function bindPaymentSheetActions_({ gameId, paymentRef }) {
       <div class="payment-status-card payment-status-card--pending">
         <div class="payment-status-card__icon">…</div>
         <div class="payment-status-card__content">
-          <div class="payment-status-card__title">Still awaiting confirmation</div>
-          <div class="payment-status-card__text">We have not matched your payment yet.</div>
+          <div class="payment-status-card__title">Not ready yet</div>
+          <div class="payment-status-card__text">
+            We have not matched your payment yet. Please wait a few seconds and try again.
+          </div>
         </div>
       </div>
+
+      <button
+        type="button"
+        id="paidDifferentReferenceBtn"
+        class="btn btn-ghost"
+        style="margin-top:10px;width:100%;"
+      >
+        I paid with a different reference
+      </button>
     `;
+
+      document.getElementById("paidDifferentReferenceBtn")?.addEventListener("click", () => {
+        msg.innerHTML = `
+        <div class="payment-status-card payment-status-card--pending">
+          <div class="payment-status-card__icon">…</div>
+          <div class="payment-status-card__content">
+            <div class="payment-status-card__title">Manual approval needed</div>
+            <div class="payment-status-card__text">
+              Please wait for manual approval.
+            </div>
+          </div>
+        </div>
+      `;
+
+        msg.classList.remove("hidden", "good");
+        msg.classList.add("bad");
+      });
+
       msg.classList.remove("hidden", "good");
       msg.classList.add("bad");
 
     } catch (err) {
-      const errText = String(err.message || err).toLowerCase();
-
-      const friendlyText = errText.includes("registration not found")
-        ? "Your registration is still being prepared. Please wait a few seconds and try again."
-        : String(err.message || err);
-
       msg.innerHTML = `
       <div class="payment-status-card payment-status-card--pending">
         <div class="payment-status-card__icon">…</div>
         <div class="payment-status-card__content">
           <div class="payment-status-card__title">Not ready yet</div>
-          <div class="payment-status-card__text">${escapeHtml(friendlyText)}</div>
+          <div class="payment-status-card__text">
+            We could not check your payment status. Please wait a few seconds and try again.
+          </div>
         </div>
       </div>
     `;
+
       msg.classList.remove("hidden", "good");
       msg.classList.add("bad");
     } finally {
@@ -3396,8 +3567,13 @@ function bindPaymentSheetActions_({ gameId, paymentRef }) {
   });
 
   document.getElementById("paymentCancelBtn")?.addEventListener("click", async () => {
+    if (!sessionEmail || !gameId) return;
+
+    const confirmed = window.confirm("Are you sure you want to cancel your registration?");
+    if (!confirmed) return;
+
     const btn = document.getElementById("paymentCancelBtn");
-    if (!btn || !sessionEmail || !gameId) return;
+    if (!btn) return;
 
     setBtnLoading(btn, true);
 
@@ -3479,8 +3655,13 @@ function renderPaymentDetailsCard_() {
 
 function normalizeOutcome_(o) {
   const out = String(o || "").trim().toUpperCase();
+
   if (out === "WIN" || out === "WON") return "WIN";
   if (out === "LOSS" || out === "LOST" || out === "LOSE") return "LOSS";
+  if (out === "QUEUED") return "QUEUED";
+  if (out === "VOID") return "VOID";
+  if (out === "PENDING") return "PENDING";
+
   return "PENDING";
 }
 
@@ -3523,7 +3704,7 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
         rowCls: "pending",
         text: "Team submitted",
         stateCls: "warn",
-        icon: "✓"
+        icon: "…"
       };
     }
 
@@ -3582,6 +3763,8 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
         email: player.email,
         gameId: activeGameId
       });
+
+      console.log("getUserPicks source:", resp.source, resp.picks?.length);
       picks = Array.isArray(resp.picks) ? resp.picks : [];
     }
 
@@ -3631,15 +3814,41 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
           continue;
         }
 
-        const icon = p.outcome === "WIN" ? "✓" : p.outcome === "LOSS" ? "✕" : "…";
-        const cls = p.outcome === "WIN" ? "good" : p.outcome === "LOSS" ? "bad" : "warn";
+        const outcome = String(p.outcome || "PENDING").toUpperCase();
+
+        let rowCls = "pending";
+        let stateCls = "warn";
+        let icon = "…";
+        let labelHtml = "Team submitted";
+
+        if (outcome === "QUEUED") {
+          rowCls = "queued";
+          stateCls = "muted";
+          icon = "⏱";
+          labelHtml = "Team queued";
+        } else if (outcome === "WIN") {
+          rowCls = "win";
+          stateCls = "good";
+          icon = "✓";
+          labelHtml = teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" });
+        } else if (outcome === "LOSS") {
+          rowCls = "loss";
+          stateCls = "bad";
+          icon = "✕";
+          labelHtml = teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" });
+        } else if (outcome === "VOID") {
+          rowCls = "void";
+          stateCls = "muted";
+          icon = "—";
+          labelHtml = "Team void";
+        }
 
         rowsHtml += `
-          <div class="status-row fade-row ${p.outcome === "WIN" ? "win" : p.outcome === "LOSS" ? "loss" : "pending"}">
+          <div class="status-row fade-row ${rowCls}">
             <div>
-              ${escapeHtml(gwLabelShort(displayGwId))} - ${teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" })}
+              ${escapeHtml(gwLabelShort(displayGwId))} - ${labelHtml}
             </div>
-            <div class="state ${cls}">${icon}</div>
+            <div class="state ${stateCls}">${icon}</div>
           </div>
         `;
       }
@@ -3746,11 +3955,31 @@ function currentGwLocked() {
   return Date.now() >= gw.deadline.getTime();
 }
 
+function getNextQueueTargetGwId_() {
+  const picksByGw = new Map(
+    (sessionPicks || [])
+      .filter(p => p?.gwId)
+      .map(p => [String(p.gwId).toUpperCase(), p])
+  );
+
+  const nextEmpty = (gameweeks || []).find(gw => {
+    const gwId = String(gw.id || "").toUpperCase();
+
+    if (!canQueueGw_(gwId)) return false;
+
+    const pick = picksByGw.get(gwId);
+    return !String(pick?.team || "").trim();
+  });
+
+  return nextEmpty ? String(nextEmpty.id).toUpperCase() : "";
+}
+
 function renderStatusBox() {
   const box = document.getElementById("statusBox");
   if (!box || !sessionUser) return;
 
   const game = getActiveGame_();
+  const isWorldCup = gameIncludesLeague_("World Cup", game);
   const name = `${sessionUser.firstName || ""} ${sessionUser.lastName || ""}`.trim() || "Player";
 
   const isPending = !sessionUser.approved;
@@ -3771,9 +4000,6 @@ function renderStatusBox() {
 
   const currentPick = picksByGw.get(String(currentGwId || "").toUpperCase()) || null;
   const lateSubmittingNow = canLateSubmitCurrentGw_() && !currentPick?.team;
-
-  const maxGwId = getLastStartedActualGwIdForGame_(game) || currentGwId;
-  const maxGwIndex = findGwIndexById(maxGwId);
 
   function canShowViewAllForGw_(gwId) {
     const gw = gameweeks.find(g => g.id === gwId);
@@ -3803,13 +4029,39 @@ function renderStatusBox() {
     `;
   }
 
-  function stateHtml_(outcome, hasTeam) {
+  function stateHtml_(outcome, hasTeam, gwId) {
     const o = String(outcome || "PENDING").toUpperCase();
 
     if (!hasTeam) return ``;
+
+    const editHtml = canEditPickForGw_(gwId)
+      ? `
+      <button
+        type="button"
+        class="status-edit-btn"
+        data-edit-pick-gw="${escapeAttr(gwId)}"
+        aria-label="Edit ${escapeAttr(gwLabelShort(gwId))} selection"
+        title="Edit selection"
+      >✎</button>
+    `
+      : "";
+
     if (o === "WIN") return `<div class="state good">✓</div>`;
     if (o === "LOSS") return `<div class="state bad">✕</div>`;
-    return `<div class="state warn">…</div>`;
+    if (o === "QUEUED") return `<div class="state muted">⏱</div>${editHtml}`;
+    if (o === "VOID") return `<div class="state muted">—</div>`;
+
+    return `<div class="state warn">…</div>${editHtml}`;
+  }
+
+  function rowClassForOutcome_(outcome) {
+    const o = String(outcome || "PENDING").toUpperCase();
+
+    if (o === "WIN") return "win";
+    if (o === "LOSS") return "loss";
+    if (o === "QUEUED") return "queued";
+    if (o === "VOID") return "void";
+    return "pending";
   }
 
   let rowsHtml = "";
@@ -3829,40 +4081,53 @@ function renderStatusBox() {
     `;
   } else {
     const rows = [];
+    let lastStageLabel = "";
 
-    (gameweeks || []).forEach(gw => {
+    const displayGws = (gameweeks || []).filter(gw => {
       const gwId = String(gw.id || "").toUpperCase();
-      const gwIndex = findGwIndexById(gwId);
+      const pick = picksByGw.get(gwId) || null;
+      const hasTeam = !!String(pick?.team || "").trim();
 
-      if (gwIndex < 0 || gwIndex > maxGwIndex) return;
+      if (hasTeam) return true;
+      if (gwId === String(currentGwId || "").toUpperCase() && isAlive) return true;
 
+      if (
+        isAlive &&
+        isQueuePicksGame_() &&
+        canQueueGw_(gwId) &&
+        hasSelectableFixtureForGw_(gwId)
+      ) return true;
+
+      return false;
+    });
+
+    displayGws.forEach(gw => {
+      const gwId = String(gw.id || "").toUpperCase();
       const pick = picksByGw.get(gwId) || null;
       const hasTeam = !!String(pick?.team || "").trim();
       const outcome = String(pick?.outcome || "PENDING").toUpperCase();
 
-      const isCurrentNoPickAlive =
-        !hasTeam &&
-        isAlive &&
-        gwId === String(currentGwId || "").toUpperCase();
+      if (isWorldCup) {
+        const stage = getWorldCupQueueStage_(gwId);
+        if (stage.label && stage.label !== lastStageLabel) {
+          rows.push(`
+            <div class="status-stage-title">
+              ${escapeHtml(stage.label)}
+            </div>
+          `);
+          lastStageLabel = stage.label;
+        }
+      }
 
-      const isFutureNoPickAfterDead =
-        isDead &&
-        !hasTeam &&
-        gwIndex > findGwIndexById(String(sessionUser?.knockedOutGw || "").toUpperCase());
-
-      if (!hasTeam && !isCurrentNoPickAlive && !isFutureNoPickAfterDead) return;
-
-      let rowCls = "neutral";
+      let rowCls = hasTeam ? rowClassForOutcome_(outcome) : "neutral";
       let leftHtml = "";
 
       if (hasTeam) {
-        rowCls = rowClass(outcome);
         leftHtml = `
           <span>${escapeHtml(gwLabelShort(gwId))} - </span>
           ${teamInlineHtml_(pick.team, { size: 16, logoPosition: "before" })}
         `;
       } else {
-        rowCls = "neutral";
         leftHtml = `<span>${escapeHtml(gwLabelShort(gwId))} - No selection</span>`;
       }
 
@@ -3875,7 +4140,7 @@ function renderStatusBox() {
 
             <div class="status-row-right">
               ${viewAllHtml_(gwId)}
-              ${stateHtml_(outcome, hasTeam)}
+              ${stateHtml_(outcome, hasTeam, gwId)}
             </div>
           </div>
         </div>
@@ -3913,9 +4178,43 @@ function renderStatusBox() {
       openGwReportModal_(gwId);
     });
   });
+  box.querySelectorAll("[data-edit-pick-gw]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const gwId = btn.getAttribute("data-edit-pick-gw");
+      if (!gwId) return;
+      await editPickForGw_(gwId);
+    });
+  });
 }
 
+function getTeamResetGws_(game = getActiveGame_()) {
+  const raw = String(game?.resetTeamGw || game?.resetteamgw || "").trim();
 
+  if (!raw || raw.toLowerCase() === "false") return [];
+
+  return raw
+    .split(",")
+    .map(x => x.trim().toUpperCase())
+    .filter(Boolean);
+}
+
+function getTeamReuseGroupForGw_(gwId, game = getActiveGame_()) {
+  const gwNum = gwNumberFromId_(gwId);
+  const resets = getTeamResetGws_(game)
+    .map(gwNumberFromId_)
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+
+  let groupStart = 1;
+
+  for (const resetNum of resets) {
+    if (gwNum >= resetNum) {
+      groupStart = resetNum;
+    }
+  }
+
+  return `FROM_GW${groupStart}`;
+}
 
 function bindConnectionToClubToggleOnce_() {
   if (!registerForm || registerForm.dataset.boundConn === "1") return;
@@ -4129,20 +4428,33 @@ function computePlayerGwId() {
 
   if (sessionUser && sessionUser.alive === false) {
     if (sessionUser.knockedOutGw) return sessionUser.knockedOutGw;
-    const lastPick = sessionPicks[sessionPicks.length - 1];
-    return lastPick?.gwId || gameweeks[0].id;
+
+    const lastResolvedPick = [...(sessionPicks || [])]
+      .filter(p => !["QUEUED", "VOID"].includes(String(p.outcome || "").toUpperCase()))
+      .sort((a, b) => findGwIndexById(a.gwId) - findGwIndexById(b.gwId))
+      .pop();
+
+    return lastResolvedPick?.gwId || gameweeks[0].id;
   }
 
-  const picksSorted = [...sessionPicks].sort((a, b) => findGwIndexById(a.gwId) - findGwIndexById(b.gwId));
-  const lastPick = picksSorted.length ? picksSorted[picksSorted.length - 1] : null;
+  const activePicks = [...(sessionPicks || [])]
+    .filter(p => {
+      const outcome = String(p.outcome || "PENDING").toUpperCase();
+      return outcome !== "QUEUED" && outcome !== "VOID";
+    })
+    .sort((a, b) => findGwIndexById(a.gwId) - findGwIndexById(b.gwId));
+
+  const lastPick = activePicks.length ? activePicks[activePicks.length - 1] : null;
 
   if (!lastPick) {
     return computeDateGwId() || gameweeks[0].id;
   }
 
-  if (lastPick.outcome === "LOSS") return lastPick.gwId;
+  const outcome = String(lastPick.outcome || "PENDING").toUpperCase();
 
-  if (lastPick.outcome === "WIN") {
+  if (outcome === "LOSS") return lastPick.gwId;
+
+  if (outcome === "WIN") {
     return getNextGwId(lastPick.gwId) || lastPick.gwId;
   }
 
@@ -4226,6 +4538,27 @@ function canLateSubmitCurrentGw_() {
   return isLateSubmissionOpenForGw_(currentGwId);
 }
 
+function isQueuePicksGame_(game = getActiveGame_()) {
+  const raw =
+    game?.queuePicks ??
+    game?.queuepicks ??
+    game?.queue_picks ??
+    game?.QueuePicks ??
+    game?.["queuePicks"] ??
+    game?.["queue picks"] ??
+    "";
+
+  return raw === true ||
+    String(raw).trim().toLowerCase() === "true" ||
+    String(raw).trim().toLowerCase() === "yes" ||
+    String(raw).trim().toLowerCase() === "y" ||
+    String(raw).trim() === "1";
+}
+
+function isFutureGw_(gwId) {
+  return gwIndexForRank_(gwId) > gwIndexForRank_(currentGwId);
+}
+
 function getUnstartedFixturesForGw_(gwId) {
   const gw = gameweeks.find(g => g.id === gwId);
   if (!gw) return [];
@@ -4269,12 +4602,50 @@ function isGameRegistrationOpenNow_(game) {
   return Date.now() < firstGw.lateDeadline.getTime();
 }
 
+async function loadDeadlines(game = getActiveGame_()) {
+  const rawFile = String(game?.deadlinesFile || "").trim();
 
-async function loadDeadlines() {
-  const res = await fetch("site/data/gameweek-deadlines.json", { cache: "no-store" });
-  if (!res.ok) return new Map();
+  const deadlinesFile =
+    rawFile ||
+    "site/data/gameweek-deadlines.json";
 
-  const data = await res.json();
+  console.log("loading deadlines", {
+    activeGameId,
+    gameTitle: game?.title,
+    rawFile,
+    deadlinesFile
+  });
+
+  let res;
+  try {
+    res = await fetch(`${deadlinesFile}?ts=${Date.now()}`, {
+      cache: "no-store"
+    });
+  } catch (err) {
+    console.warn("Deadlines fetch failed:", deadlinesFile, err);
+    return new Map();
+  }
+
+  const text = await res.text();
+
+  if (!res.ok) {
+    console.warn("Deadlines file not found:", deadlinesFile, res.status, text.slice(0, 200));
+    return new Map();
+  }
+
+  if (!String(text || "").trim()) {
+    console.warn("Deadlines file is empty:", deadlinesFile);
+    return new Map();
+  }
+
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch (err) {
+    console.warn("Deadlines file is not valid JSON:", deadlinesFile, text.slice(0, 300));
+    return new Map();
+  }
+
   const map = new Map();
 
   for (const d of (data.deadlines || [])) {
@@ -4294,10 +4665,27 @@ async function loadDeadlines() {
 
 async function loadFixturesAndDeadlines_() {
   await loadAllFixtures();
-  deadlinesByGw = await loadDeadlines();
 
   const activeGame = getActiveGame_();
+
+  deadlinesByGw = await loadDeadlines(activeGame);
+
   gameweeks = activeGame ? getGameweeksForGame_(activeGame) : [];
+
+  console.log("game load debug", {
+    activeGameId,
+    activeGame,
+    fixturesCount: fixtures.length,
+    competitions: activeGame ? getGameCompetitions_(activeGame) : [],
+    deadlinesCount: deadlinesByGw.size,
+    gameweeks: gameweeks.map(g => ({
+      id: g.id,
+      num: g.num,
+      fixtures: g.fixtures.length,
+      deadline: g.deadline,
+      lateDeadline: g.lateDeadline
+    }))
+  });
 }
 
 
@@ -4443,9 +4831,115 @@ function formatResultStatusLabelApp_(status) {
   return s.toUpperCase();
 }
 
+function renderFixtureGwNav() {
+  const nav = document.getElementById("fixtureGwNav");
+  if (!nav) return;
+
+  const idx = gameweeks.findIndex(g => g.id === viewingGwId);
+  if (idx < 0) return;
+
+  const cur = gameweeks[idx];
+
+  let visibleGws = gameweeks.slice(Math.max(0, idx - 1), idx + 2);
+
+  if (idx === 0) {
+    visibleGws = gameweeks.slice(0, 3);
+  }
+
+  if (idx === gameweeks.length - 1) {
+    visibleGws = gameweeks.slice(Math.max(0, gameweeks.length - 3));
+  }
+
+  const prev = gameweeks[idx - 1] || null;
+  const next = gameweeks[idx + 1] || null;
+
+  function gwClass(gwId) {
+    const pick = getPickForGw(gwId);
+    const outcome = String(pick?.outcome || "").toUpperCase();
+
+    if (!pick?.team) return "";
+
+    if (outcome === "PENDING") return "gw-pill-pick-pending";
+    if (outcome === "QUEUED") return "gw-pill-pick-queued";
+    if (outcome === "WIN") return "gw-pill-pick-win";
+    if (outcome === "LOSS") return "gw-pill-pick-loss";
+
+    return "";
+  }
+
+  const endDay = startOfDay(cur.lastKickoff || cur.firstKickoff);
+
+  nav.innerHTML = `
+    <div class="fixture-gw-current-title">
+      ${escapeHtml(getGwStageLabel_(cur.id))}
+    </div>
+
+    <div class="fixture-gw-date muted">
+      ${formatDateWithOrdinalShortUK(cur.start)} - ${formatDateWithOrdinalShortUK(endDay)}
+    </div>
+
+    <div class="fixture-gw-nav-row">
+      <button
+        class="fixture-gw-arrow"
+        ${!prev ? "disabled" : ""}
+        data-gw-nav="${prev?.id || ""}"
+      >
+        ←
+      </button>
+
+      <div class="fixture-gw-pills">
+        ${visibleGws.map(gw => `
+          <button
+            class="fixture-gw-pill ${gw.id === cur.id ? "active" : ""} ${gwClass(gw.id)}"
+            ${gw.id === cur.id ? "" : `data-gw-nav="${gw.id}"`}
+          >
+            ${gwLabelShort(gw.id)}
+          </button>
+        `).join("")}
+      </div>
+
+      <button
+        class="fixture-gw-arrow"
+        ${!next ? "disabled" : ""}
+        data-gw-nav="${next?.id || ""}"
+      >
+        →
+      </button>
+    </div>
+    <div class="fixture-gw-helper muted">
+      Click a team to select it
+    </div>
+  `;
+
+  nav.querySelectorAll("[data-gw-nav]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const gwId = btn.dataset.gwNav;
+      if (!gwId) return;
+
+      viewingGwId = gwId;
+      renderFixturesTab();
+    });
+  });
+}
+
+function getGwStageLabel_(gwId) {
+  const n = gwNumberFromId_(gwId);
+
+  if (n >= 1 && n <= 6) return "Group Stage";
+  if (n === 7) return "Round of 32";
+  if (n === 8) return "Round of 32";
+  if (n === 9) return "Quarter-finals";
+  if (n === 10) return "Semi-finals";
+  if (n === 11) return "Final & 3rd Place Play-off";
+
+  return `Gameweek ${n}`;
+}
+
 async function renderFixturesTab() {
   const viewGw = gameweeks.find(g => g.id === viewingGwId);
   if (!viewGw) return;
+
+  renderFixtureGwNav();
 
   renderCurrentPickBlock();
   renderStatusBox();
@@ -4466,6 +4960,10 @@ async function renderFixturesTab() {
   fixturesList.innerHTML = "";
 
   const showPickData = shouldShowFixturePickDataForGw_(viewGw.id);
+  const activeGame = getActiveGame_();
+  const allowedLeagues = getGameCompetitions_(activeGame);
+  const singleCompetition = allowedLeagues.length === 1;
+  const useFlags = gameIncludesLeague_("World Cup", activeGame);
 
   if (showPickData && !fixturePickCountsByGw.has(String(viewGw.id || "").toUpperCase())) {
     ensureFixturePickDataForGw_(viewGw.id)
@@ -4518,15 +5016,13 @@ async function renderFixturesTab() {
       leagueMap.get(f.league).push(f);
     }
 
-    const allowedLeagues = getGameCompetitions_(getActiveGame_());
-
     for (const leagueName of allowedLeagues) {
       const list = leagueMap.get(leagueName);
       if (!list || !list.length) continue;
 
       const details = document.createElement("details");
       details.className = "league-details";
-      details.open = false;
+      details.open = singleCompetition;
 
       const summary = document.createElement("summary");
       summary.className = "league-summary";
@@ -4540,7 +5036,9 @@ async function renderFixturesTab() {
           </span>
         ` : `<span class="league-summary-right"></span>`}
       `;
-      details.appendChild(summary);
+      if (!singleCompetition) {
+        details.appendChild(summary);
+      }
 
       const container = document.createElement("div");
       container.className = "league-group";
@@ -4553,12 +5051,32 @@ async function renderFixturesTab() {
           Number.isInteger(f.homeScore) &&
           Number.isInteger(f.awayScore);
 
-        const leftLogo = getTeamLogo_(f.home);
-        const rightLogo = getTeamLogo_(f.away);
+        const leftLogo = useFlags ? getCountryFlagUrl_(f.home) : getTeamLogo_(f.home);
+        const rightLogo = useFlags ? getCountryFlagUrl_(f.away) : getTeamLogo_(f.away);
 
         const pickCounts = showPickData ? getFixturePickCountsForApp_(f) : null;
         const homePickStats = pickCounts?.home || null;
         const awayPickStats = pickCounts?.away || null;
+
+        const currentPick = getPickForGw(f.gwId);
+        const selectedTeam = String(currentPick?.team || "").trim();
+
+        const homeSelected = selectedTeam && areTeamsSame_(selectedTeam, f.home);
+        const awaySelected = selectedTeam && areTeamsSame_(selectedTeam, f.away);
+
+        const pickOutcome = String(currentPick?.outcome || "PENDING").toUpperCase();
+
+        const selectedFixtureClass =
+          pickOutcome === "QUEUED"
+            ? "fixture-team-side--queued"
+            : pickOutcome === "WIN"
+              ? "fixture-team-side--win"
+              : pickOutcome === "LOSS"
+                ? "fixture-team-side--loss"
+                : "fixture-team-side--pending";
+
+        const homeClickable = canClickFixtureTeam_(f.home, f.gwId);
+        const awayClickable = canClickFixtureTeam_(f.away, f.gwId);
 
         row.innerHTML = `
           <div class="fixture-row-main" style="min-width:0;width:100%;">
@@ -4574,6 +5092,7 @@ async function renderFixturesTab() {
               "
             >
               <div
+                class="${homeSelected ? selectedFixtureClass : ""}"
                 style="
                   position:relative;
                   display:grid;
@@ -4604,19 +5123,39 @@ async function renderFixturesTab() {
                   </div>
                 ` : ""}
 
-                <div
-                  class="team-name team-name-home"
-                  style="
-                    min-width:0;
-                    line-height:1.15;
-                    text-align:right;
-                    white-space:normal;
-                    word-break:normal;
-                    overflow-wrap:normal;
-                  "
-                >
-                  ${escapeHtml(displayTeamNameForFixture_(f.home))}
-                </div>
+                ${homeClickable ? `
+                  <button
+                    type="button"
+                    class="fixture-team-select-btn team-name team-name-home ${homeSelected ? "is-selected fixture-team--selected" : ""}"
+                    data-select-fixture-team="1"
+                    data-team="${escapeAttr(f.home)}"
+                    data-gw-id="${escapeAttr(f.gwId)}"
+                    style="
+                      min-width:0;
+                      line-height:1.15;
+                      text-align:right;
+                      white-space:normal;
+                      word-break:normal;
+                      overflow-wrap:normal;
+                    "
+                  >
+                    ${escapeHtml(displayTeamNameForFixture_(f.home))}
+                  </button>
+                ` : `
+                  <div
+                    class="team-name team-name-home ${homeSelected ? "is-selected fixture-team--selected" : ""}"
+                    style="
+                      min-width:0;
+                      line-height:1.15;
+                      text-align:right;
+                      white-space:normal;
+                      word-break:normal;
+                      overflow-wrap:normal;
+                    "
+                  >
+                    ${escapeHtml(displayTeamNameForFixture_(f.home))}
+                  </div>
+                `}
 
                 <img
                   src="${escapeAttr(leftLogo)}"
@@ -4632,6 +5171,7 @@ async function renderFixturesTab() {
               </div>
 
               <div
+                class="${awaySelected ? selectedFixtureClass : ""}"
                 style="
                   position:relative;
                   display:grid;
@@ -4651,19 +5191,39 @@ async function renderFixturesTab() {
                   onerror="this.onerror=null;this.src='site/images/team-default.png';"
                 />
 
-                <div
-                  class="team-name team-name-away"
-                  style="
-                    min-width:0;
-                    line-height:1.15;
-                    text-align:left;
-                    white-space:normal;
-                    word-break:normal;
-                    overflow-wrap:normal;
-                  "
-                >
-                  ${escapeHtml(displayTeamNameForFixture_(f.away))}
-                </div>
+                ${awayClickable ? `
+                  <button
+                    type="button"
+                    class="fixture-team-select-btn team-name team-name-away ${awaySelected ? "is-selected fixture-team--selected" : ""}"
+                    data-select-fixture-team="1"
+                    data-team="${escapeAttr(f.away)}"
+                    data-gw-id="${escapeAttr(f.gwId)}"
+                    style="
+                      min-width:0;
+                      line-height:1.15;
+                      text-align:left;
+                      white-space:normal;
+                      word-break:normal;
+                      overflow-wrap:normal;
+                    "
+                  >
+                    ${escapeHtml(displayTeamNameForFixture_(f.away))}
+                  </button>
+                ` : `
+                  <div
+                    class="team-name team-name-away ${awaySelected ? "is-selected fixture-team--selected" : ""}"
+                    style="
+                      min-width:0;
+                      line-height:1.15;
+                      text-align:left;
+                      white-space:normal;
+                      word-break:normal;
+                      overflow-wrap:normal;
+                    "
+                  >
+                    ${escapeHtml(displayTeamNameForFixture_(f.away))}
+                  </div>
+                `}
 
                 ${awayPickStats ? `
                   <div
@@ -4695,14 +5255,69 @@ async function renderFixturesTab() {
         container.appendChild(row);
       }
 
-      details.appendChild(container);
-      dayGroup.appendChild(details);
+      if (singleCompetition) {
+        dayGroup.appendChild(container);
+      } else {
+        details.appendChild(container);
+        dayGroup.appendChild(details);
+      }
     }
 
     fixturesList.appendChild(dayGroup);
   }
 
+  fixturesList.querySelectorAll("[data-select-fixture-team]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const team = btn.getAttribute("data-team") || "";
+      const gwId = btn.getAttribute("data-gw-id") || currentGwId;
+
+      viewingGwId = gwId;
+
+      showPickConfirmModal_(team, gwId);
+    });
+  });
+
   bindFixturePickBadgeEvents_();
+}
+
+function isPlaceholderTeam_(team) {
+  const s = String(team || "").trim().toUpperCase();
+  return ["TBD", "TBC", "TO BE DECIDED", "TO BE CONFIRMED"].includes(s);
+}
+
+function isFixtureResolved_(fixture) {
+  const status = String(fixture?.resultStatus || "").trim().toLowerCase();
+
+  if (["final", "finished", "ft", "aet", "pens"].includes(status)) {
+    return true;
+  }
+
+  const hasHomeScore =
+    fixture?.homeScore !== null &&
+    fixture?.homeScore !== undefined &&
+    String(fixture.homeScore).trim() !== "" &&
+    Number.isFinite(Number(fixture.homeScore));
+
+  const hasAwayScore =
+    fixture?.awayScore !== null &&
+    fixture?.awayScore !== undefined &&
+    String(fixture.awayScore).trim() !== "" &&
+    Number.isFinite(Number(fixture.awayScore));
+
+  return hasHomeScore && hasAwayScore;
+}
+
+async function loadGameArchivesOnce_() {
+  if (Object.keys(GAME_ARCHIVES || {}).length) return;
+
+  try {
+    const res = await fetch(GAME_ARCHIVES_URL, { cache: "no-store" });
+    if (!res.ok) throw new Error(`Failed to load ${GAME_ARCHIVES_URL}`);
+    GAME_ARCHIVES = await res.json();
+  } catch (err) {
+    console.warn("Game archives failed to load", err);
+    GAME_ARCHIVES = {};
+  }
 }
 
 /*******************************
@@ -4730,8 +5345,10 @@ async function renderEntriesTab() {
 
   try {
     const gwIdForEntries = getEntriesViewGwId_();
+    console.time("getEntries");
     const data = await api({ action: "getEntries", gameId: activeGameId, gwId: gwIdForEntries });
-
+    console.timeEnd("getEntries");
+    console.log("getEntries source:", data.source, data.users?.length);
     if (myReq !== entriesReqId) return;
 
     const users = data.users || [];
@@ -5112,7 +5729,7 @@ function renderLobby_() {
   if (lobbySig === lastLobbyRenderSig) return;
   lastLobbyRenderSig = lobbySig;
 
-  const cardsHtml = (gamesList || []).map(g => {
+  const renderGameCard_ = (g) => {
     const gameId = String(g.id || "");
     const title = String(g.title || gameId);
     const bio = String(g.bio || "").trim();
@@ -5120,20 +5737,9 @@ function renderLobby_() {
     const status = String(g.status || "OPEN").toUpperCase();
     const prizeInfo = parsePrizeInfo_(g?.prize);
     const winner = String(g.winner || "").trim();
-    const hasRealWinner = winner && winner.toLowerCase() !== "no winner";
-    const winnerImageUrl = getWinnerImageUrl_(gameId);
-    const prizeText = getPrizeDisplayText_(g);
     const entry = getMyEntryForGame_(gameId);
 
     const counts = lobbyCountsByGame[gameId];
-
-    const entryFee = Number(g.entryFee || 0);
-
-    const isRegistered = !!entry;
-    const isApproved = !!entry?.approved;
-    const isDead = entry?.alive === false;
-    const isAlive = isRegistered && isApproved && !isDead;
-    const isWinner = isEntryWinner_(entry, counts?.remaining);
 
     const firstGw = getGameFirstGw_(g);
     const normalDeadlineIso = firstGw?.deadline ? firstGw.deadline.toISOString() : "";
@@ -5260,28 +5866,8 @@ function renderLobby_() {
               ${status === "FINISHED"
         ? `
                     <div class="lobby-meta-line">
-                      <span class="lobby-meta-key">Winner:</span>
+                      <span class="lobby-meta-key">${String(winner || "").includes(",") ? "Winners:" : "Winner:"}</span>
                       <strong class="lobby-meta-key2">${escapeHtml(winner || "No Winner")}</strong>
-
-                      ${hasRealWinner ? `
-                        <button
-                          type="button"
-                          class="winner-photo-btn"
-                          data-winner-photo="1"
-                          data-game-title="${escapeAttr(title)}"
-                          data-winner-name="${escapeAttr(winner)}"
-                          data-prize-text="${escapeAttr(prizeText)}"
-                          data-image-url="${escapeAttr(winnerImageUrl)}"
-                          aria-label="View winner image"
-                          title="View winner image"
-                        >
-                          <svg viewBox="0 0 24 24" aria-hidden="true" class="winner-photo-btn__icon">
-                            <rect x="3" y="5" width="18" height="14" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <circle cx="15.5" cy="10" r="1.8" fill="none" stroke="currentColor" stroke-width="2"/>
-                            <path d="M5 16l4.5-4 3.2 3 3.3-2.8L19 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                          </svg>
-                        </button>
-                      ` : ``}
                     </div>
                   `
         : ``}
@@ -5383,7 +5969,37 @@ function renderLobby_() {
         </div>
       </div>
     `;
-  }).join("");
+  };
+
+  const activeGames = (gamesList || []).filter(g => {
+    const s = String(g.status || "").toUpperCase();
+    return s !== "FINISHED";
+  });
+
+  const finishedGames = (gamesList || []).filter(g => {
+    const s = String(g.status || "").toUpperCase();
+    return s === "FINISHED";
+  });
+
+  const activeCardsHtml = activeGames.map(renderGameCard_).join("");
+  const finishedCardsHtml = finishedGames.map(renderGameCard_).join("");
+
+  const cardsHtml = `
+    ${activeCardsHtml || `<div class="muted">No active games available.</div>`}
+
+    ${finishedGames.length ? `
+      <details id="finishedGamesDetails" class="fixtures-card collapse-card" style="margin-top:16px;" ${finishedGamesOpen ? "open" : ""}>
+        <summary class="collapse-summary">
+          <h3 style="margin:0;">Finished games <span class="muted small">(${finishedGames.length})</span></h3>
+          <span class="caret">▸</span>
+        </summary>
+
+        <div style="margin-top:12px;">
+          ${finishedCardsHtml}
+        </div>
+      </details>
+    ` : ``}
+  `;
 
   const profileDisplayName =
     String(sessionUser?.firstName || "").trim() || "Profile";
@@ -5424,6 +6040,10 @@ function renderLobby_() {
       </main>
     </div>
   `;
+
+  document.getElementById("finishedGamesDetails")?.addEventListener("toggle", (e) => {
+    finishedGamesOpen = e.currentTarget.open;
+  });
 
   document.getElementById("lobbyAuthBtn")?.addEventListener("click", async () => {
     showSplash(true);
@@ -5539,12 +6159,28 @@ async function joinGame_(gameId, triggerBtn = null) {
 
   try {
     if (isPaymentWorkflowGame_(gameId)) {
+      const existingEntry = getMyEntryForGame_(gameId);
+
+      if (existingEntry && isApproved_(existingEntry)) {
+        await enterGame_(gameId);
+        joinGameBusy = false;
+        return;
+      }
       const game = (gamesList || []).find(g => String(g.id) === String(gameId));
       const entryFee = Number(game?.entryFee || 10);
 
       // OPEN THE PAYMENT SHEET IMMEDIATELY
       setBtnLoading(triggerBtn, false);
       showPaymentWorkflowModal_(gameId, "", { loading: true });
+
+      fetchMyEntries_().then(() => {
+        const freshEntry = getMyEntryForGame_(gameId);
+
+        if (freshEntry && isApproved_(freshEntry)) {
+          closeModal(systemModal);
+          return enterGame_(gameId);
+        }
+      }).catch(() => { });
 
       // Backend happens in the background
       api(
@@ -5568,7 +6204,7 @@ async function joinGame_(gameId, triggerBtn = null) {
           await fetchMyEntries_();
           snapshotLobbyApprovalStates_();
           renderLobby_();
-          refreshLobbyCounts_().catch(() => {});
+          refreshLobbyCounts_().catch(() => { });
         })
         .catch((err) => {
           console.warn("Payment workflow join failed", err);
@@ -5632,16 +6268,16 @@ async function joinGame_(gameId, triggerBtn = null) {
               Once approved you will be able to make your first selection.
             </p>
             ${payInstructionsHtml_({
-              gameTitle: String(game?.title || "Competition").trim(),
-              paymentRef: "",
-              entryFee
-            })}
+          gameTitle: String(game?.title || "Competition").trim(),
+          paymentRef: "",
+          entryFee
+        })}
           </div>
         `,
         { showActions: false }
       );
 
-      refreshLobbyCounts_().catch(() => {});
+      refreshLobbyCounts_().catch(() => { });
     } finally {
       showSplash(false);
     }
@@ -5679,21 +6315,53 @@ function showGameView_() {
 }
 
 async function enterGame_(gameId) {
+  const seq = ++enterGameSeq;
+
   activeGameId = String(gameId || "");
+
+  viewingGwId = null;
+  currentGwId = null;
+  isEditingCurrentPick = false;
+  sessionPicks = [];
+  usedTeams = new Set();
   activeEntry = sessionEmail ? getMyEntryForGame_(activeGameId) || null : null;
 
+  lastRemainingPlayers = null;
+  lastTotalPlayers = null;
+  lastApprovedPlayers = null;
+  lastPendingPlayers = null;
+  lastEntriesSig = "";
+  lastGwReportSig = "";
+  lastGwReportCount = null;
+  lastGwReportCountGwId = null;
+
   showSplash(true);
+
+  if (gwTitle) gwTitle.textContent = "Loading…";
+  if (gwRangeEl) gwRangeEl.textContent = "—";
+  if (statusBox) statusBox.innerHTML = "";
+  if (fixturesList) fixturesList.innerHTML = "";
+  if (aliveList) aliveList.innerHTML = "";
+  if (outList) outList.innerHTML = "";
+
   showGameView_();
 
   try {
-    await initDataAndRenderGame_({ allowOutcomeModal: !!sessionEmail });
+    await initDataAndRenderGame_({
+      allowOutcomeModal: !!sessionEmail,
+      gameId: activeGameId,
+      enterSeq: seq
+    });
 
-    // pending player -> open payment modal immediately
-    if (sessionUser && sessionUser.approved === false) {
-      showPaymentDetailsModal_();
+    if (seq !== enterGameSeq) return;
+
+    const entry = getMyEntryForGame_(activeGameId);
+
+    if (entry && !isApproved_(entry)) {
+      showPaymentDetailsModal_(activeGameId);
     }
   } finally {
-    showSplash(false);
+    if (seq === enterGameSeq) showSplash(false);
   }
 }
 
@@ -5752,13 +6420,170 @@ function renderPickCardState() {
   }
 }
 
+function hasCompleteFixtureForGw_(gwId) {
+  const gw = gameweeks.find(g =>
+    String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase()
+  );
+
+  if (!gw) return false;
+
+  return (gw.fixtures || []).some(f =>
+    !isPlaceholderTeam_(f.home) &&
+    !isPlaceholderTeam_(f.away)
+  );
+}
+
+function getWorldCupQueueStage_(gwId) {
+  const n = gwNumberFromId_(gwId);
+
+  if (n >= 1 && n <= 6) {
+    return {
+      label: "Group stage"
+    };
+  }
+
+  if (n >= 7 && n <= 8) {
+    return {
+      label: canQueueGw_(gwId) ? "Round of 32" : ""
+    };
+  }
+
+  return {
+    label: ""
+  };
+}
+
+function canQueueGw_(gwId) {
+  if (!isQueuePicksGame_()) return false;
+
+  const game = getActiveGame_();
+  const isWorldCup = gameIncludesLeague_("World Cup", game);
+
+  const gw = gameweeks.find(g =>
+    String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase()
+  );
+  if (!gw) return false;
+
+  const hasCompleteRealFixture = (gw.fixtures || []).some(f =>
+    !isPlaceholderTeam_(f.home) &&
+    !isPlaceholderTeam_(f.away)
+  );
+
+  if (!hasCompleteRealFixture) return false;
+  if (!isWorldCup) return true;
+
+  const n = gwNumberFromId_(gwId);
+
+  if (n >= 1 && n <= 6) return true;
+  if (n >= 7 && n <= 8) return true;
+
+  return false;
+}
+
+function isTeamUsedInSameReuseGroup_(team, gwId) {
+  const game = getActiveGame_();
+  const targetGroup = getTeamReuseGroupForGw_(gwId, game);
+  const teamKey = normTeamKey_(getCanonicalTeamName_(team));
+
+  return (sessionPicks || []).some(p => {
+    const pickTeam = String(p?.team || "").trim();
+    if (!pickTeam) return false;
+
+    const outcome = String(p?.outcome || "PENDING").toUpperCase();
+    if (outcome === "LOSS" || outcome === "VOID") return false;
+
+    const sameTeam = normTeamKey_(getCanonicalTeamName_(pickTeam)) === teamKey;
+    if (!sameTeam) return false;
+
+    return getTeamReuseGroupForGw_(p.gwId, game) === targetGroup;
+  });
+}
+
 /*******************************
  * PICK SUBMISSION
  *******************************/
-async function savePick(team) {
+function gwNumberFromId_(gwId) {
+  const n = Number(String(gwId || "").toUpperCase().replace("GW", ""));
+  return Number.isFinite(n) ? n : 9999;
+}
+
+function getActivePickGwId_() {
+  const activePicks = sortPicksByGw(sessionPicks || [])
+    .filter(p => {
+      const outcome = String(p?.outcome || "PENDING").toUpperCase();
+      return outcome === "PENDING";
+    });
+
+  if (activePicks.length) {
+    return String(activePicks[0].gwId || "").toUpperCase();
+  }
+
+  return String(computeDateGwId() || currentGwId || gameweeks[0]?.id || "").toUpperCase();
+}
+
+function getNextSelectionTargetGwId_() {
+  const picksByGw = new Map(
+    (sessionPicks || [])
+      .filter(p => p?.gwId)
+      .map(p => [String(p.gwId).toUpperCase(), p])
+  );
+
+  // First priority: existing active PENDING pick
+  const pending = sortPicksByGw(sessionPicks || [])
+    .find(p => String(p?.outcome || "").toUpperCase() === "PENDING");
+
+  if (pending?.gwId) return String(pending.gwId).toUpperCase();
+
+  // Queue game: after current pick exists, typed input should target next empty queueable GW
+  if (isQueuePicksGame_()) {
+    const nextEmpty = (gameweeks || []).find(gw => {
+      const gwId = String(gw.id || "").toUpperCase();
+      if (!canQueueGw_(gwId)) return false;
+      return !picksByGw.get(gwId)?.team;
+    });
+
+    if (nextEmpty?.id) return String(nextEmpty.id).toUpperCase();
+  }
+
+  return String(currentGwId || computeDateGwId() || gameweeks[0]?.id || "").toUpperCase();
+}
+
+async function savePick(team, gwIdOverride = null) {
   team = getCanonicalTeamName_(team);
 
-  const gwId = currentGwId;
+  const gwId = String(
+    gwIdOverride || getNextSelectionTargetGwId_() || currentGwId || ""
+  ).toUpperCase();
+  const queueMode = isQueuePicksGame_();
+  const activePickGwId = getActivePickGwId_();
+
+  const isCurrentGwPick =
+    String(gwId).toUpperCase() === String(activePickGwId || "").toUpperCase();
+
+  const isQueuedPick =
+    queueMode &&
+    !isCurrentGwPick &&
+    canQueueGw_(gwId);
+
+  const pickOutcome = isCurrentGwPick ? "PENDING" : "QUEUED";
+
+  if (!isCurrentGwPick && !isQueuedPick) {
+    setBtnLoading(submitPickBtn, false);
+    showFixturesMessage("You cannot queue this gameweek yet.", "bad");
+    return;
+  }
+
+  console.log("queue debug", {
+    activeGameId,
+    gwId,
+    currentGwId,
+    activePickGwId,
+    queueMode,
+    isCurrentGwPick,
+    isQueuedPick,
+    pickOutcome
+  });
+
   const gw = gameweeks.find(g => g.id === gwId);
   if (!gw) {
     setBtnLoading(submitPickBtn, false);
@@ -5772,13 +6597,13 @@ async function savePick(team) {
   }
   const isLateSubmit = canLateSubmitCurrentGw_();
 
-  if (now() >= gw.deadline && !isLateSubmit) {
+  if (!isQueuedPick && now() >= gw.deadline && !isLateSubmit) {
     setBtnLoading(submitPickBtn, false);
     showFixturesMessage("Deadline has passed for this gameweek.", "bad");
     return;
   }
 
-  if (isLateSubmit) {
+  if (!isQueuedPick && isLateSubmit) {
     const allowedTeams = getUnstartedTeamsForGw_(gwId);
     if (!allowedTeams.includes(team)) {
       setBtnLoading(submitPickBtn, false);
@@ -5794,8 +6619,9 @@ async function savePick(team) {
       action: "submitPick",
       email: sessionEmail,
       gameId: activeGameId,
-      gwId: gwId,
-      team
+      gwId,
+      team,
+      outcome: pickOutcome
     });
 
     // ✅ Make sure we’re not stuck in editing mode after submit
@@ -5804,27 +6630,33 @@ async function savePick(team) {
 
 
     // ✅ Optimistic local update FIRST (this is the “state change”)
-    upsertLocalPick(gwId, team);
+    upsertLocalPick(gwId, team, pickOutcome);
     resetPickInputUi_();
 
     usedTeams = new Set(
       sessionPicks
-        .filter(p => p.outcome === "WIN")
+        .filter(p => String(p.outcome || "").toUpperCase() === "WIN")
         .map(p => normTeamKey_(getCanonicalTeamName_(p.team)))
     );
 
     // ✅ Immediately update UI so there is no “gap”
-    showFixturesMessage("Selection submitted.", "good");
+    showFixturesMessage(isQueuedPick ? "Selection queued." : "Selection submitted.", "good");
     renderCurrentPickBlock();
     renderStatusBox();
     renderPickCardState();
 
+    if (activeTab2 === "fixtures") {
+      renderFixturesTab();
+    }
+
     // ✅ Show confirmation modal (use your single modal function)
     showSystemModal_(
-      `${gwLabelShort(gwId)} selection confirmed: `,
+      isQueuedPick
+        ? `${gwLabelShort(gwId)} selection queued:`
+        : `${gwLabelShort(gwId)} selection confirmed:`,
       `
   <div style = "margin-top:12px;" >
-          <div class="status-row pending" style="margin:0;">
+          <div class="status-row ${isQueuedPick ? "queued" : "pending"}" style="margin:0;">
             <div class="status-left" style="display:flex;align-items:center;gap:10px;">
               ${teamInlineHtml_(team, { size: 22, logoPosition: "before" })}
             </div>
@@ -5832,7 +6664,10 @@ async function savePick(team) {
           </div>
 
           <div class="muted small" style="margin-top:10px;line-height:1.4;">
-            Good luck — you can edit your selection anytime before the submission deadline.
+            ${isQueuedPick
+        ? "This pick is queued. It will become active if you reach this gameweek."
+        : "Good luck — you can edit your selection anytime before the submission deadline."
+      }
           </div>
         </div >
   `,
@@ -5939,6 +6774,12 @@ function renderCurrentPickBlock() {
   const curGw = gameweeks.find(g => g.id === currentGwId);
   if (!curGw) return;
 
+  if (isQueuePicksGame_()) {
+    renderQueuedPickCard_();
+    renderSelectedFixturesCard_();
+    return;
+  }
+
   const pick = getPickForGw(currentGwId);
   const pickModeInput = document.getElementById("pickModeInput");
   const pickModeSubmitted = document.getElementById("pickModeSubmitted");
@@ -5955,6 +6796,7 @@ function renderCurrentPickBlock() {
   const hasPick = !!team;
 
   const countdownBox = document.getElementById("pickCountdownWrap");
+
   if (countdownBox) {
     countdownBox.classList.toggle("hidden", hasPick);
   }
@@ -5992,7 +6834,7 @@ function renderCurrentPickBlock() {
           submittedMeta.innerHTML = `
         <div class="submitted-label muted" style="margin-bottom:8px;">Game:</div>
         <div class="fixture-main fixture-main--compact">
-          ${fixtureTeamsHtml_(fx.home, fx.away)}
+          ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: p.team })}
           <div class="fixture-datetime muted">${escapeHtml(when)}</div>
         </div>
       `;
@@ -6090,6 +6932,129 @@ function renderCurrentPickBlock() {
   renderGwReportCard_();
 }
 
+function hasSelectableFixtureForGw_(gwId) {
+  const gw = gameweeks.find(g =>
+    String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase()
+  );
+
+  if (!gw) return false;
+
+  return (gw.fixtures || []).some(f =>
+    !isPlaceholderTeam_(f.home) &&
+    !isPlaceholderTeam_(f.away)
+  );
+}
+
+function renderQueuedPickCard_() {
+  const pickModeInput = document.getElementById("pickModeInput");
+  const pickModeSubmitted = document.getElementById("pickModeSubmitted");
+  const editPickBtn = document.getElementById("editPickBtn");
+  const countdownBox = document.getElementById("pickCountdownWrap");
+  const gwTitleEl = document.getElementById("gwTitle");
+  const gwRangeEl = document.getElementById("gwRange");
+
+  const selectedPicks = sortPicksByGw(sessionPicks || [])
+    .filter(p => String(p?.team || "").trim());
+
+  const targetGwId = getNextQueueTargetGwId_();
+  const targetGw = gameweeks.find(g => String(g.id).toUpperCase() === targetGwId);
+
+  editPickBtn?.classList.add("hidden");
+  pickModeSubmitted?.classList.add("hidden");
+  document.getElementById("lateSubmitNote")?.remove();
+  document.getElementById("queuePromptTitle")?.remove();
+
+  if (countdownBox) countdownBox.classList.add("hidden");
+
+  if (targetGwId && targetGw) {
+    const targetIsCurrent =
+      String(targetGwId).toUpperCase() === String(currentGwId || "").toUpperCase();
+
+    if (gwTitleEl) {
+      gwTitleEl.textContent = targetIsCurrent
+        ? `Make selection for ${gwLabelShort(targetGwId)}`
+        : `Queue selection for ${gwLabelShort(targetGwId)}`;
+    }
+
+    if (gwRangeEl) {
+      const endDay = startOfDay(targetGw.lastKickoff || targetGw.firstKickoff);
+      gwRangeEl.textContent =
+        `${formatDateWithOrdinalShortUK(targetGw.start)} - ${formatDateWithOrdinalShortUK(endDay)}`;
+    }
+
+    pickModeInput?.classList.remove("hidden");
+
+    if (submitPickBtn) {
+      submitPickBtn.disabled = !sessionUser?.approved || sessionUser?.alive === false;
+      submitPickBtn.dataset.queueGwId = targetGwId;
+      submitPickBtn.textContent = targetIsCurrent
+        ? `Submit ${gwLabelShort(targetGwId)}`
+        : `Queue ${gwLabelShort(targetGwId)}`;
+    }
+  } else {
+    pickModeInput?.classList.add("hidden");
+
+    if (gwTitleEl) {
+      gwTitleEl.textContent = selectedPicks.length === 1
+        ? "Selection confirmed"
+        : "All selections confirmed";
+    }
+
+    if (gwRangeEl) gwRangeEl.textContent = "";
+
+    if (submitPickBtn) {
+      submitPickBtn.dataset.queueGwId = "";
+    }
+  }
+}
+
+function renderSelectedFixturesCard_() {
+  const card = document.getElementById("selectedFixturesCard");
+  if (!card) return;
+
+  const selectedPicks = sortPicksByGw(sessionPicks || [])
+    .filter(p => String(p?.team || "").trim());
+
+  if (!selectedPicks.length) {
+    card.classList.add("hidden");
+    card.innerHTML = "";
+    return;
+  }
+
+  card.classList.remove("hidden");
+
+  card.innerHTML = `
+    <div class="queued-fixtures-title">
+      ${selectedPicks.length === 1 ? "Selected fixture:" : "Selected fixtures:"}
+    </div>
+
+    <div class="queued-fixtures-list">
+      ${selectedPicks.map(p => {
+    const gwId = String(p.gwId || "").toUpperCase();
+    const gw = gameweeks.find(g => String(g.id).toUpperCase() === gwId);
+    const fx = gw ? findFixtureForTeam(gw, p.team) : null;
+
+    return `
+          <div class="queued-fixture-item">
+            <div class="queued-fixture-gw-title">${escapeHtml(gwLabelShort(gwId))}:</div>
+            ${fx
+        ? `
+                  <div class="fixture-main fixture-main--compact">
+                    ${fixtureTeamsHtml_(fx.home, fx.away, { highlightTeam: p.team })}
+                    <div class="fixture-datetime muted">
+                      ${escapeHtml(fx.kickoffHasTime ? formatKickoffLineUK(fx.kickoff) : formatDateUK(fx.kickoff))}
+                    </div>
+                  </div>
+                `
+        : `<div class="muted">Fixture not found for ${escapeHtml(p.team)}</div>`
+      }
+          </div>
+        `;
+  }).join("")}
+    </div>
+  `;
+}
+
 function renderPickCardHeader_() {
   const gw = gameweeks.find(g => g.id === currentGwId);
   if (!gw) return;
@@ -6142,6 +7107,46 @@ function renderPickCardHeader_() {
   }
 
   startCountdowns_();
+}
+
+function canClickFixtureTeam_(team, gwId) {
+  if (!sessionEmail) return false;
+  if (!sessionUser?.approved) return false;
+  if (sessionUser?.alive === false) return false;
+
+  if (isPlaceholderTeam_(team)) return false;
+
+  const gw = gameweeks.find(g => g.id === gwId);
+  if (!gw) return false;
+
+  const canonical = getCanonicalTeamName_(team);
+  const fx = findFixtureForTeam(gw, canonical);
+
+  if (!fx) return false;
+  if (isFixtureResolved_(fx)) return false;
+
+  const queueMode = isQueuePicksGame_();
+  const futureGw = gwNumberFromId_(gwId) > gwNumberFromId_(currentGwId);
+
+  if (futureGw && !queueMode) return false;
+
+  if (futureGw && queueMode && !canQueueGw_(gwId)) return false;
+
+  const existingPick = getPickForGw(gwId);
+  if (existingPick?.team && !areTeamsSame_(existingPick.team, team)) return true;
+  if (existingPick?.team && areTeamsSame_(existingPick.team, team)) return false;
+
+  if (isTeamUsedInSameReuseGroup_(canonical, gwId)) return false;
+
+  if (!futureGw) {
+    if (currentGwLocked() && !canLateSubmitCurrentGw_()) return false;
+
+    if (canLateSubmitCurrentGw_()) {
+      return getUnstartedTeamsForGw_(gwId).includes(canonical);
+    }
+  }
+
+  return true;
 }
 
 function openPickCompetitionsModal_() {
@@ -6284,7 +7289,72 @@ function gwIndexForRank_(gwId) {
   return idx >= 0 ? idx : -9999;
 }
 
+function canEditPickForGw_(gwId) {
+  if (!sessionEmail) return false;
+  if (!sessionUser?.approved) return false;
+  if (sessionUser?.alive === false) return false;
 
+  const pick = getPickForGw(gwId);
+  if (!pick?.team) return false;
+
+  const outcome = String(pick.outcome || "PENDING").toUpperCase();
+  if (!["PENDING", "QUEUED"].includes(outcome)) return false;
+
+  const gw = gameweeks.find(g =>
+    String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase()
+  );
+  if (!gw) return false;
+
+  if (isFixtureResolved_(findFixtureForTeam(gw, pick.team))) return false;
+
+  return Date.now() < gw.deadline.getTime();
+}
+
+async function editPickForGw_(gwId) {
+  const pick = getPickForGw(gwId);
+
+  if (!pick?.team) {
+    showFixturesMessage("No selection to edit yet.", "bad");
+    return;
+  }
+
+  if (!canEditPickForGw_(gwId)) {
+    showFixturesMessage("Editing is locked for this gameweek.", "bad");
+    return;
+  }
+
+  try {
+    showFixturesMessage(`Clearing ${gwLabelShort(gwId)} selection…`, "good");
+
+    await api({
+      action: "clearPick",
+      email: sessionEmail,
+      gameId: activeGameId,
+      gwId
+    });
+
+    sessionPicks = (sessionPicks || []).filter(
+      p => String(p.gwId || "").toUpperCase() !== String(gwId || "").toUpperCase()
+    );
+
+    renderStatusBox();
+    renderFixturesTab();
+    renderCurrentPickBlock();
+    renderPickCardState();
+
+    const nextGwId = getNextQueueTargetGwId_();
+    showFixturesMessage(`Choose a new team for ${gwLabelShort(nextGwId || gwId)}.`, "good");
+
+    refreshProfile().then(() => {
+      renderStatusBox();
+      renderFixturesTab();
+      renderCurrentPickBlock();
+      renderPickCardState();
+    }).catch(() => { });
+  } catch (err) {
+    showFixturesMessage(String(err.message || err), "bad");
+  }
+}
 
 
 function ordinalSuffix_(n) {
@@ -6345,7 +7415,6 @@ async function startProfilePolling() {
         viewingGwId = nextDateGw || currentGwId;
       }
 
-      renderGameweekSelect();
       syncViewingToCurrent();
 
       renderTopUIOnly();
@@ -6532,6 +7601,7 @@ registerForm.addEventListener("submit", async (e) => {
 
     await refreshAccountProfile_();
     await fetchGames_(sessionEmail);
+    await loadGameArchivesOnce_();
     await fetchMyEntries_();
     snapshotLobbyApprovalStates_();
     showLobby_();
@@ -6563,9 +7633,6 @@ registerForm.addEventListener("submit", async (e) => {
   }
 });
 
-
-
-
 loginForm.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -6577,25 +7644,40 @@ loginForm.addEventListener("submit", async (e) => {
       action: "login",
       email: String(form.get("email") || "").trim(),
       password: String(form.get("password") || "")
-    });
+    }, { timeoutMs: 20000 });
 
     setSession(data.user);
     sessionUser = data.user;
+    sessionEmail = String(data.user?.email || "").trim().toLowerCase();
 
-    await refreshAccountProfile_();
-    await fetchGames_(data.user.email);
-    await fetchMyEntries_();
-    snapshotLobbyApprovalStates_();
+    // Get them into the app first
+    showLobby_();
+    renderLobby_();
+    showAuthMessage("", "good");
 
-    const autoEnterGameId = getAutoEnterGameIdForSession_();
+    // Then load heavier stuff
+    try {
+      await refreshAccountProfile_();
+      await fetchGames_(data.user.email);
+      await loadGameArchivesOnce_();
+      await fetchMyEntries_();
+      snapshotLobbyApprovalStates_();
 
-    if (autoEnterGameId) {
-      await enterGame_(autoEnterGameId);
-    } else {
+      const autoEnterGameId = getAutoEnterGameIdForSession_();
+
+      if (autoEnterGameId) {
+        await enterGame_(autoEnterGameId);
+      } else {
+        showLobby_();
+        renderLobby_();
+        refreshLobbyCounts_().catch(() => { });
+        startLobbyPolling_();
+      }
+    } catch (postLoginErr) {
+      console.warn("Post-login loading failed:", postLoginErr);
       showLobby_();
       renderLobby_();
       refreshLobbyCounts_().catch(() => { });
-      startLobbyPolling_();
     }
 
   } catch (err) {
@@ -6604,6 +7686,7 @@ loginForm.addEventListener("submit", async (e) => {
     setBtnLoading(loginBtn, false);
   }
 });
+
 
 function renderStatusPill() {
   // no-op now
@@ -6818,11 +7901,6 @@ async function doLogout() {
 logoutBtnOuter?.addEventListener("click", doLogout);
 logoutBtnApp?.addEventListener("click", doLogout);
 
-gameweekSelect?.addEventListener("change", () => {
-  viewingGwId = gameweekSelect.value;
-  renderFixturesTab();
-});
-
 lobbyView.querySelectorAll("[data-winner-photo]").forEach(btn => {
   btn.addEventListener("click", () => {
     openWinnerPhotoModal_(
@@ -6912,48 +7990,66 @@ clearPickBtn?.addEventListener("click", () => {
   showFixturesMessage("", "good");
 });
 
-function renderGameweekSelect() {
-  if (!gameweekSelect) return;
 
-  gameweekSelect.innerHTML = "";
-
-  for (const gw of gameweeks) {
-    const opt = document.createElement("option");
-    opt.value = gw.id;
-    opt.textContent = formatGwDropdownLabel_(gw);
-    gameweekSelect.appendChild(opt);
-  }
-
-  // If viewing not set, default to current
-  if (!viewingGwId) viewingGwId = currentGwId;
-
-  // If viewing is not a real option (e.g. data changed), fallback
-  const ok = gameweeks.some(g => g.id === viewingGwId);
-  if (!ok) viewingGwId = gameweeks[0].id;
-
-  gameweekSelect.value = viewingGwId;
-}
-
-async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
+async function initDataAndRenderGame_({ allowOutcomeModal = true, gameId = activeGameId, enterSeq = enterGameSeq } = {}) {
   if (!activeGameId) return;
+
+  const stillCurrent = () =>
+    enterSeq === enterGameSeq &&
+    String(gameId || "") === String(activeGameId || "");
 
   try {
     await Promise.all([
       loadTeamLogosOnce_(),
       loadTeamNameMapOnce_()
     ]);
+    if (!stillCurrent()) return;
   } catch (e) {
     console.warn("Team assets failed to load:", e);
   }
 
   await loadFixturesAndDeadlines_();
+  if (!stillCurrent()) return;
+
   if (!gameweeks.length) {
-    if (fixturesList) fixturesList.innerHTML = "";
+    currentGwId = null;
+    viewingGwId = null;
+
+    renderGameTitleBox_();
+
+    if (gwTitle) gwTitle.textContent = "No fixtures yet";
+    if (gwRangeEl) gwRangeEl.textContent = "Fixtures will appear here once added.";
+
+    if (fixturesList) {
+      fixturesList.innerHTML = `<div class="muted">No fixtures available yet.</div>`;
+    }
+
+    if (statusBox) {
+      statusBox.innerHTML = `
+      <div class="muted">
+        This competition is registered, but fixtures are not available yet.
+      </div>
+    `;
+    }
+
+    if (aliveList) aliveList.innerHTML = "";
+    if (outList) outList.innerHTML = "";
+
+    renderPaymentDetailsCard_();
+
+    // Manually show the selection tab WITHOUT re-rendering pick/status blocks
+    activeTab2 = "selection";
+    tabButtons.forEach(b => b.classList.toggle("active", b.dataset.tab === "selection"));
+    panelSelection?.classList.remove("hidden");
+    fixturesPanel?.classList.add("hidden");
+    entriesPanel?.classList.add("hidden");
+
     return;
   }
 
   if (sessionEmail) {
     await refreshProfile();
+    if (!stillCurrent()) return;
     lastApprovedState = !!sessionUser?.approved;
   } else {
     sessionUser = null;
@@ -6975,7 +8071,8 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
     viewingGwId = gameweeks[0].id;
   }
 
-  renderGameweekSelect();
+  if (!stillCurrent()) return;
+
   syncViewingToCurrent();
 
   renderFixturesTab();
@@ -6987,9 +8084,8 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
   showVerifiedModalOnce_();
   applyOutcomeEffects_({ allowModal: !!allowOutcomeModal });
 
-  setTab2("selection");
+  setTab2("fixtures");
 
-  // from here on, these are secondary/background
   refreshRemainingPlayersCount().catch(console.warn);
   renderGwReportCard_().catch?.(console.warn);
   startProfilePolling();
@@ -7008,6 +8104,7 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
 
     try {
       await fetchGames_(sessionEmail);
+      await loadGameArchivesOnce_();
       await loadFixturesAndDeadlines_();
       showLobby_();
       renderLobby_();
@@ -7026,6 +8123,7 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true } = {}) {
 
     await refreshAccountProfile_();
     await fetchGames_(sessionEmail);
+    await loadGameArchivesOnce_();
     await fetchMyEntries_();
     snapshotLobbyApprovalStates_();
     await loadFixturesAndDeadlines_();
