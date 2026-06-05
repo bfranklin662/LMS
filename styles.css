@@ -26,6 +26,11 @@ html {
   scrollbar-gutter: stable;
 }
 
+html, body {
+  touch-action: manipulation;
+  overscroll-behavior-x: none;
+}
+
 body {
   margin: 0;
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
@@ -2636,9 +2641,6 @@ input[type="checkbox"]:focus-visible {
   align-items: center;
   justify-content: center;
 
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.25), rgba(0, 0, 0, 0.35)),
-    url("images/red-texture.jpg");
 
   background-size: cover;
   background-position: center;
@@ -2711,7 +2713,6 @@ input[type="checkbox"]:focus-visible {
   position: relative;
   min-height: 120px;
   background-position: center 25%;
-  background-image: url("images/red-texture.jpg");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -5019,6 +5020,39 @@ button:disabled {
 }
 
 .fixture-gw-helper {
-  margin-top: 10px;
-  font-size: 13px;
+  margin-top: 15px;
+  font-weight: 800;
+  font-size: 14px;
+}
+
+.fixture-gw-nav-divider {
+  height: 1px;
+  margin: 12px 0;
+  background: rgba(255,255,255,.08);
+}
+
+.fixture-gw-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+  line-height: 1;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+}
+
+.fixture-gw-helper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 15px;
+  font-weight: 700;
+}
+
+.fixture-gw-status-pill.is-muted {
+  opacity: .7;
 }

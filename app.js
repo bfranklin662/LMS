@@ -315,7 +315,7 @@ let fixturePickCountsByGw = new Map();      // gwId -> Map(fixtureKey => {home, 
 let fixturePickRowsByGw = new Map();        // gwId -> raw gw report rows
 let fixturePickLoadPromisesByGw = new Map(); // gwId -> Promise
 let enterGameSeq = 0;
-let finishedGamesOpen = false;
+let finishedGamesOpen = true;
 
 
 /*******************************
@@ -472,7 +472,19 @@ function copyTextSafe_(text) {
 
 async function fetchMyEntries_() {
   if (!sessionEmail) return;
-  const data = await api({ action: "getMyEntries", email: sessionEmail });
+
+  const data = await api({
+    action: "getMyEntries",
+    email: sessionEmail
+  });
+
+  console.log(
+    "getMyEntries source:",
+    data.source,
+    "entries:",
+    data.entries?.length
+  );
+
   myEntries = Array.isArray(data.entries) ? data.entries : [];
 }
 
@@ -928,7 +940,6 @@ function startLobbyPolling_() {
 
       if (!hadSnapshot) {
         snapshotLobbyApprovalStates_();
-        refreshLobbyCounts_().catch(() => { });
         return;
       }
 
@@ -936,11 +947,13 @@ function startLobbyPolling_() {
       if (changed) return;
 
       snapshotLobbyApprovalStates_();
-      refreshLobbyCounts_().catch(() => { });
+
+      // Only refresh visible lobby counts occasionally if needed.
+      // Not every approval check.
     } catch (err) {
       console.warn("Lobby polling failed", err);
     }
-  }, 8000);
+  }, 30000);
 }
 
 function stopLobbyPolling_() {
@@ -1138,9 +1151,6 @@ async function refreshLobbyCounts_() {
       return;
     }
 
-    lobbyCountsLoading[gameId] = true;
-    renderLobby_();
-
     try {
       const fast = await api({ action: "getGameCounts", gameId });
 
@@ -1190,6 +1200,7 @@ function getCompetitionLogo_(name) {
     "league one": "site/images/competitions/league-one.png",
     "league two": "site/images/competitions/league-two.png",
     "fa cup": "site/images/competitions/fa-cup.png",
+    "world cup": "site/images/competitions/world-cup.png",
   };
 
   return map[key] || "site/images/competitions/default.png";
@@ -4867,11 +4878,50 @@ function renderFixtureGwNav() {
     return "";
   }
 
+  function helperHtmlForGw_(gwId) {
+    const pick = getPickForGw(gwId);
+    const outcome = String(pick?.outcome || "").toUpperCase();
+
+    if (pick?.team) {
+      if (outcome === "QUEUED") {
+        return `
+        <span class="fixture-gw-status-pill">
+          Selection queued
+          <span class="state muted">🕒</span>
+        </span>
+      `;
+      }
+
+      return `
+      <span class="fixture-gw-status-pill">
+        Selection confirmed
+        <span class="state good">✓</span>
+      </span>
+    `;
+    }
+
+    if (!canClickAnyFixtureTeamForGw_(gwId)) {
+      return `
+      <span class="fixture-gw-status-pill muted">
+        Awaiting gameweek
+        <span class="state muted">…</span>
+      </span>
+    `;
+    }
+
+    return `
+    <span class="fixture-gw-status-pill muted">
+      Make a selection
+      <span class="state muted">✎</span>
+    </span>
+  `;
+  }
+
   const endDay = startOfDay(cur.lastKickoff || cur.firstKickoff);
 
   nav.innerHTML = `
     <div class="fixture-gw-current-title">
-      ${escapeHtml(getGwStageLabel_(cur.id))}
+      ${escapeHtml(`${gwLabelShort(cur.id)}: ${getGwStageLabel_(cur.id)}`)}
     </div>
 
     <div class="fixture-gw-date muted">
@@ -4906,8 +4956,8 @@ function renderFixtureGwNav() {
         →
       </button>
     </div>
-    <div class="fixture-gw-helper muted">
-      Click a team to select it
+    <div class="fixture-gw-helper">
+      ${helperHtmlForGw_(cur.id)}
     </div>
   `;
 
@@ -4928,9 +4978,10 @@ function getGwStageLabel_(gwId) {
   if (n >= 1 && n <= 6) return "Group Stage";
   if (n === 7) return "Round of 32";
   if (n === 8) return "Round of 32";
-  if (n === 9) return "Quarter-finals";
-  if (n === 10) return "Semi-finals";
-  if (n === 11) return "Final & 3rd Place Play-off";
+  if (n === 9) return "Round of 16";
+  if (n === 10) return "Quarter-finals";
+  if (n === 11) return "Semi-finals";
+  if (n === 12) return "Final & 3rd Place Play-off";
 
   return `Gameweek ${n}`;
 }
@@ -5318,6 +5369,19 @@ async function loadGameArchivesOnce_() {
     console.warn("Game archives failed to load", err);
     GAME_ARCHIVES = {};
   }
+}
+
+function canClickAnyFixtureTeamForGw_(gwId) {
+  const gw = gameweeks.find(g =>
+    String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase()
+  );
+
+  if (!gw) return false;
+
+  return (gw.fixtures || []).some(f =>
+    canClickFixtureTeam_(f.home, gw.id) ||
+    canClickFixtureTeam_(f.away, gw.id)
+  );
 }
 
 /*******************************
@@ -5722,6 +5786,7 @@ function renderLobby_() {
       status: g.status,
       winner: g.winner,
       counts: lobbyCountsByGame[String(g.id || "")] || null,
+      countsLoading: !!lobbyCountsLoading[String(g.id || "")],
       entry: getMyEntryForGame_(g.id) || null
     }))
   });
@@ -5786,6 +5851,8 @@ function renderLobby_() {
           class="game-hero-banner-img ${escapeAttr(bannerSlug)}-banner-img"
           src="${escapeAttr(getGameBannerUrl_(gameId))}"
           alt="${escapeAttr(title)} banner"
+          loading="eager"
+          decoding="async"
           onerror="this.onerror=null;this.src='site/images/game-banners/default.png';"
         />
 
@@ -7440,7 +7507,7 @@ async function startProfilePolling() {
     } catch (err) {
       console.warn(err);
     }
-  }, 8000);
+  }, 30000);
 }
 
 /*******************************
@@ -8008,7 +8075,9 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true, gameId = activ
     console.warn("Team assets failed to load:", e);
   }
 
-  await loadFixturesAndDeadlines_();
+  if (!fixtures.length || !gameweeks.length) {
+    await loadFixturesAndDeadlines_();
+  }
   if (!stillCurrent()) return;
 
   if (!gameweeks.length) {
@@ -8103,11 +8172,17 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true, gameId = activ
     sessionUser = null;
 
     try {
-      await fetchGames_(sessionEmail);
-      await loadGameArchivesOnce_();
-      await loadFixturesAndDeadlines_();
+      await Promise.all([
+        fetchGames_(sessionEmail),
+        loadGameArchivesOnce_()
+      ]);
+
       showLobby_();
       renderLobby_();
+
+      loadFixturesAndDeadlines_()
+        .then(() => renderLobby_())
+        .catch(console.warn);
       refreshLobbyCounts_().catch(() => { });
       stopLobbyPolling_();
     } finally {
@@ -8121,12 +8196,30 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true, gameId = activ
   try {
     sessionEmail = sess.email;
 
-    await refreshAccountProfile_();
-    await fetchGames_(sessionEmail);
-    await loadGameArchivesOnce_();
-    await fetchMyEntries_();
+    console.time("boot: initial data");
+
+    console.time("profile");
+    const profilePromise = refreshAccountProfile_().finally(() => console.timeEnd("profile"));
+
+    console.time("games");
+    const gamesPromise = fetchGames_(sessionEmail).finally(() => console.timeEnd("games"));
+
+    console.time("archives");
+    const archivesPromise = loadGameArchivesOnce_().finally(() => console.timeEnd("archives"));
+
+    console.time("myEntries");
+    const entriesPromise = fetchMyEntries_().finally(() => console.timeEnd("myEntries"));
+
+    await Promise.all([
+      profilePromise,
+      gamesPromise,
+      archivesPromise,
+      entriesPromise
+    ]);
+
+    console.timeEnd("boot: initial data");
+
     snapshotLobbyApprovalStates_();
-    await loadFixturesAndDeadlines_();
 
     const autoEnterGameId = getAutoEnterGameIdForSession_();
 
