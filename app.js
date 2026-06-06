@@ -3522,7 +3522,7 @@ function bindPaymentSheetActions_({ gameId, paymentRef }) {
         <div class="payment-status-card__content">
           <div class="payment-status-card__title">Not ready yet</div>
           <div class="payment-status-card__text">
-            We have not matched your payment yet. Please wait a few seconds and try again.
+            We have not matched your payment yet. Please wait a few seconds and try again. This can take up to 2 minutes. 
           </div>
         </div>
       </div>
