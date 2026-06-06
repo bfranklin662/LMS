@@ -6227,6 +6227,14 @@ async function joinGame_(gameId, triggerBtn = null) {
   joinGameBusy = true;
   setBtnLoading(triggerBtn, true);
 
+  const sess = getSession() || {};
+  const joinProfile = {
+    firstName: sessionUser?.firstName || sess.firstName || "",
+    lastName: sessionUser?.lastName || sess.lastName || "",
+    clubTeam: sessionUser?.clubTeam || sess.clubTeam || "",
+    phone: sessionUser?.phone || sess.phone || ""
+  };
+
   try {
     if (isPaymentWorkflowGame_(gameId)) {
       const existingEntry = getMyEntryForGame_(gameId);
@@ -6257,7 +6265,8 @@ async function joinGame_(gameId, triggerBtn = null) {
         {
           action: "joinGame",
           email: sessionEmail,
-          gameId
+          gameId,
+          ...joinProfile
         },
         { timeoutMs: 30000 }
       )
@@ -6311,7 +6320,8 @@ async function joinGame_(gameId, triggerBtn = null) {
       {
         action: "joinGame",
         email: sessionEmail,
-        gameId
+        gameId,
+        ...joinProfile
       },
       { timeoutMs: 30000 }
     );
