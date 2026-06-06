@@ -3683,10 +3683,13 @@ function normalizeOutcome_(o) {
 
 async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
   const fullName =
-    `${player.firstName || ""} ${player.lastName || ""}`.trim() || "Player";
+    `${player.firstName || ""} ${player.lastName || ""}`.trim() ||
+    player.name ||
+    player.email ||
+    "Player";
 
   const club =
-    String(player.clubTeam || player.club || player.team || "").trim() || "—";
+    String(player.clubTeam || player.club || player.team || player.connection || "").trim() || "—";
 
   const isAlive = player.alive === true;
   const isDead = player.alive === false;
@@ -5486,7 +5489,7 @@ async function renderEntriesTab() {
       return `
   <div class="list-item player-row-alive entry-${st.cls}" data-email="${escapeAttr(u.email)}" style = "cursor:pointer;" >
           <div class="list-left">
-            <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
+            <div class="list-title">${escapeHtml(`${u.firstName || ""} ${u.lastName || ""}`.trim() || u.name || u.email || "Player")}</div>
             <div class="list-sub">${escapeHtml(st.text)}</div>
           </div>
           <div class="state ${st.stateCls}">${st.icon}</div>
@@ -5502,7 +5505,7 @@ async function renderEntriesTab() {
         return `
   <div class="list-item row-loss player-row-out" data-email="${escapeAttr(u.email)}" style = "cursor:pointer;" >
             <div class="list-left">
-              <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
+              <div class="list-title">${escapeHtml(`${u.firstName || ""} ${u.lastName || ""}`.trim() || u.name || u.email || "Player")}</div>
               <div class="list-sub">${escapeHtml(koLine)}</div>
             </div>
             <div class="state bad">✕</div>
@@ -5515,7 +5518,7 @@ async function renderEntriesTab() {
       return `
   <div class="list-item player-row-out entry-${st.cls}" data-email="${escapeAttr(u.email)}" style = "cursor:pointer;" >
           <div class="list-left">
-            <div class="list-title">${escapeHtml(u.firstName)} ${escapeHtml(u.lastName)}</div>
+            <div class="list-title">${escapeHtml(`${u.firstName || ""} ${u.lastName || ""}`.trim() || u.name || u.email || "Player")}</div>
             <div class="list-sub">${escapeHtml(st.text)}</div>
           </div>
           <div class="state ${st.stateCls}">${st.icon}</div>
