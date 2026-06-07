@@ -1133,7 +1133,7 @@ async function refreshLobbyCounts_() {
       }
 
       throw new Error("No Firebase counts returned");
-
+    
     } catch (firebaseErr) {
       console.warn("Firebase lobby counts failed, falling back to Sheets", gameId, firebaseErr);
 
