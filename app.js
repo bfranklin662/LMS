@@ -1127,36 +1127,11 @@ async function refreshLobbyCounts_() {
     try {
       const fast = await api({ action: "getGameCounts", gameId });
 
-      if (fast?.counts && Number(fast.counts.registered || 0) > 0) {
+      if (fast?.counts) {
         lobbyCountsByGame[gameId] = fast.counts;
-        return;
       }
-
-      throw new Error("No Firebase counts returned");
-    
     } catch (firebaseErr) {
-      console.warn("Firebase lobby counts failed, falling back to Sheets", gameId, firebaseErr);
-
-      try {
-        const gwId = String(g.startGw || "GW1").toUpperCase();
-        const data = await api({ action: "getEntries", gameId, gwId });
-        const users = Array.isArray(data.users) ? data.users : [];
-
-        const approvedUsers = users.filter(u => isApproved_(u));
-        const pendingUsers = users.filter(u => !isApproved_(u));
-        const aliveApprovedUsers = approvedUsers.filter(u => u.alive);
-
-        lobbyCountsByGame[gameId] = {
-          registered: users.length || 0,
-          approved: approvedUsers.length || 0,
-          pending: pendingUsers.length || 0,
-          remaining: aliveApprovedUsers.length || 0,
-          total: users.length || 0
-        };
-      } catch (sheetsErr) {
-        console.warn("Sheets lobby counts also failed", gameId, sheetsErr);
-      }
-
+      console.warn("Firebase lobby counts failed; skipping fallback to protect quota", gameId, firebaseErr);
     } finally {
       lobbyCountsLoading[gameId] = false;
       renderLobby_();
