@@ -1334,29 +1334,13 @@ async function setTab(name) {
   }
 
   if (name === "submissions") {
-    try {
-      await Promise.all([
-        refreshSubmissionsIncremental({ full: true }),
-        renderAutomationStatus_()
-      ]);
-    } catch (e) {
-      showMsg(String(e.message || e), false);
-    }
+    if (subsMeta) subsMeta.textContent = "Press Refresh to load submissions.";
+    return;
   }
 
   if (name === "fixtures") {
-    try {
-      if (fixturesMeta) fixturesMeta.textContent = "Loading fixtures…";
-
-      await Promise.all([
-        loadGroupedFixturesView(),
-        refreshSubmissionsIncremental({ full: true })
-      ]);
-    } catch (e) {
-      console.error("loadGroupedFixturesView failed:", e);
-      if (fixturesMeta) fixturesMeta.textContent = "Failed to load fixtures.";
-      showMsg(String(e.message || e), false);
-    }
+    if (fixturesMeta) fixturesMeta.textContent = "Press Refresh to load fixtures.";
+    return;
   }
 }
 
