@@ -925,35 +925,8 @@ function getPreferredGameIdForSession_() {
 }
 
 function startLobbyPolling_() {
-  if (!sessionEmail) return;
-
-  if (lobbyPoll) {
-    clearInterval(lobbyPoll);
-    lobbyPoll = null;
-  }
-
-  lobbyPoll = setInterval(async () => {
-    try {
-      const hadSnapshot = Object.keys(lastEntryApprovedByGame || {}).length > 0;
-
-      await fetchMyEntries_();
-
-      if (!hadSnapshot) {
-        snapshotLobbyApprovalStates_();
-        return;
-      }
-
-      const changed = await handleLobbyApprovalChanges_();
-      if (changed) return;
-
-      snapshotLobbyApprovalStates_();
-
-      // Only refresh visible lobby counts occasionally if needed.
-      // Not every approval check.
-    } catch (err) {
-      console.warn("Lobby polling failed", err);
-    }
-  }, 30000);
+  // TEMP: disabled to protect Firebase quota
+  return;
 }
 
 function stopLobbyPolling_() {
@@ -7451,6 +7424,8 @@ function ordinalSuffix_(n) {
 }
 
 async function startProfilePolling() {
+    // TEMP: disabled to protect Firebase quota
+  return;
   // Kick off counts immediately (non-blocking)
   refreshRemainingPlayersCount();
 

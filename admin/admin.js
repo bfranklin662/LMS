@@ -1330,11 +1330,7 @@ async function setTab(name) {
   fixturesPanel?.classList.toggle("hidden", name !== "fixtures");
 
   if (name === "approvals") {
-    try {
-      await loadApprovals();
-    } catch (e) {
-      showMsg(String(e.message || e), false);
-    }
+    if (pendingMeta) pendingMeta.textContent = "Press Refresh to load approvals.";
   }
 
   if (name === "submissions") {
