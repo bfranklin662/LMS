@@ -5822,9 +5822,11 @@ function renderLobby_() {
           </div>
 
           <div class="game-hero-banner-badges game-hero-banner-badges--left">
-            <span class="game-hero-badge">
-              ${getPlayersBadgeHtml_(g, counts)}
-            </span>
+            ${status !== "OPEN" ? `
+              <span class="game-hero-badge">
+                ${getPlayersBadgeHtml_(g, counts)}
+              </span>
+            ` : ``}
 
             ${status === "OPEN" || status === "FINISHED"
         ? `

@@ -3258,7 +3258,7 @@ async function loginWithKey(key) {
   setBtnLoading(adminLoginBtn, true);
 
   try {
-    await api({ action: "adminListUsers", adminKey });
+    await api({ action: "adminPing", adminKey });
 
     localStorage.setItem(LS_ADMIN_KEY, adminKey);
 
@@ -3313,15 +3313,10 @@ adminGameSelect?.addEventListener("change", async () => {
 
   try {
     await loadAdminFixtures_();
-    await loadApprovals();
 
-    if (!subsPanel?.classList.contains("hidden")) {
-      await refreshSubmissionsIncremental({ full: true });
-    }
-
-    if (!fixturesPanel?.classList.contains("hidden")) {
-      await loadGroupedFixturesView();
-    }
+    if (pendingMeta) pendingMeta.textContent = "Press Refresh to load approvals.";
+    if (subsMeta) subsMeta.textContent = "Press Refresh to load submissions.";
+    if (fixturesMeta) fixturesMeta.textContent = "Press Refresh to load fixtures.";
   } catch (e) {
     showMsg(String(e.message || e), false);
   }
