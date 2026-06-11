@@ -1758,7 +1758,6 @@ function showPickConfirmModal_(team, gwId) {
           : "Confirm",
       cancelText: "Cancel",
       onConfirm: async (confirmBtn) => {
-        setBtnLoading(confirmBtn, true);
         await savePick(canonicalTeam, gwId);
       }
     }
@@ -2528,6 +2527,54 @@ function upsertLocalPick(gwId, team, outcome = "PENDING") {
   }
 }
 
+function getTeamsForGw_(gwId) {
+  const gw = gameweeks.find(g =>
+    String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase()
+  );
+
+  if (!gw) return [];
+
+  return (gw.fixtures || [])
+    .flatMap(f => [f.home, f.away])
+    .filter(Boolean)
+    .filter(t => !isPlaceholderTeam_(t));
+}
+
+function getCurrentInputTargetGwId_() {
+  return String(
+    submitPickBtn?.dataset?.queueGwId ||
+    getNextSelectionTargetGwId_() ||
+    currentGwId ||
+    ""
+  ).toUpperCase();
+}
+
+function getTeamsForGw_(gwId) {
+  const gw = gameweeks.find(g =>
+    String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase()
+  );
+
+  if (!gw) return [];
+
+  const teams = new Set();
+
+  for (const f of gw.fixtures || []) {
+    if (f.home && !isPlaceholderTeam_(f.home)) teams.add(getCanonicalTeamName_(f.home));
+    if (f.away && !isPlaceholderTeam_(f.away)) teams.add(getCanonicalTeamName_(f.away));
+  }
+
+  return Array.from(teams).sort((a, b) => a.localeCompare(b));
+}
+
+function getTeamsForCurrentInput_() {
+  const targetGwId = getCurrentInputTargetGwId_();
+
+  if (isQueuePicksGame_() && targetGwId !== currentGwId) {
+    return getTeamsForGw_(targetGwId);
+  }
+
+  return getTeamsForSelectedGw();
+}
 
 function getTeamsForSelectedGw() {
   const gw = gameweeks.find(g => g.id === currentGwId);
@@ -2554,7 +2601,7 @@ function getTeamsForSelectedGw() {
 function updateTeamDatalist() {
   if (!teamsDatalist) return;
   teamsDatalist.innerHTML = "";
-  const teams = getTeamsForSelectedGw();
+  const teams = getTeamsForCurrentInput_();
   for (const t of teams) {
     const opt = document.createElement("option");
     opt.value = t;
@@ -2568,7 +2615,7 @@ function renderSuggestions() {
   if (!teamSuggest) return;
 
   const q = (teamSearch?.value || "").trim().toLowerCase();
-  const teams = getTeamsForSelectedGw();
+  const teams = getTeamsForCurrentInput_();
 
   if (!q) {
     teamSuggest.classList.add("hidden");
@@ -3104,33 +3151,32 @@ function showConfirmModal_(title, html, { confirmText = "Confirm", cancelText = 
     actionsEl.innerHTML = "";
   }
 
-  document.getElementById("sysCancelBtn")?.addEventListener("click", () => {
+  const cancelBtn = document.getElementById("sysCancelBtn");
+  const confirmBtn = document.getElementById("sysConfirmBtn");
+
+  cancelBtn.onclick = () => {
     closeModal(modalEl);
     setBtnLoading(submitPickBtn, false);
-  }, { once: true });
+  };
 
-  document.getElementById("sysConfirmBtn")?.addEventListener("click", async () => {
-    const confirmBtn = document.getElementById("sysConfirmBtn");
-    const cancelBtn = document.getElementById("sysCancelBtn");
+  confirmBtn.onclick = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.log("Confirm modal clicked");
 
     setBtnLoading(confirmBtn, true);
-    if (cancelBtn) cancelBtn.disabled = true;
+    cancelBtn.disabled = true;
 
     try {
       await onConfirm?.(confirmBtn);
     } catch (err) {
+      console.warn("Confirm modal action failed", err);
       setBtnLoading(confirmBtn, false);
-      if (cancelBtn) cancelBtn.disabled = false;
-      throw err;
+      cancelBtn.disabled = false;
+      showFixturesMessage(String(err.message || err), "bad");
     }
-  }, { once: true });
-
-  // If modal is closed by X or overlay, treat as cancel
-  const handleCancel = () => {
-    setBtnLoading(submitPickBtn, false);
   };
-
-  modalEl.addEventListener("close", handleCancel, { once: true });
 
   openModal(modalEl);
 }
@@ -4726,10 +4772,17 @@ function startDeadlineTimer() {
     }
 
     if (submitPickBtn) {
-      submitPickBtn.disabled =
-        hasPick ||
-        !sessionUser?.approved ||
-        (diffMs <= 0 && !lateSubmitOpen);
+      if (isQueuePicksGame_()) {
+        const targetGwId = getNextQueueTargetGwId_();
+        if (targetGwId) {
+          forceQueueSubmitButtonState_(targetGwId);
+        }
+      } else {
+        submitPickBtn.disabled =
+          hasPick ||
+          !sessionUser?.approved ||
+          (diffMs <= 0 && !lateSubmitOpen);
+      }
     }
   };
 
@@ -4946,15 +4999,6 @@ async function renderFixturesTab() {
   renderCurrentPickBlock();
   renderStatusBox();
   renderPickCardState();
-
-  const curGw = gameweeks.find(g => g.id === currentGwId);
-  if (curGw) {
-    const locked = Date.now() >= curGw.deadline.getTime();
-    if (submitPickBtn) {
-      submitPickBtn.disabled = locked || !sessionUser?.approved || sessionUser?.alive === false;
-    }
-  }
-
   startDeadlineTimer();
   updateTeamDatalist();
 
@@ -6428,26 +6472,44 @@ async function backToLobby_() {
 }
 
 function renderPickCardState() {
-  if (isWinner_()) {
-    if (submitPickBtn) submitPickBtn.disabled = true;
+  if (isQueuePicksGame_()) {
+    const targetGwId = getNextQueueTargetGwId_();
+    if (targetGwId) {
+      forceQueueSubmitButtonState_(targetGwId);
+      return;
+    }
+  }
+  if (!submitPickBtn) return;
+
+  if (isWinner_() || isDeadUi_() || sessionUser?.alive === false || !sessionUser?.approved) {
+    submitPickBtn.disabled = true;
     return;
   }
-  if (isDeadUi_()) {
-    if (submitPickBtn) submitPickBtn.disabled = true;
-    return;
-  }
-  // Only manage button disabled state here. Do NOT toggle views.
-  if (sessionUser?.alive === false) {
-    if (submitPickBtn) submitPickBtn.disabled = true;
+
+  const targetGwId = String(
+    submitPickBtn.dataset.queueGwId ||
+    getNextQueueTargetGwId_() ||
+    currentGwId ||
+    ""
+  ).toUpperCase();
+
+  const targetPick = getPickForGw(targetGwId);
+  const isQueueTarget =
+    isQueuePicksGame_() &&
+    targetGwId &&
+    targetGwId !== String(currentGwId || "").toUpperCase();
+
+  if (isQueueTarget) {
+    submitPickBtn.textContent = `Queue ${gwLabelShort(targetGwId)}`;
+    submitPickBtn.disabled = !!targetPick?.team || !canQueueGw_(targetGwId);
     return;
   }
 
   const curPick = getPickForGw(currentGwId);
   const locked = currentGwLocked();
 
-  if (submitPickBtn) {
-    submitPickBtn.disabled = locked || !sessionUser?.approved || !!curPick;
-  }
+  submitPickBtn.textContent = `Submit ${gwLabelShort(currentGwId)}`;
+  submitPickBtn.disabled = locked || !!curPick?.team;
 }
 
 function hasCompleteFixtureForGw_(gwId) {
@@ -6975,6 +7037,25 @@ function hasSelectableFixtureForGw_(gwId) {
   );
 }
 
+function forceQueueSubmitButtonState_(targetGwId) {
+  if (!submitPickBtn || !targetGwId) return;
+
+  const targetPick = getPickForGw(targetGwId);
+  const targetIsCurrent =
+    String(targetGwId).toUpperCase() === String(currentGwId || "").toUpperCase();
+
+  submitPickBtn.dataset.queueGwId = targetGwId;
+  submitPickBtn.textContent = targetIsCurrent
+    ? `Submit ${gwLabelShort(targetGwId)}`
+    : `Queue ${gwLabelShort(targetGwId)}`;
+
+  submitPickBtn.disabled =
+    !sessionUser?.approved ||
+    sessionUser?.alive === false ||
+    !!String(targetPick?.team || "").trim() ||
+    !canQueueGw_(targetGwId);
+}
+
 function renderQueuedPickCard_() {
   const pickModeInput = document.getElementById("pickModeInput");
   const pickModeSubmitted = document.getElementById("pickModeSubmitted");
@@ -7036,6 +7117,7 @@ function renderQueuedPickCard_() {
       submitPickBtn.dataset.queueGwId = "";
     }
   }
+  forceQueueSubmitButtonState_(targetGwId);
 }
 
 function renderSelectedFixturesCard_() {
@@ -7401,7 +7483,7 @@ function ordinalSuffix_(n) {
 }
 
 async function startProfilePolling() {
-    // TEMP: disabled to protect Firebase quota
+  // TEMP: disabled to protect Firebase quota
   return;
   // Kick off counts immediately (non-blocking)
   refreshRemainingPlayersCount();
@@ -7964,7 +8046,8 @@ submitPickBtn?.addEventListener("click", () => {
   const typed = (teamSearch?.value || "").trim();
   if (!typed) return showFixturesMessage("Type a team first.", "bad");
 
-  const gwTeams = getTeamsForSelectedGw();
+  const targetGwId = getCurrentInputTargetGwId_();
+  const gwTeams = getTeamsForCurrentInput_();
   const typedKey = normTeamKey_(typed);
 
   const matchedTeam = gwTeams.find(t => {
@@ -7977,7 +8060,7 @@ submitPickBtn?.addEventListener("click", () => {
   }
 
   const match = getCanonicalTeamName_(matchedTeam);
-  const existing = getPickForGw(currentGwId);
+  const existing = getPickForGw(targetGwId);
 
   if (
     usedTeams.has(normTeamKey_(getCanonicalTeamName_(match))) &&
@@ -7986,8 +8069,7 @@ submitPickBtn?.addEventListener("click", () => {
     return showFixturesMessage("You already used that team in a previous gameweek.", "bad");
   }
 
-  setBtnLoading(submitPickBtn, true);
-  showPickConfirmModal_(match, currentGwId);
+  showPickConfirmModal_(match, targetGwId);
 });
 
 document.getElementById("backToLobbyBtn")?.addEventListener("click", () => {
