@@ -5511,6 +5511,27 @@ async function renderEntriesTab() {
     } catch (err) {
       console.warn("Emergency Sheets entries fallback failed", err);
     }
+    users = users.map(u => {
+      const picks = Array.isArray(u.picks) ? u.picks : [];
+
+      const anySavedPick = picks.find(p =>
+        String(p.team || p.selection || "").trim() &&
+        ["PENDING", "QUEUED", "WIN", "LOSS"].includes(
+          String(p.outcome || "PENDING").trim().toUpperCase()
+        )
+      );
+
+      if (!anySavedPick && !String(u.selection || u.team || "").trim()) {
+        return u;
+      }
+
+      return {
+        ...u,
+        submittedForGw: true,
+        selection: String(u.selection || u.team || anySavedPick?.team || "").trim(),
+        team: String(u.team || u.selection || anySavedPick?.team || "").trim()
+      };
+    });
     const total = users.length;
 
     const started = hasCompetitionStarted_();
@@ -5570,8 +5591,12 @@ async function renderEntriesTab() {
     function entryStatus_(u) {
       const approved = isApproved_(u);
 
+      const hasAnyPick =
+        !!String(u.selection || u.team || "").trim() ||
+        (Array.isArray(u.picks) && u.picks.some(p => String(p.team || "").trim()));
+
       if (!approved) return { text: "Pending approval", cls: "pending", icon: "…", stateCls: "warn" };
-      if (u.submittedForGw) return { text: "Team submitted", cls: "submitted", icon: "✓", stateCls: "good" };
+      if (u.submittedForGw || hasAnyPick) return { text: "Team submitted", cls: "submitted", icon: "✓", stateCls: "good" };
       return { text: "Not submitted", cls: "neutral", icon: "…", stateCls: "muted" };
     }
 
