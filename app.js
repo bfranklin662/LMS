@@ -1297,6 +1297,29 @@ async function fetchGwReportRows_(gwId) {
   return Array.isArray(data.rows) ? data.rows : [];
 }
 
+async function getSavedPickFromGwReport_(email, gwId) {
+  try {
+    const rows = await fetchGwReportRows_(gwId);
+    const wanted = String(email || "").trim().toLowerCase();
+
+    const row = (rows || []).find(r =>
+      String(r.email || "").trim().toLowerCase() === wanted
+    );
+
+    const team = String(row?.selection || row?.team || "").trim();
+    if (!team) return null;
+
+    return {
+      gwId: String(gwId || "").trim().toUpperCase(),
+      team,
+      outcome: String(row?.outcome || "PENDING").trim().toUpperCase()
+    };
+  } catch (err) {
+    console.warn("GW report fallback failed", err);
+    return null;
+  }
+}
+
 function simplifyClub_(club) {
   const s = String(club || "").trim().toLowerCase();
   if (s.includes("friend")) return "Friend";
@@ -1770,10 +1793,18 @@ function getActiveGame_() {
 }
 
 function getEntriesViewGwId_() {
-  const game = getActiveGame_();
-  if (!game) return currentGwId || null;
+  // For Players tab, show the earliest active pick GW first.
+  // This avoids showing people as "Not submitted" for GW2/GW3
+  // when they have correctly submitted GW1.
+  const submittedGwIds = (sessionPicks || [])
+    .filter(p => String(p?.team || "").trim())
+    .map(p => String(p.gwId || "").trim().toUpperCase())
+    .filter(Boolean)
+    .sort((a, b) => gwNumberFromId_(a) - gwNumberFromId_(b));
 
-  return getCurrentActualGwIdForGame_(game) || computeDateGwId() || currentGwId || null;
+  if (submittedGwIds.length) return submittedGwIds[0];
+
+  return String(currentGwId || computeDateGwId() || gameweeks[0]?.id || "GW1").toUpperCase();
 }
 
 function formatGameDeadlineText_(value) {
@@ -4714,13 +4745,35 @@ async function refreshProfile() {
     ...(data.user || {})
   };
   sessionUser.approved = isApproved_(sessionUser);
-  sessionPicks = Array.isArray(data.picks) ? data.picks : [];
 
-  sessionPicks = sessionPicks.map(p => ({
+  sessionPicks = (Array.isArray(data.picks) ? data.picks : []).map(p => ({
     ...p,
-    gwId: String(p.gwId || "").toUpperCase(),
+    gwId: normaliseGwId_(p.gwId),
+    team: String(p.team || "").trim(),
     outcome: normalizeOutcome_(p.outcome)
   }));
+
+  const emergencyGwId = String(currentGwId || gameweeks?.[0]?.id || "GW1").toUpperCase();
+
+  const alreadyHasCurrentPick = (sessionPicks || []).some(p =>
+    String(p.gwId || "").toUpperCase() === emergencyGwId &&
+    String(p.team || "").trim()
+  );
+
+  if (!alreadyHasCurrentPick) {
+    const fallbackPick = await getSavedPickFromGwReport_(sessionEmail, emergencyGwId);
+
+    if (fallbackPick?.team) {
+      console.warn("Emergency fallback restored pick from GW report", fallbackPick);
+
+      sessionPicks = [
+        ...(sessionPicks || []).filter(p =>
+          String(p.gwId || "").toUpperCase() !== emergencyGwId
+        ),
+        fallbackPick
+      ];
+    }
+  }
 
   usedTeams = new Set(
     sessionPicks
@@ -4806,8 +4859,16 @@ function findFixtureForTeam(gw, team) {
 /*******************************
  * RENDER: FIXTURES TAB
  *******************************/
+function normaliseGwId_(gwId) {
+  return String(gwId || "").trim().toUpperCase();
+}
+
 function getPickForGw(gwId) {
-  return sessionPicks.find(p => p.gwId === gwId) || null;
+  const key = normaliseGwId_(gwId);
+
+  return (sessionPicks || []).find(p =>
+    normaliseGwId_(p.gwId) === key
+  ) || null;
 }
 
 function renderFixtureMiddleBoxApp_(f) {
@@ -5410,7 +5471,46 @@ async function renderEntriesTab() {
     console.log("getEntries source:", data.source, data.users?.length);
     if (myReq !== entriesReqId) return;
 
-    const users = data.users || [];
+    let users = data.users || [];
+
+    try {
+      const sheets = await api({
+        action: "getEntriesFromSheets",
+        gameId: activeGameId,
+        gwId: gwIdForEntries
+      });
+
+      const sheetsUsers = Array.isArray(sheets.users) ? sheets.users : [];
+      const pickByEmail = new Map();
+
+      sheetsUsers.forEach(r => {
+        const email = String(r.email || "").trim().toLowerCase();
+        const team = String(r.selection || r.team || r.pick || "").trim();
+        if (email && team) pickByEmail.set(email, team);
+      });
+
+      users = users.map(u => {
+        const email = String(u.email || "").trim().toLowerCase();
+        const fallbackTeam = pickByEmail.get(email);
+
+        if (!fallbackTeam) return u;
+
+        return {
+          ...u,
+          submittedForGw: true,
+          selection: fallbackTeam,
+          team: fallbackTeam
+        };
+      });
+
+      console.warn("Emergency Sheets fallback applied", {
+        gwIdForEntries,
+        sheetsUsers: sheetsUsers.length,
+        matchedPicks: pickByEmail.size
+      });
+    } catch (err) {
+      console.warn("Emergency Sheets entries fallback failed", err);
+    }
     const total = users.length;
 
     const started = hasCompetitionStarted_();
@@ -6723,7 +6823,20 @@ async function savePick(team, gwIdOverride = null) {
 
     // ✅ Optimistic local update FIRST (this is the “state change”)
     upsertLocalPick(gwId, team, pickOutcome);
+    lastEntriesSig = "";
+
+    if (activeTab2 === "entries") {
+      entriesReqId++;
+      entriesLoading = false;
+      renderEntriesTab();
+    }
     resetPickInputUi_();
+
+    lastEntriesSig = "";
+
+    await refreshProfile().catch(err => {
+      console.warn("Post-pick profile refresh failed", err);
+    });
 
     usedTeams = new Set(
       sessionPicks
