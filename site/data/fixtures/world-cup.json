@@ -9,9 +9,9 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group A",
-      "homeScore": "",
-      "awayScore": "",
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -21,9 +21,9 @@
       "time": "03:00",
       "stage": "Group Stage",
       "group": "Group A",
-      "homeScore": "",
-      "awayScore": "",
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
