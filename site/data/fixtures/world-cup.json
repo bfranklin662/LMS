@@ -29,13 +29,13 @@
       "gwId": "GW1",
       "date": "2026-06-12",
       "team1": "Canada",
-      "team2": "Bosnia and Herzegovina",
-      "time": "20:00",
+      "team2": "Bosnia & Herzegovina",
+      "time": "19:00",
       "stage": "Group Stage",
       "group": "Group B",
-      "homeScore": "",
-      "awayScore": "",
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
@@ -45,8 +45,8 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -57,8 +57,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group B",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -69,8 +69,8 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -81,8 +81,8 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -93,8 +93,8 @@
       "time": "05:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -105,8 +105,8 @@
       "time": "18:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -117,8 +117,8 @@
       "time": "21:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -129,8 +129,8 @@
       "time": "00:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -141,8 +141,8 @@
       "time": "03:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -153,8 +153,8 @@
       "time": "17:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -165,8 +165,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -177,8 +177,8 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -189,8 +189,8 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -201,8 +201,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -213,8 +213,8 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -225,8 +225,8 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group J",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -237,8 +237,8 @@
       "time": "05:00",
       "stage": "Group Stage",
       "group": "Group J",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -249,8 +249,8 @@
       "time": "18:00",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -261,8 +261,8 @@
       "time": "21:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -273,8 +273,8 @@
       "time": "00:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -285,8 +285,8 @@
       "time": "03:00",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -297,8 +297,8 @@
       "time": "17:00",
       "stage": "Group Stage",
       "group": "Group A",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -309,8 +309,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group B",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -321,8 +321,8 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group B",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -333,8 +333,8 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group A",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -345,8 +345,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -357,8 +357,8 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -369,8 +369,8 @@
       "time": "01:30",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -381,8 +381,8 @@
       "time": "04:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -393,8 +393,8 @@
       "time": "18:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -405,8 +405,8 @@
       "time": "21:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -417,8 +417,8 @@
       "time": "01:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -429,8 +429,8 @@
       "time": "05:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -441,8 +441,8 @@
       "time": "17:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -453,8 +453,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -465,8 +465,8 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -477,8 +477,8 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -489,8 +489,8 @@
       "time": "18:00",
       "stage": "Group Stage",
       "group": "Group J",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -501,8 +501,8 @@
       "time": "22:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -513,8 +513,8 @@
       "time": "01:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -525,8 +525,8 @@
       "time": "04:00",
       "stage": "Group Stage",
       "group": "Group J",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -537,8 +537,8 @@
       "time": "18:00",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -549,8 +549,8 @@
       "time": "21:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -561,8 +561,8 @@
       "time": "00:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -573,8 +573,8 @@
       "time": "03:00",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -585,8 +585,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group B",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -597,8 +597,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group B",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -609,8 +609,8 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -621,8 +621,8 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -633,8 +633,8 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group A",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -645,8 +645,8 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group A",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -657,8 +657,8 @@
       "time": "21:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -669,8 +669,8 @@
       "time": "21:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -681,8 +681,8 @@
       "time": "00:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -693,8 +693,8 @@
       "time": "00:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -705,8 +705,8 @@
       "time": "03:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -717,8 +717,8 @@
       "time": "03:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -729,8 +729,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -741,8 +741,8 @@
       "time": "20:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -753,8 +753,8 @@
       "time": "01:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -765,8 +765,8 @@
       "time": "01:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -777,8 +777,8 @@
       "time": "04:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -789,8 +789,8 @@
       "time": "04:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -801,8 +801,8 @@
       "time": "22:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -813,8 +813,8 @@
       "time": "22:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -825,8 +825,8 @@
       "time": "00:30",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -837,8 +837,8 @@
       "time": "00:30",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -849,8 +849,8 @@
       "time": "03:00",
       "stage": "Group Stage",
       "group": "Group J",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -861,8 +861,8 @@
       "time": "03:00",
       "stage": "Group Stage",
       "group": "Group J",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -872,8 +872,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "20:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -883,8 +883,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "18:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -894,8 +894,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "21:30",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -905,8 +905,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "02:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -916,8 +916,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "18:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -927,8 +927,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "22:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -938,8 +938,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "02:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -949,8 +949,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "17:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -960,8 +960,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "21:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -971,8 +971,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "01:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -982,8 +982,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "20:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -993,8 +993,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "00:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1004,8 +1004,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "04:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1015,8 +1015,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "19:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1026,8 +1026,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "23:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1037,8 +1037,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "02:30",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1048,8 +1048,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "18:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1059,8 +1059,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "22:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1070,8 +1070,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "21:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1081,8 +1081,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "01:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1092,8 +1092,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "20:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1103,8 +1103,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "01:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1114,8 +1114,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "17:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1125,8 +1125,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "21:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1136,8 +1136,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "21:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1147,8 +1147,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "20:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1158,8 +1158,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "22:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1169,8 +1169,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "02:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1180,8 +1180,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "20:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1191,8 +1191,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "20:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1202,8 +1202,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "22:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     },
     {
@@ -1213,8 +1213,8 @@
       "team1": "TBD",
       "team2": "TBD",
       "time": "20:00",
-      "homeScore": "",
-      "awayScore": "",
+      "homeScore": null,
+      "awayScore": null,
       "resultStatus": "pending"
     }
   ]
