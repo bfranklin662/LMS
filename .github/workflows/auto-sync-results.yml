@@ -23,11 +23,8 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Create package.json
-        run: npm init -y
-
-      - name: Install Playwright
-        run: npm install playwright
+      - name: Install dependencies
+        run: npm install playwright dotenv
 
       - name: Install Chromium
         run: npx playwright install chromium
