@@ -1,4 +1,8 @@
-require("dotenv").config();
+try {
+  require("dotenv").config();
+} catch {
+  // dotenv optional in GitHub Actions
+}
 
 const http = require("http");
 const path = require("path");
