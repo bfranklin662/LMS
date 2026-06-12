@@ -1,6 +1,11 @@
 #!/usr/bin/env node
 const path = require("path");
-require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
+
+try {
+  require("dotenv").config({ path: path.resolve(__dirname, "..", ".env") });
+} catch {
+  // dotenv is optional in GitHub Actions because env vars come from secrets
+}
 
 const fs = require("fs/promises");
 const { spawn } = require("child_process");
