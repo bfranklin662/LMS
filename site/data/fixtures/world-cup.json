@@ -42,12 +42,12 @@
       "date": "2026-06-13",
       "team1": "USA",
       "team2": "Paraguay",
-      "time": "02:00",
+      "time": "01:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 4,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
