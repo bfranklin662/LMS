@@ -66,12 +66,12 @@
       "date": "2026-06-13",
       "team1": "Brazil",
       "team2": "Morocco",
-      "time": "23:00",
+      "time": "22:00",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
