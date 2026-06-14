@@ -102,12 +102,12 @@
       "date": "2026-06-14",
       "team1": "Germany",
       "team2": "Curacao",
-      "time": "18:00",
+      "time": "17:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 7,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
