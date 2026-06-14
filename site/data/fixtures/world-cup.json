@@ -78,24 +78,24 @@
       "date": "2026-06-14",
       "team1": "Haiti",
       "team2": "Scotland",
-      "time": "02:00",
+      "time": "01:00",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
       "date": "2026-06-14",
       "team1": "Australia",
       "team2": "Turkey",
-      "time": "05:00",
+      "time": "04:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
