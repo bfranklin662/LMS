@@ -114,12 +114,12 @@
       "date": "2026-06-14",
       "team1": "Netherlands",
       "team2": "Japan",
-      "time": "21:00",
+      "time": "20:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
