@@ -150,12 +150,12 @@
       "date": "2026-06-15",
       "team1": "Spain",
       "team2": "Cape Verde",
-      "time": "17:00",
+      "time": "16:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
