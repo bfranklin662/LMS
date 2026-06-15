@@ -588,7 +588,15 @@ async function ensureFixturePickDataForGw_(gwId) {
     rows = Array.isArray(rows) ? rows : [];
 
     // only actual selections count toward fixture badges
-    rows = rows.filter(r => String(r?.selection || "").trim());
+    rows = rows.filter(row => {
+      const selection = String(row?.selection || "").trim();
+      const outcome = normalizeOutcome_(row?.outcome);
+
+      return (
+        selection &&
+        ["PENDING", "WIN", "LOSS"].includes(outcome)
+      );
+    });
 
     fixturePickRowsByGw.set(key, rows);
     fixturePickCountsByGw.set(key, buildFixturePickCountsForGw_(key, rows));
@@ -3137,19 +3145,13 @@ async function refreshAccountProfile_() {
   const sess = getSession();
   if (!sess?.email) return;
 
-  // Use login-style identity from session email by asking my entries + account login state.
-  // For now we can just keep whatever login returned, but this helper prevents null issues.
-  if (!sessionUser) {
-    sessionUser = {
-      email: sess.email,
-      firstName: "",
-      lastName: "",
-      phone: "",
-      clubTeam: "",
-      approved: false,
-      alive: true
-    };
-  }
+  sessionUser = {
+    email: sess.email,
+    firstName: sess.firstName || "",
+    lastName: sess.lastName || "",
+    phone: sess.phone || "",
+    clubTeam: sess.clubTeam || ""
+  };
 }
 
 function showConfirmModal_(title, html, { confirmText = "Confirm", cancelText = "Cancel", onConfirm } = {}) {
@@ -5481,31 +5483,39 @@ async function renderEntriesTab() {
       });
 
       const sheetsUsers = Array.isArray(sheets.users) ? sheets.users : [];
+      const profileByEmail = new Map();
       const pickByEmail = new Map();
 
       sheetsUsers.forEach(r => {
         const email = String(r.email || "").trim().toLowerCase();
         const team = String(r.selection || r.team || r.pick || "").trim();
+        if (email) profileByEmail.set(email, r);
         if (email && team) pickByEmail.set(email, team);
       });
 
       users = users.map(u => {
         const email = String(u.email || "").trim().toLowerCase();
+        const profile = profileByEmail.get(email) || {};
         const fallbackTeam = pickByEmail.get(email);
-
-        if (!fallbackTeam) return u;
 
         return {
           ...u,
-          submittedForGw: true,
-          selection: fallbackTeam,
-          team: fallbackTeam
+          firstName: String(u.firstName || profile.firstName || "").trim(),
+          lastName: String(u.lastName || profile.lastName || "").trim(),
+          clubTeam: String(u.clubTeam || profile.clubTeam || "").trim(),
+          phone: String(u.phone || profile.phone || "").trim(),
+          ...(fallbackTeam ? {
+            submittedForGw: true,
+            selection: fallbackTeam,
+            team: fallbackTeam
+          } : {})
         };
       });
 
       console.warn("Emergency Sheets fallback applied", {
         gwIdForEntries,
         sheetsUsers: sheetsUsers.length,
+        matchedProfiles: profileByEmail.size,
         matchedPicks: pickByEmail.size
       });
     } catch (err) {

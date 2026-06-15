@@ -206,6 +206,48 @@ const updateResultsBtn = document.getElementById("updateResultsBtn");
 
 const automationStatusBody = document.getElementById("automationStatusBody");
 
+const overviewPanel = document.getElementById("panel-overview");
+const overviewMeta = document.getElementById("overviewMeta");
+const gamesOverviewList = document.getElementById("gamesOverviewList");
+const refreshOverviewBtn = document.getElementById("refreshOverviewBtn");
+
+const adminHomeTabs = document.getElementById("adminHomeTabs");
+const adminGameContext = document.getElementById("adminGameContext");
+const adminGameTabs = document.getElementById("adminGameTabs");
+const adminSelectedGameTitle = document.getElementById("adminSelectedGameTitle");
+const backToOverviewBtn = document.getElementById("backToOverviewBtn");
+
+const pendingActionsPanel = document.getElementById("panel-pending-actions");
+const pendingActionsList = document.getElementById("pendingActionsList");
+const pendingActionsCount = document.getElementById("pendingActionsCount");
+
+function overviewDate_(value) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return String(value);
+
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  }).format(date);
+}
+
+async function openAdminGame_(gameId) {
+  selectedGameId = String(gameId || "");
+
+  const game = adminGames.find(
+    item => String(item.id) === selectedGameId
+  );
+
+  adminSelectedGameTitle.textContent =
+    game?.title || selectedGameId;
+
+  await loadAdminFixtures_();
+  await setTab("approvals");
+  await loadApprovals();
+}
 
 let TEAM_NAME_MAP_ROWS = [];
 let TEAM_NAME_MAP_BY_ANY = new Map();
@@ -1321,32 +1363,182 @@ function updateFixturesMeta_() {
   fixturesMeta.textContent = `Showing ${adminFixtureSelectedGw} fixtures for ${getSelectedGame_()?.title || selectedGameId}.`;
 }
 
+function overviewMoney_(value) {
+  const number = Number(value || 0);
+  return `£${number.toLocaleString("en-GB")}`;
+}
+
+async function loadGamesOverview_() {
+  if (!gamesOverviewList) return;
+
+  overviewMeta.textContent = "Refreshing…";
+  gamesOverviewList.innerHTML = `<div class="muted">Loading games…</div>`;
+
+  const data = await api({
+    action: "adminGetGamesOverview",
+    adminKey
+  });
+
+  const games = Array.isArray(data.games) ? data.games : [];
+
+  function renderCard(game) {
+    const status = String(game.status || "UNKNOWN").toUpperCase();
+    const winner = String(game.winner || "").trim() || "—";
+    const competitions = String(game.competitions || "").trim() || "—";
+
+    return `
+      <button
+        class="fixtures-card admin-game-card"
+        type="button"
+        data-admin-game-id="${escapeHtml(game.id)}"
+      >
+        <div style="display:flex;justify-content:space-between;gap:12px;">
+          <div>
+            <h3 style="margin:0 0 4px;">
+              ${escapeHtml(game.title || game.id || "Untitled game")}
+            </h3>
+            <div class="muted small">${escapeHtml(competitions)}</div>
+          </div>
+
+          <span class="state ${status === "RUNNING" ? "good" : ""}">
+            ${escapeHtml(status)}
+          </span>
+        </div>
+
+        <div style="
+          display:grid;
+          grid-template-columns:repeat(3,minmax(0,1fr));
+          gap:10px;
+          margin-top:16px;
+        ">
+          <div><strong>${game.registered}</strong><div class="muted small">Registered</div></div>
+          <div><strong>${game.approved}</strong><div class="muted small">Approved</div></div>
+          <div><strong>${game.pending}</strong><div class="muted small">Pending</div></div>
+
+          <div><strong>${game.alive}</strong><div class="muted small">Alive</div></div>
+          <div><strong>${game.dead}</strong><div class="muted small">Dead</div></div>
+          <div><strong>${overviewMoney_(game.entryFee)}</strong><div class="muted small">Entry fee</div></div>
+
+          <div><strong>${overviewMoney_(game.prize)}</strong><div class="muted small">Prize</div></div>
+          <div><strong>${overviewMoney_(game.fundraised)}</strong><div class="muted small">Fundraised</div></div>
+          <div><strong>${overviewMoney_(game.admin)}</strong><div class="muted small">Admin</div></div>
+        </div>
+
+        <div class="muted small" style="margin-top:14px;line-height:1.7;">
+          <div>Dates: ${overviewDate_(game.startDate)} to ${overviewDate_(game.endDate)}</div>
+          <div>Gameweeks: ${escapeHtml(game.startGw || "—")} to ${escapeHtml(game.endGw || "—")}</div>
+          <div>Winner: ${escapeHtml(winner)}</div>
+        </div>
+      </button>
+    `;
+  }
+
+  const groups = [
+    {
+      title: "Running",
+      games: games.filter(game =>
+        String(game.status).toUpperCase() === "RUNNING"
+      )
+    },
+    {
+      title: "Upcoming",
+      games: games.filter(game =>
+        String(game.status).toUpperCase() === "OPEN"
+      )
+    },
+    {
+      title: "Finished",
+      games: games.filter(game =>
+        String(game.status).toUpperCase() === "FINISHED"
+      )
+    }
+  ];
+
+  gamesOverviewList.innerHTML = groups
+    .filter(group => group.games.length)
+    .map(group => `
+      <section style="margin-bottom:24px;">
+        <h2 class="admin-grid-heading">${group.title}</h2>
+        <div class="admin-overview-grid">
+          ${group.games.map(renderCard).join("")}
+        </div>
+      </section>
+    `)
+    .join("") || `<div class="muted">No games found.</div>`;
+
+  overviewMeta.textContent =
+    `${games.length} game${games.length === 1 ? "" : "s"}`;
+}
+
+async function loadPendingActions_() {
+  pendingActionsList.innerHTML =
+    `<div class="muted">Loading pending actions…</div>`;
+
+  const data = await api({
+    action: "adminGetPendingActions",
+    adminKey
+  });
+
+  const actions = Array.isArray(data.actions) ? data.actions : [];
+
+  pendingActionsCount.textContent =
+    actions.length ? `(${actions.length})` : "";
+
+  pendingActionsList.innerHTML = actions.map(action => `
+    <div class="fixtures-card" style="margin-bottom:10px;">
+      <strong>
+        ${escapeHtml(
+          `${action.firstName || ""} ${action.lastName || ""}`.trim() ||
+          action.email
+        )}
+      </strong>
+
+      <div class="muted small" style="margin-top:4px;">
+        ${escapeHtml(action.gameTitle || action.gameId)}
+        · ${escapeHtml(action.clubTeam || "—")}
+      </div>
+    </div>
+  `).join("") || `
+    <div class="fixtures-card">
+      <div class="muted">No pending actions.</div>
+    </div>
+  `;
+}
 
 async function setTab(name) {
-  tabButtons.forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+  const isHome = name === "overview" || name === "pending-actions";
+
+  overviewPanel?.classList.toggle("hidden", name !== "overview");
+  pendingActionsPanel?.classList.toggle(
+    "hidden",
+    name !== "pending-actions"
+  );
 
   approvalsPanel?.classList.toggle("hidden", name !== "approvals");
   subsPanel?.classList.toggle("hidden", name !== "submissions");
   fixturesPanel?.classList.toggle("hidden", name !== "fixtures");
 
-  if (name === "approvals") {
-    if (pendingMeta) pendingMeta.textContent = "Press Refresh to load approvals.";
+  adminHomeTabs?.classList.toggle("hidden", !isHome);
+  adminGameContext?.classList.toggle("hidden", isHome);
+  adminGameTabs?.classList.toggle("hidden", isHome);
+
+  tabButtons.forEach(button => {
+    button.classList.toggle("active", button.dataset.tab === name);
+  });
+
+  if (name === "overview") {
+    await loadGamesOverview_();
   }
 
-  if (name === "submissions") {
-    if (subsMeta) subsMeta.textContent = "Press Refresh to load submissions.";
-    return;
-  }
-
-  if (name === "fixtures") {
-    if (fixturesMeta) fixturesMeta.textContent = "Press Refresh to load fixtures.";
-    return;
+  if (name === "pending-actions") {
+    await loadPendingActions_();
   }
 }
 
 tabButtons.forEach(b => b.addEventListener("click", async () => {
   await setTab(b.dataset.tab);
 }));
+
 
 function enterPanel() {
   loginView?.classList.add("hidden");
@@ -3273,7 +3465,7 @@ async function loginWithKey(key) {
     ]);
 
     enterPanel();
-    await setTab("approvals");
+    await setTab("overview");
 
     showMsg("Logged in.", true);
   } finally {
@@ -3305,6 +3497,21 @@ function logout() {
 /*******************************
  * Events
  *******************************/
+
+refreshOverviewBtn?.addEventListener("click", async () => {
+  try {
+    setBtnLoading(refreshOverviewBtn, true);
+    await loadGamesOverview_();
+  } catch (error) {
+    showMsg(String(error.message || error), false);
+  } finally {
+    setBtnLoading(refreshOverviewBtn, false);
+  }
+});
+
+backToOverviewBtn?.addEventListener("click", () => {
+  setTab("overview");
+});
 
 adminGameSelect?.addEventListener("change", async () => {
   selectedGameId = adminGameSelect.value || "";
@@ -3341,6 +3548,13 @@ refreshFixturesBtn?.addEventListener("click", async () => {
   } finally {
     setBtnLoading(refreshFixturesBtn, false);
   }
+});
+
+gamesOverviewList?.addEventListener("click", async event => {
+  const card = event.target.closest("[data-admin-game-id]");
+  if (!card) return;
+
+  await openAdminGame_(card.dataset.adminGameId);
 });
 
 commitFixturesBtn?.addEventListener("click", async (e) => {

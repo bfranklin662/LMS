@@ -5056,3 +5056,82 @@ button:disabled {
 .fixture-gw-status-pill.is-muted {
   opacity: .7;
 }
+
+/* Admin desktop console */
+body.admin-page .app {
+  width: 100%;
+  max-width: 1440px;
+  padding: 0 24px 32px;
+}
+
+body.admin-page .view {
+  display: block;
+  padding-top: 12px;
+}
+
+body.admin-page .admin-card {
+  width: 100%;
+  padding: 20px;
+}
+
+.admin-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.admin-game-card {
+  width: 100%;
+  text-align: left;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.admin-game-card:hover {
+  border-color: rgba(225, 29, 46, 0.7);
+  transform: translateY(-2px);
+}
+
+.admin-console-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.admin-console-toolbar select {
+  max-width: 360px;
+}
+
+@media (max-width: 1000px) {
+  .admin-overview-grid {
+    grid-template-columns: repeat(2, minmax(260px, 1fr));
+  }
+}
+
+@media (max-width: 650px) {
+  body.admin-page .app {
+    padding: 0 12px 20px;
+  }
+
+  .admin-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-console-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+.admin-grid-heading {
+  grid-column: 1 / -1;
+  margin: 18px 0 10px;
+  font-size: 18px;
+}
+
+.admin-game-card {
+  cursor: pointer;
+}

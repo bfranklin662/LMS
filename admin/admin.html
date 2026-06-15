@@ -16,7 +16,7 @@
 
 </head>
 
-<body>
+<body class="admin-page">
   <!-- SPLASH -->
   <div id="splash" class="splash hidden">
     <div class="splash-inner">
@@ -63,30 +63,46 @@
         <!-- PANEL VIEW -->
         <section id="panelView" class="hidden">
 
-          <div class="fixtures-card" style="margin-bottom:12px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-              <div>
-                <div style="font-weight:900;">Selected game</div>
-              </div>
-
-              <div style="min-width:220px;flex:1;max-width:320px;">
-                <select id="adminGameSelect" class="input" style="width:100%;">
-                  <option value="">Loading games…</option>
-                </select>
-              </div>
-            </div>
+          <div id="adminHomeTabs" class="seg-tabs">
+            <button class="tab2 active" data-tab="overview" type="button">Games</button>
+            <button class="tab2" data-tab="pending-actions" type="button">
+              Pending actions <span id="pendingActionsCount"></span>
+            </button>
           </div>
 
-          <div class="seg-tabs">
-            <button class="tab2 active" data-tab="approvals" type="button">Approvals</button>
+          <div id="adminGameContext" class="admin-console-toolbar hidden">
+            <button id="backToOverviewBtn" class="btn btn-ghost" type="button">
+              ← All games
+            </button>
+            <h2 id="adminSelectedGameTitle" style="margin:0;"></h2>
+          </div>
+
+          <div id="adminGameTabs" class="seg-tabs hidden">
+            <button class="tab2" data-tab="approvals" type="button">Approvals</button>
             <button class="tab2" data-tab="submissions" type="button">Submissions</button>
             <button class="tab2" data-tab="fixtures" type="button">Fixtures</button>
           </div>
 
           <div id="adminMsg" class="msg hidden" style="margin-top:12px;"></div>
 
+          <section id="panel-pending-actions" class="hidden">
+            <div id="pendingActionsList"></div>
+          </section>
+
+          <!-- GAMES OVERVIEW -->
+          <section id="panel-overview">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 14px;">
+              <div id="overviewMeta" class="muted small"></div>
+              <button id="refreshOverviewBtn" class="btn btn-primary" type="button">
+                Refresh
+              </button>
+            </div>
+
+            <div id="gamesOverviewList"></div>
+          </section>
+
           <!-- APPROVALS -->
-          <section id="panel-approvals">
+          <section id="panel-approvals" class="hidden">
             <div style="display:flex;align-items:center;justify-content:space-between;margin:10px 0 14px;">
               <div id="pendingMeta" class="muted small"></div>
               <button class="btn btn-primary" id="refreshApprovalsBtn" type="button">Refresh</button>
