@@ -138,12 +138,12 @@
       "date": "2026-06-15",
       "team1": "Sweden",
       "team2": "Tunisia",
-      "time": "03:00",
+      "time": "02:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
