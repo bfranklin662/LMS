@@ -565,6 +565,7 @@ function buildFixturePickCountsForGw_(gwId, rows) {
     target.count += 1;
 
     const outcome = normalizeOutcome_(row?.outcome);
+
     if (outcome === "WIN") target.win += 1;
     else if (outcome === "LOSS") target.loss += 1;
     else target.pending += 1;
@@ -592,10 +593,7 @@ async function ensureFixturePickDataForGw_(gwId) {
       const selection = String(row?.selection || "").trim();
       const outcome = normalizeOutcome_(row?.outcome);
 
-      return (
-        selection &&
-        ["PENDING", "WIN", "LOSS"].includes(outcome)
-      );
+      return selection && outcome !== "VOID";
     });
 
     fixturePickRowsByGw.set(key, rows);

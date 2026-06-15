@@ -237,6 +237,12 @@ function overviewDate_(value) {
 async function openAdminGame_(gameId) {
   selectedGameId = String(gameId || "");
 
+  seenSubs.clear();
+  window.__adminSubmissionRows = [];
+
+  if (subsContainer) subsContainer.innerHTML = "";
+  if (subsMeta) subsMeta.textContent = "";
+
   const game = adminGames.find(
     item => String(item.id) === selectedGameId
   );
@@ -246,7 +252,6 @@ async function openAdminGame_(gameId) {
 
   await loadAdminFixtures_();
   await setTab("approvals");
-  await loadApprovals();
 }
 
 let TEAM_NAME_MAP_ROWS = [];
@@ -1488,9 +1493,9 @@ async function loadPendingActions_() {
     <div class="fixtures-card" style="margin-bottom:10px;">
       <strong>
         ${escapeHtml(
-          `${action.firstName || ""} ${action.lastName || ""}`.trim() ||
-          action.email
-        )}
+    `${action.firstName || ""} ${action.lastName || ""}`.trim() ||
+    action.email
+  )}
       </strong>
 
       <div class="muted small" style="margin-top:4px;">
@@ -1528,10 +1533,27 @@ async function setTab(name) {
 
   if (name === "overview") {
     await loadGamesOverview_();
+    return;
   }
 
   if (name === "pending-actions") {
     await loadPendingActions_();
+    return;
+  }
+
+  if (name === "approvals") {
+    await loadApprovals();
+    return;
+  }
+
+  if (name === "submissions") {
+    await refreshSubmissionsIncremental({ full: true });
+    await renderAutomationStatus_();
+    return;
+  }
+
+  if (name === "fixtures") {
+    await loadGroupedFixturesView();
   }
 }
 
