@@ -129,9 +129,9 @@
       "time": "00:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW1",
