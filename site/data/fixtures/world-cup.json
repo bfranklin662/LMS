@@ -162,12 +162,12 @@
       "date": "2026-06-15",
       "team1": "Belgium",
       "team2": "Egypt",
-      "time": "20:00",
+      "time": "19:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
