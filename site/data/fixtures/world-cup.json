@@ -198,12 +198,12 @@
       "date": "2026-06-16",
       "team1": "France",
       "team2": "Senegal",
-      "time": "20:00",
+      "time": "19:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
