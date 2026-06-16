@@ -186,12 +186,12 @@
       "date": "2026-06-16",
       "team1": "Iran",
       "team2": "New Zealand",
-      "time": "02:00",
+      "time": "01:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
