@@ -174,12 +174,12 @@
       "date": "2026-06-15",
       "team1": "Saudi Arabia",
       "team2": "Uruguay",
-      "time": "23:00",
+      "time": "22:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
