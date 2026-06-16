@@ -18,6 +18,27 @@ const FIXTURE_SOURCES = [
   { league: "World Cup", file: "site/data/fixtures/world-cup.json" },
 ];
 
+const AUTO_RESOLVE_REPORT_FILE =
+  path.join(PROJECT_ROOT, "site", "data", "auto-resolve-report.json");
+
+const autoResolveReport = {
+  generatedAt: new Date().toISOString(),
+  mode: APPLY ? "apply" : "dry-run",
+  checked: 0,
+  resolved: 0,
+  skipped: 0,
+  games: []
+};
+
+async function writeAutoResolveReport() {
+  await fs.mkdir(path.dirname(AUTO_RESOLVE_REPORT_FILE), { recursive: true });
+  await fs.writeFile(
+    AUTO_RESOLVE_REPORT_FILE,
+    JSON.stringify(autoResolveReport, null, 2) + "\n",
+    "utf8"
+  );
+}
+
 function log(...args) {
   console.log(new Date().toISOString(), "-", ...args);
 }
@@ -78,7 +99,7 @@ function normalizeTeamName(name) {
 
 function isResolvedOutcome(outcome) {
   const s = String(outcome || "").trim().toUpperCase();
-  return s === "WIN" || s === "LOSS";
+  return s === "WIN" || s === "LOSS" || s === "VOID";
 }
 
 function hasFinalScore(match) {
@@ -204,10 +225,13 @@ async function applyOutcome(row, gameId, outcome) {
 }
 
 async function processGame(game, fixturesByGw) {
+  const events = [];
   const gameId = String(game.id || "").trim();
   const gameTitle = String(game.title || gameId).trim();
 
-  if (!gameId) return { checked: 0, resolved: 0, skipped: 0 };
+  if (!gameId) {
+    return { checked: 0, resolved: 0, skipped: 0, events };
+  }
 
   let checked = 0;
   let resolved = 0;
@@ -215,7 +239,6 @@ async function processGame(game, fixturesByGw) {
 
   log(`[${gameTitle}] starting`);
 
-  // only check display GWs that actually have unresolved picks
   const unresolvedRowsByGw = new Map();
 
   try {
@@ -240,8 +263,17 @@ async function processGame(game, fixturesByGw) {
       unresolvedRowsByGw.get(displayGwId).push(row);
     }
   } catch (err) {
-    log(`[${gameTitle}] failed to load picks: ${err.message || err}`);
-    return { checked: 0, resolved: 0, skipped: 0 };
+    const reason = `failed to load picks: ${err.message || err}`;
+    log(`[${gameTitle}] ${reason}`);
+
+    events.push({
+      type: "error",
+      gameId,
+      gameTitle,
+      reason
+    });
+
+    return { checked: 0, resolved: 0, skipped: 0, events };
   }
 
   for (const [displayGwId, rows] of unresolvedRowsByGw.entries()) {
@@ -250,10 +282,24 @@ async function processGame(game, fixturesByGw) {
     for (const row of rows) {
       checked += 1;
 
+      const email = String(row.email || "").trim();
       const pick = String(row.pick || "").trim();
+
       if (!pick) {
         skipped += 1;
-        log(`[${gameTitle}] ${displayGwId} ${row.email || "unknown"} skipped: no pick`);
+
+        log(`[${gameTitle}] ${displayGwId} ${email || "unknown"} skipped: no pick`);
+
+        events.push({
+          type: "skipped",
+          gameId,
+          gameTitle,
+          gwId: displayGwId,
+          email,
+          pick,
+          reason: "No pick"
+        });
+
         continue;
       }
 
@@ -261,15 +307,40 @@ async function processGame(game, fixturesByGw) {
 
       if (!fixture) {
         skipped += 1;
+
         log(`[${gameTitle}] ${displayGwId} ${pick} skipped: no fixture found in ${actualGwId}`);
+
+        events.push({
+          type: "skipped",
+          gameId,
+          gameTitle,
+          gwId: displayGwId,
+          email,
+          pick,
+          reason: `No fixture found in ${actualGwId}`
+        });
+
         continue;
       }
 
       if (!hasFinalScore(fixture)) {
         skipped += 1;
+
         log(
           `[${gameTitle}] ${displayGwId} ${pick} skipped: fixture unresolved (${fixture.team1} v ${fixture.team2})`
         );
+
+        events.push({
+          type: "skipped",
+          gameId,
+          gameTitle,
+          gwId: displayGwId,
+          email,
+          pick,
+          reason: "Fixture unresolved",
+          fixture: `${fixture.team1} v ${fixture.team2}`
+        });
+
         continue;
       }
 
@@ -277,33 +348,87 @@ async function processGame(game, fixturesByGw) {
 
       if (!outcome) {
         skipped += 1;
+
         log(
           `[${gameTitle}] ${displayGwId} ${pick} skipped: could not infer outcome from ${fixture.team1} ${fixture.homeScore}-${fixture.awayScore} ${fixture.team2}`
         );
+
+        events.push({
+          type: "skipped",
+          gameId,
+          gameTitle,
+          gwId: displayGwId,
+          email,
+          pick,
+          reason: "Could not infer outcome",
+          fixture: `${fixture.team1} ${fixture.homeScore}-${fixture.awayScore} ${fixture.team2}`
+        });
+
         continue;
       }
 
       const resultLine = `${fixture.team1} ${fixture.homeScore}-${fixture.awayScore} ${fixture.team2}`;
 
       if (!APPLY) {
-        log(`[DRY RUN] [${gameTitle}] ${displayGwId} ${row.email} ${pick} -> ${outcome} (${resultLine})`);
+        log(`[DRY RUN] [${gameTitle}] ${displayGwId} ${email} ${pick} -> ${outcome} (${resultLine})`);
+
         resolved += 1;
+
+        events.push({
+          type: "dry-run",
+          gameId,
+          gameTitle,
+          gwId: displayGwId,
+          email,
+          pick,
+          outcome,
+          result: resultLine
+        });
+
         continue;
       }
 
       try {
-        await applyOutcome(row, gameId, outcome);
-        log(`[APPLIED] [${gameTitle}] ${displayGwId} ${row.email} ${pick} -> ${outcome} (${resultLine})`);
+        const response = await applyOutcome(row, gameId, outcome);
+
+        log(`[APPLIED] [${gameTitle}] ${displayGwId} ${email} ${pick} -> ${outcome} (${resultLine})`);
+
         resolved += 1;
+
+        events.push({
+          type: response?.skipped ? "skipped" : "resolved",
+          gameId,
+          gameTitle,
+          gwId: displayGwId,
+          email,
+          pick,
+          outcome: response?.outcome || outcome,
+          result: resultLine,
+          reason: response?.reason || ""
+        });
       } catch (err) {
         skipped += 1;
-        log(`[${gameTitle}] ${displayGwId} ${row.email} apply failed: ${err.message || err}`);
+
+        log(`[${gameTitle}] ${displayGwId} ${email} apply failed: ${err.message || err}`);
+
+        events.push({
+          type: "error",
+          gameId,
+          gameTitle,
+          gwId: displayGwId,
+          email,
+          pick,
+          outcome,
+          result: resultLine,
+          reason: String(err.message || err)
+        });
       }
     }
   }
 
   log(`[${gameTitle}] finished checked=${checked} resolved=${resolved} skipped=${skipped}`);
-  return { checked, resolved, skipped };
+
+  return { checked, resolved, skipped, events };
 }
 
 async function main() {
@@ -322,12 +447,31 @@ async function main() {
   let totalResolved = 0;
   let totalSkipped = 0;
 
+  autoResolveReport.games = [];
+
   for (const game of games) {
     const summary = await processGame(game, fixturesByGw);
+
     totalChecked += summary.checked;
     totalResolved += summary.resolved;
     totalSkipped += summary.skipped;
+
+    autoResolveReport.games.push({
+      gameId: String(game.id || ""),
+      gameTitle: String(game.title || game.id || ""),
+      checked: summary.checked,
+      resolved: summary.resolved,
+      skipped: summary.skipped,
+      events: summary.events || []
+    });
   }
+
+  autoResolveReport.checked = totalChecked;
+  autoResolveReport.resolved = totalResolved;
+  autoResolveReport.skipped = totalSkipped;
+  autoResolveReport.generatedAt = new Date().toISOString();
+
+  await writeAutoResolveReport();
 
   log(`auto-resolve-picks finished checked=${totalChecked} resolved=${totalResolved} skipped=${totalSkipped}`);
 }

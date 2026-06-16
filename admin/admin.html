@@ -66,7 +66,7 @@
           <div id="adminHomeTabs" class="seg-tabs">
             <button class="tab2 active" data-tab="overview" type="button">Games</button>
             <button class="tab2" data-tab="pending-actions" type="button">
-              Pending actions <span id="pendingActionsCount"></span>
+              Activity <span id="pendingActionsCount"></span>
             </button>
           </div>
 
@@ -144,6 +144,11 @@
             </div>
 
             <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;" class="muted small">
+            </div>
+
+            <div id="autoResolveGameCard" class="fixtures-card" style="margin-bottom:12px;">
+              <h3 style="margin-top:0;">Latest auto-resolve</h3>
+              <div id="autoResolveGameBody" class="muted">Loading auto-resolve report…</div>
             </div>
 
             <div id="subsContainer"></div>

@@ -7,6 +7,7 @@ const FIXTURE_SYNC_API_URL =
     : "";
 const LS_ADMIN_KEY = "lms_admin_key";
 const AUTOMATION_STATUS_URL = "../site/data/automation-status.json";
+const ADMIN_PASSWORD_MASK = "**********************";
 
 
 /*******************************
@@ -137,13 +138,28 @@ function showSplash(on) {
 }
 
 const adminMsg = document.getElementById("adminMsg");
-function showMsg(text, good = true) {
+let adminMsgTimer = null;
+
+function showMsg(text, good = true, autoHide = false) {
   if (!adminMsg) return;
+
+  clearTimeout(adminMsgTimer);
+
   adminMsg.textContent = text;
   adminMsg.classList.remove("hidden", "good", "bad");
   adminMsg.classList.add(good ? "good" : "bad");
+
+  if (autoHide) {
+    adminMsgTimer = setTimeout(() => {
+      hideMsg();
+    }, 3000);
+  }
 }
-function hideMsg() { adminMsg?.classList.add("hidden"); }
+
+function hideMsg() {
+  clearTimeout(adminMsgTimer);
+  adminMsg?.classList.add("hidden");
+}
 
 /*******************************
  * DOM
@@ -221,6 +237,8 @@ const pendingActionsPanel = document.getElementById("panel-pending-actions");
 const pendingActionsList = document.getElementById("pendingActionsList");
 const pendingActionsCount = document.getElementById("pendingActionsCount");
 
+const autoResolveGameBody = document.getElementById("autoResolveGameBody");
+
 function overviewDate_(value) {
   if (!value) return "—";
 
@@ -253,6 +271,9 @@ async function openAdminGame_(gameId) {
   await loadAdminFixtures_();
   await setTab("approvals");
 }
+
+let gamesOverviewCache = null;
+let gamesOverviewLoadedAt = 0;
 
 let TEAM_NAME_MAP_ROWS = [];
 let TEAM_NAME_MAP_BY_ANY = new Map();
@@ -1167,6 +1188,126 @@ function bindLeagueRemoveAllEvents_() {
   });
 }
 
+function renderAutoResolveLastRunSummary_(report) {
+  if (!report) {
+    return `
+      <div class="muted">
+        No auto-resolve report found yet.
+      </div>
+    `;
+  }
+
+  const checked = Number(report.checked || 0);
+  const resolved = Number(report.resolved || 0);
+  const skipped = Number(report.skipped || 0);
+  const mode = report.mode === "apply" ? "Live run" : "Dry run";
+  const lastRun = formatAutoResolveDate_(report.generatedAt);
+
+  return `
+    <div class="admin-activity-summary">
+      <div>
+        <strong>Last checked</strong>
+        <div class="muted">${lastRun}</div>
+      </div>
+      <div>
+        <strong>${checked}</strong>
+        <div class="muted">Picks checked</div>
+      </div>
+      <div>
+        <strong>${resolved}</strong>
+        <div class="muted">Resolved</div>
+      </div>
+      <div>
+        <strong>${skipped}</strong>
+        <div class="muted">Skipped</div>
+      </div>
+      <div>
+        <strong>${mode}</strong>
+        <div class="muted">Mode</div>
+      </div>
+    </div>
+  `;
+}
+
+async function loadAutoResolveReport_() {
+  const res = await fetch(`../site/data/auto-resolve-report.json?ts=${Date.now()}`, {
+    cache: "no-store"
+  });
+
+  if (!res.ok) {
+    throw new Error("No auto-resolve report found");
+  }
+
+  return res.json();
+}
+
+function formatAutoResolveDate_(iso) {
+  if (!iso) return "—";
+  const date = new Date(iso);
+  if (isNaN(date.getTime())) return "—";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit"
+  }).format(date);
+}
+
+async function renderGameAutoResolveReport_() {
+  if (!autoResolveGameBody) return;
+
+  try {
+    const report = await loadAutoResolveReport_();
+
+    const game = (report.games || []).find(
+      item => String(item.gameId || "") === String(selectedGameId || "")
+    );
+
+    if (!game) {
+      autoResolveGameBody.innerHTML = `<div class="muted">No auto-resolve activity for this game.</div>`;
+      return;
+    }
+
+    const events = (game.events || [])
+      .filter(event => ["resolved", "dry-run", "skipped", "error"].includes(event.type))
+      .slice(-8)
+      .reverse();
+
+    autoResolveGameBody.innerHTML = `
+      <div class="muted small" style="margin-bottom:10px;">
+        Last run: ${escapeHtml(formatAutoResolveDate_(report.generatedAt))}
+        · ${escapeHtml(report.mode || "unknown")}
+        · Checked ${game.checked || 0}
+        · Resolved ${game.resolved || 0}
+        · Skipped ${game.skipped || 0}
+      </div>
+
+      ${events.length ? events.map(event => `
+        <div class="list-item" style="min-height:unset;">
+          <div class="list-left">
+            <div class="list-title">
+              ${escapeHtml(event.gwId || "GW")} · ${escapeHtml(event.pick || "—")}
+              ${event.outcome ? `→ ${escapeHtml(event.outcome)}` : ""}
+            </div>
+            <div class="list-sub">
+              ${escapeHtml(event.email || "")}
+              ${event.result ? ` · ${escapeHtml(event.result)}` : ""}
+              ${event.reason ? ` · ${escapeHtml(event.reason)}` : ""}
+            </div>
+          </div>
+          <span class="state ${event.type === "resolved" ? "good" : event.type === "error" ? "bad" : "warn"}">
+            ${escapeHtml(event.type)}
+          </span>
+        </div>
+      `).join("") : `<div class="muted">No recent events.</div>`}
+    `;
+  } catch {
+    autoResolveGameBody.innerHTML = `<div class="muted">Auto-resolve report unavailable.</div>`;
+  }
+}
+
 function renderDayScanLabel_(day) {
   const { scanned, count } = getDayScanState_(day);
 
@@ -1373,8 +1514,15 @@ function overviewMoney_(value) {
   return `£${number.toLocaleString("en-GB")}`;
 }
 
-async function loadGamesOverview_() {
+async function loadGamesOverview_({ force = false } = {}) {
   if (!gamesOverviewList) return;
+
+  if (!force && gamesOverviewCache) {
+    renderGamesOverview_(gamesOverviewCache);
+    overviewMeta.textContent =
+      `${gamesOverviewCache.length} game${gamesOverviewCache.length === 1 ? "" : "s"}`;
+    return;
+  }
 
   overviewMeta.textContent = "Refreshing…";
   gamesOverviewList.innerHTML = `<div class="muted">Loading games…</div>`;
@@ -1386,12 +1534,13 @@ async function loadGamesOverview_() {
 
   const games = Array.isArray(data.games) ? data.games : [];
 
-  function renderCard(game) {
-    const status = String(game.status || "UNKNOWN").toUpperCase();
-    const winner = String(game.winner || "").trim() || "—";
-    const competitions = String(game.competitions || "").trim() || "—";
+  function renderGamesOverview_(games) {
+    function renderCard(game) {
+      const status = String(game.status || "UNKNOWN").toUpperCase();
+      const winner = String(game.winner || "").trim() || "—";
+      const competitions = String(game.competitions || "").trim() || "—";
 
-    return `
+      return `
       <button
         class="fixtures-card admin-game-card"
         type="button"
@@ -1436,40 +1585,46 @@ async function loadGamesOverview_() {
         </div>
       </button>
     `;
+    }
+
+    const groups = [
+      {
+        title: "Running",
+        games: games.filter(game =>
+          String(game.status).toUpperCase() === "RUNNING"
+        )
+      },
+      {
+        title: "Upcoming",
+        games: games.filter(game =>
+          String(game.status).toUpperCase() === "OPEN"
+        )
+      },
+      {
+        title: "Finished",
+        games: games.filter(game =>
+          String(game.status).toUpperCase() === "FINISHED"
+        )
+      }
+    ];
+
+    gamesOverviewList.innerHTML = groups
+      .filter(group => group.games.length)
+      .map(group => `
+        <section style="margin-bottom:24px;">
+          <h2 class="admin-grid-heading">${group.title}</h2>
+          <div class="admin-overview-grid">
+            ${group.games.map(renderCard).join("")}
+          </div>
+        </section>
+      `)
+      .join("") || `<div class="muted">No games found.</div>`;
   }
 
-  const groups = [
-    {
-      title: "Running",
-      games: games.filter(game =>
-        String(game.status).toUpperCase() === "RUNNING"
-      )
-    },
-    {
-      title: "Upcoming",
-      games: games.filter(game =>
-        String(game.status).toUpperCase() === "OPEN"
-      )
-    },
-    {
-      title: "Finished",
-      games: games.filter(game =>
-        String(game.status).toUpperCase() === "FINISHED"
-      )
-    }
-  ];
+  gamesOverviewCache = games;
+  gamesOverviewLoadedAt = Date.now();
 
-  gamesOverviewList.innerHTML = groups
-    .filter(group => group.games.length)
-    .map(group => `
-      <section style="margin-bottom:24px;">
-        <h2 class="admin-grid-heading">${group.title}</h2>
-        <div class="admin-overview-grid">
-          ${group.games.map(renderCard).join("")}
-        </div>
-      </section>
-    `)
-    .join("") || `<div class="muted">No games found.</div>`;
+  renderGamesOverview_(games);
 
   overviewMeta.textContent =
     `${games.length} game${games.length === 1 ? "" : "s"}`;
@@ -1508,6 +1663,86 @@ async function loadPendingActions_() {
       <div class="muted">No pending actions.</div>
     </div>
   `;
+
+  try {
+    const report = await loadAutoResolveReport_();
+
+    const recentEvents = (report.games || [])
+      .flatMap(game =>
+        (game.events || []).map(event => ({
+          ...event,
+          gameTitle: game.gameTitle,
+          gameId: game.gameId
+        }))
+      )
+      .slice(-12)
+      .reverse();
+
+    pendingActionsList.insertAdjacentHTML("beforeend", `
+        <div style="margin-top:18px;">
+          <h3>Latest automation activity</h3>
+
+          <div class="fixtures-card" style="margin-bottom:12px;">
+            <strong>Auto-resolve last checked</strong>
+
+            <div class="muted small" style="margin-top:6px;">
+              ${escapeHtml(formatAutoResolveDate_(report.generatedAt))}
+              · ${escapeHtml(report.mode === "apply" ? "Live run" : "Dry run")}
+            </div>
+
+            <div class="admin-stats-grid" style="margin-top:12px;">
+              <div>
+                <strong>${Number(report.checked || 0)}</strong>
+                <div class="muted small">Checked</div>
+              </div>
+              <div>
+                <strong>${Number(report.resolved || 0)}</strong>
+                <div class="muted small">Resolved</div>
+              </div>
+              <div>
+                <strong>${Number(report.skipped || 0)}</strong>
+                <div class="muted small">Skipped</div>
+              </div>
+            </div>
+          </div>
+
+          ${recentEvents.length ? recentEvents.map(event => `
+            <div class="fixtures-card" style="margin-bottom:10px;">
+              <strong>${escapeHtml(event.gameTitle || event.gameId || "Game")}</strong>
+              <div class="muted small" style="margin-top:4px;">
+                ${escapeHtml(event.gwId || "GW")}
+                · ${escapeHtml(event.email || "")}
+                · ${escapeHtml(event.pick || "—")}
+                ${event.outcome ? `→ ${escapeHtml(event.outcome)}` : ""}
+              </div>
+              ${event.reason ? `
+                <div class="muted small" style="margin-top:4px;">
+                  ${escapeHtml(event.reason)}
+                </div>
+              ` : ""}
+            </div>
+          `).join("") : `
+            <div class="fixtures-card">
+              <div class="muted">
+                No recent pick resolves yet. The automation has checked, but there was nothing to apply.
+              </div>
+            </div>
+          `}
+        </div>
+      `);
+  } catch {
+    pendingActionsList.insertAdjacentHTML("beforeend", `
+        <div style="margin-top:18px;">
+          <h3>Latest automation activity</h3>
+          <div class="fixtures-card">
+            <strong>Auto-resolve last checked</strong>
+            <div class="muted" style="margin-top:6px;">
+              No auto-resolve report found yet. This will appear after the automation runs once.
+            </div>
+          </div>
+        </div>
+      `);
+  }
 }
 
 async function setTab(name) {
@@ -1549,6 +1784,7 @@ async function setTab(name) {
   if (name === "submissions") {
     await refreshSubmissionsIncremental({ full: true });
     await renderAutomationStatus_();
+    await renderGameAutoResolveReport_();
     return;
   }
 
@@ -1991,8 +2227,8 @@ function fixtureSortKey(f) {
 
 
 function isResolved(outcome) {
-  const o = String(outcome || "PENDING").toUpperCase();
-  return o === "WIN" || o === "LOSS";
+  const o = String(outcome || "PENDING").trim().toUpperCase();
+  return o === "WIN" || o === "LOSS" || o === "VOID";
 }
 
 function formatFixtureDateDisplay(dateStr) {
@@ -2098,6 +2334,7 @@ function buildAdminPickCounts_(rows) {
     target.count += 1;
 
     const outcome = String(row.outcome || "PENDING").trim().toUpperCase();
+    if (outcome === "VOID") continue;
     if (outcome === "WIN") target.win += 1;
     else if (outcome === "LOSS") target.loss += 1;
     else target.pending += 1;
@@ -2349,8 +2586,8 @@ function renderFixtureEditorRow_(fx) {
     ? edit.include !== false
     : !isRemoved;
 
-  const leftLogo = getTeamLogo_(fx.team1);
-  const rightLogo = getTeamLogo_(fx.team2);
+  const leftLogo = getAdminTeamImage_(fx.team1);
+  const rightLogo = getAdminTeamImage_(fx.team2);
 
   const pickCounts = getAdminFixturePickCounts_(fx);
   const homePickStats = pickCounts?.home || null;
@@ -2945,7 +3182,7 @@ function renderPendingFixtureBlock_(rows) {
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:10px;min-width:0;">
           <img
-            src="${escapeHtml(getTeamLogo_(pickedTeam))}"
+            src="${escapeHtml(getAdminTeamImage_(pickedTeam))}"
             alt="${escapeHtml(pickedTeam)} logo"
             style="width:22px;height:22px;object-fit:contain;flex:0 0 auto;"
             onerror="this.onerror=null;this.src='../site/images/team-default.png';"
@@ -3135,6 +3372,28 @@ function clearFixtureEditsForSelectedGw_() {
       }
     }
   }
+}
+
+function getAdminCountryFlagUrl_(teamName) {
+  const slug = String(teamName || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return `../site/images/flags/${slug}.svg`;
+}
+
+function adminUsesFlags_() {
+  return getAdminGameCompetitions_()
+    .some(name => String(name).trim().toLowerCase() === "world cup");
+}
+
+function getAdminTeamImage_(teamName) {
+  return adminUsesFlags_()
+    ? getAdminCountryFlagUrl_(teamName)
+    : getTeamLogo_(teamName);
 }
 
 async function refreshSubmissionsIncremental({ full = false } = {}) {
@@ -3489,7 +3748,7 @@ async function loginWithKey(key) {
     enterPanel();
     await setTab("overview");
 
-    showMsg("Logged in.", true);
+    showMsg("Logged in.", true, true);
   } finally {
     setBtnLoading(adminLoginBtn, false);
     showSplash(false);
@@ -3523,7 +3782,7 @@ function logout() {
 refreshOverviewBtn?.addEventListener("click", async () => {
   try {
     setBtnLoading(refreshOverviewBtn, true);
-    await loadGamesOverview_();
+    await loadGamesOverview_({ force: true });
   } catch (error) {
     showMsg(String(error.message || error), false);
   } finally {
@@ -3610,11 +3869,19 @@ adminFixtureGwSelect?.addEventListener("change", async () => {
 
 
 adminLoginBtn?.addEventListener("click", async () => {
-  const key = (adminKeyEl?.value || "").trim();
+  const enteredKey = (adminKeyEl?.value || "").trim();
+  const savedKey = localStorage.getItem(LS_ADMIN_KEY) || "";
+
+  const key =
+    enteredKey === ADMIN_PASSWORD_MASK && savedKey
+      ? savedKey
+      : enteredKey;
+
   if (!key) return showMsg("Enter admin password.", false);
 
   try {
     await loginWithKey(key);
+    if (adminKeyEl) adminKeyEl.value = ADMIN_PASSWORD_MASK;
   } catch (e) {
     showSplash(false);
     setBtnLoading(adminLoginBtn, false);
@@ -3654,6 +3921,10 @@ refreshSubsBtn?.addEventListener("click", async () => {
   showSplash(false);
 
   const savedKey = localStorage.getItem(LS_ADMIN_KEY);
+  if (savedKey && adminKeyEl) {
+    adminKeyEl.value = ADMIN_PASSWORD_MASK;
+  }
+
   if (!savedKey) {
     exitPanel();
     return;
