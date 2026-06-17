@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-17T19:33:22.663Z",
+  "generatedAt": "2026-06-17T21:39:51.967Z",
   "mode": "apply",
   "checked": 48,
   "resolved": 0,
@@ -55,14 +55,15 @@
           "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "morganleigh123@live.co.uk",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
           "type": "skipped",
@@ -85,64 +86,70 @@
           "fixture": "Ghana v Panama"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "griffinmosson@gmail.com",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "kozakalex10@gmail.com",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "sam.pett22@gmail.com",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "patrick.mcclements@gmail.com",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "robpiesse@gmail.com",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "thomas.g.barnard@gmail.com",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
           "type": "skipped",
@@ -155,34 +162,37 @@
           "fixture": "Uzbekistan v Colombia"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "olimonguel@hotmail.co.uk",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "andycroft21@hotmail.co.uk",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "pearcey2004@hotmail.com",
           "pick": "Portugal",
-          "reason": "Fixture unresolved",
-          "fixture": "Portugal v DR Congo"
+          "outcome": "LOSS",
+          "result": "Portugal 1-1 D.R. Congo",
+          "reason": "pickedTeam is not defined"
         },
         {
           "type": "skipped",

@@ -245,13 +245,13 @@
       "gwId": "GW2",
       "date": "2026-06-17",
       "team1": "Portugal",
-      "team2": "DR Congo",
-      "time": "18:00",
+      "team2": "D.R. Congo",
+      "time": "17:00",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
