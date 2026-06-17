@@ -258,12 +258,12 @@
       "date": "2026-06-17",
       "team1": "England",
       "team2": "Croatia",
-      "time": "21:00",
+      "time": "20:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 4,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW2",
