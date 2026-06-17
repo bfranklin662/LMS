@@ -1202,6 +1202,13 @@ function renderAutoResolveLastRunSummary_(report) {
   const skipped = Number(report.skipped || 0);
   const mode = report.mode === "apply" ? "Live run" : "Dry run";
   const lastRun = formatAutoResolveDate_(report.generatedAt);
+  const failedHtml = report.ok === false
+    ? `
+      <div class="msg bad" style="margin-top:12px;">
+        Run failed: ${escapeHtml(report.error || "Unknown error")}
+      </div>
+    `
+    : "";
 
   return `
     <div class="admin-activity-summary">
@@ -1226,6 +1233,7 @@ function renderAutoResolveLastRunSummary_(report) {
         <div class="muted">Mode</div>
       </div>
     </div>
+    ${failedHtml}
   `;
 }
 
@@ -1266,7 +1274,10 @@ async function renderGameAutoResolveReport_() {
     );
 
     if (!game) {
-      autoResolveGameBody.innerHTML = `<div class="muted">No auto-resolve activity for this game.</div>`;
+      autoResolveGameBody.innerHTML = `
+        ${renderAutoResolveLastRunSummary_(report)}
+        <div class="muted" style="margin-top:10px;">No auto-resolve activity for this game.</div>
+      `;
       return;
     }
 
@@ -1276,13 +1287,12 @@ async function renderGameAutoResolveReport_() {
       .reverse();
 
     autoResolveGameBody.innerHTML = `
-      <div class="muted small" style="margin-bottom:10px;">
-        Last run: ${escapeHtml(formatAutoResolveDate_(report.generatedAt))}
-        · ${escapeHtml(report.mode || "unknown")}
-        · Checked ${game.checked || 0}
-        · Resolved ${game.resolved || 0}
-        · Skipped ${game.skipped || 0}
-      </div>
+      ${renderAutoResolveLastRunSummary_({
+        ...report,
+        checked: game.checked || 0,
+        resolved: game.resolved || 0,
+        skipped: game.skipped || 0
+      })}
 
       ${events.length ? events.map(event => `
         <div class="list-item" style="min-height:unset;">
@@ -1295,6 +1305,7 @@ async function renderGameAutoResolveReport_() {
               ${escapeHtml(event.email || "")}
               ${event.result ? ` · ${escapeHtml(event.result)}` : ""}
               ${event.reason ? ` · ${escapeHtml(event.reason)}` : ""}
+              ${event.syncedToSheets ? " · Sheets synced" : ""}
             </div>
           </div>
           <span class="state ${event.type === "resolved" ? "good" : event.type === "error" ? "bad" : "warn"}">
@@ -1684,25 +1695,8 @@ async function loadPendingActions_() {
 
           <div class="fixtures-card" style="margin-bottom:12px;">
             <strong>Auto-resolve last checked</strong>
-
-            <div class="muted small" style="margin-top:6px;">
-              ${escapeHtml(formatAutoResolveDate_(report.generatedAt))}
-              · ${escapeHtml(report.mode === "apply" ? "Live run" : "Dry run")}
-            </div>
-
-            <div class="admin-stats-grid" style="margin-top:12px;">
-              <div>
-                <strong>${Number(report.checked || 0)}</strong>
-                <div class="muted small">Checked</div>
-              </div>
-              <div>
-                <strong>${Number(report.resolved || 0)}</strong>
-                <div class="muted small">Resolved</div>
-              </div>
-              <div>
-                <strong>${Number(report.skipped || 0)}</strong>
-                <div class="muted small">Skipped</div>
-              </div>
+            <div style="margin-top:10px;">
+              ${renderAutoResolveLastRunSummary_(report)}
             </div>
           </div>
 
@@ -1714,6 +1708,7 @@ async function loadPendingActions_() {
                 · ${escapeHtml(event.email || "")}
                 · ${escapeHtml(event.pick || "—")}
                 ${event.outcome ? `→ ${escapeHtml(event.outcome)}` : ""}
+                ${event.syncedToSheets ? " · Sheets synced" : ""}
               </div>
               ${event.reason ? `
                 <div class="muted small" style="margin-top:4px;">
@@ -3065,7 +3060,7 @@ async function commitFixtureSync() {
 }
 
 async function setPickOutcomeDirect_(row, newOutcome) {
-  return api({
+  const result = await api({
     action: "adminSetPickOutcome",
     adminKey,
     email: row.email,
@@ -3073,6 +3068,21 @@ async function setPickOutcomeDirect_(row, newOutcome) {
     gwId: row.gwId,
     outcome: newOutcome
   });
+
+  await api({
+    action: "syncAdminSetPickOutcomeFromFirebase",
+    adminKey,
+    email: row.email,
+    gameId: selectedGameId,
+    gwId: row.gwId,
+    outcome: result.outcome || newOutcome,
+    pickedTeam: result.pickedTeam || row.pick || row.team || ""
+  });
+
+  return {
+    ...result,
+    syncedToSheets: true
+  };
 }
 
 /*******************************

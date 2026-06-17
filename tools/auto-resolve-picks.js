@@ -27,6 +27,8 @@ const autoResolveReport = {
   checked: 0,
   resolved: 0,
   skipped: 0,
+  ok: true,
+  error: "",
   games: []
 };
 
@@ -214,7 +216,7 @@ async function getPendingRowsForGameAndGw(gameId, gwId) {
 }
 
 async function applyOutcome(row, gameId, outcome) {
-  return api({
+  const result = await api({
     action: "adminSetPickOutcome",
     adminKey: ADMIN_KEY,
     email: row.email,
@@ -222,6 +224,25 @@ async function applyOutcome(row, gameId, outcome) {
     gwId: row.gwId,
     outcome,
   });
+
+  const pickedTeam = result.pickedTeam || row.pick || row.team || "";
+
+  const sheetsSync = await api({
+    action: "syncAdminSetPickOutcomeFromFirebase",
+    adminKey: ADMIN_KEY,
+    email: row.email,
+    gameId,
+    gwId: row.gwId,
+    outcome: result.outcome || outcome,
+    pickedTeam,
+  });
+
+  return {
+    ...result,
+    pickedTeam,
+    sheetsSync,
+    syncedToSheets: true,
+  };
 }
 
 async function processGame(game, fixturesByGw) {
@@ -391,7 +412,7 @@ async function processGame(game, fixturesByGw) {
       try {
         const response = await applyOutcome(row, gameId, outcome);
 
-        log(`[APPLIED] [${gameTitle}] ${displayGwId} ${email} ${pick} -> ${outcome} (${resultLine})`);
+        log(`[APPLIED] [${gameTitle}] ${displayGwId} ${email} ${pick} -> ${outcome} (${resultLine}) [sheets synced]`);
 
         resolved += 1;
 
@@ -404,7 +425,8 @@ async function processGame(game, fixturesByGw) {
           pick,
           outcome: response?.outcome || outcome,
           result: resultLine,
-          reason: response?.reason || ""
+          reason: response?.reason || "",
+          syncedToSheets: response?.syncedToSheets === true
         });
       } catch (err) {
         skipped += 1;
@@ -470,15 +492,29 @@ async function main() {
   autoResolveReport.resolved = totalResolved;
   autoResolveReport.skipped = totalSkipped;
   autoResolveReport.generatedAt = new Date().toISOString();
+  autoResolveReport.ok = true;
+  autoResolveReport.error = "";
 
   await writeAutoResolveReport();
 
   log(`auto-resolve-picks finished checked=${totalChecked} resolved=${totalResolved} skipped=${totalSkipped}`);
 }
 
-main().catch(err => {
+main().catch(async err => {
   console.error("❌ auto-resolve-picks failed");
   console.error(err.message || err);
   if (err.stack) console.error(err.stack);
+
+  autoResolveReport.ok = false;
+  autoResolveReport.error = String(err.message || err);
+  autoResolveReport.generatedAt = new Date().toISOString();
+
+  try {
+    await writeAutoResolveReport();
+  } catch (writeErr) {
+    console.error("Failed to write auto-resolve report");
+    console.error(writeErr.message || writeErr);
+  }
+
   process.exit(1);
 });

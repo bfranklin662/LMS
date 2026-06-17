@@ -184,6 +184,48 @@ async function runSyncResults({ file, from, to }) {
   });
 }
 
+async function runAutoResolvePicks() {
+  const adminKey =
+    process.env.FIXTURE_ADMIN_KEY ||
+    process.env.LMS_ADMIN_KEY ||
+    "";
+
+  if (!adminKey) {
+    log("[auto-resolve] skipped: missing FIXTURE_ADMIN_KEY or LMS_ADMIN_KEY");
+    return;
+  }
+
+  return new Promise((resolve, reject) => {
+    const child = spawn("node", ["tools/auto-resolve-picks.js", "--apply"], {
+      cwd: PROJECT_ROOT,
+      env: process.env,
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", d => {
+      stdout += d.toString();
+    });
+
+    child.stderr.on("data", d => {
+      stderr += d.toString();
+    });
+
+    child.on("error", reject);
+
+    child.on("close", code => {
+      if (stdout) process.stdout.write(stdout);
+
+      if (code !== 0) {
+        return reject(new Error(stderr || stdout || `auto-resolve-picks exited with code ${code}`));
+      }
+
+      resolve(stdout);
+    });
+  });
+}
+
 async function getDueFixturesForFile(file, state) {
   const absPath = path.join(PROJECT_ROOT, file);
   const json = await readJson(absPath);
@@ -315,6 +357,13 @@ async function main() {
   log("auto-sync-results started");
 
   await tick();
+
+  try {
+    log("[auto-resolve] running after result sync");
+    await runAutoResolvePicks();
+  } catch (err) {
+    log(`[auto-resolve] failed: ${err.message || err}`);
+  }
 
   log("auto-sync-results finished");
 }
