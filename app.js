@@ -298,6 +298,8 @@ let lastGwReportCount = null;
 let lastGwReportCountGwId = null;
 let gwReportCountLoading = false;
 let lastGwReportCountFetchAt = 0;
+let lastGwReportStats = null;
+let lastGwReportStatsGwId = null;
 
 let competitionOver = false;
 let winnerEmail = null;
@@ -1447,6 +1449,102 @@ function shouldShowGwReportRow_(row, gwId) {
   return false;
 }
 
+async function fetchGwReportRowsWithAlivePlayers_(gwId) {
+  const targetGwId = String(gwId || "").trim().toUpperCase();
+
+  const [reportRowsRaw, entriesData, sheetsEntriesData] = await Promise.all([
+    fetchGwReportRows_(targetGwId).catch(() => []),
+    api({ action: "getEntries", gameId: activeGameId, gwId: targetGwId }).catch(() => ({ users: [] })),
+    api({ action: "getEntriesFromSheets", gameId: activeGameId, gwId: targetGwId }).catch(() => ({ users: [] }))
+  ]);
+
+  const reportRows = (Array.isArray(reportRowsRaw) ? reportRowsRaw : [])
+    .filter(row => {
+      const rowGwId = String(row?.gwId || targetGwId || "").trim().toUpperCase();
+      const outcome = String(row?.outcome || "").trim().toUpperCase();
+      return rowGwId === targetGwId && outcome !== "VOID";
+    });
+
+  const reportByEmail = new Map();
+  reportRows.forEach(row => {
+    const email = String(row.email || "").trim().toLowerCase();
+    if (email) reportByEmail.set(email, row);
+  });
+
+  const sheetsByEmail = new Map();
+  (Array.isArray(sheetsEntriesData.users) ? sheetsEntriesData.users : []).forEach(user => {
+    const email = String(user.email || "").trim().toLowerCase();
+    if (email) sheetsByEmail.set(email, user);
+  });
+
+  const aliveUsers = (Array.isArray(entriesData.users) ? entriesData.users : [])
+    .map(user => {
+      const email = String(user.email || "").trim().toLowerCase();
+      const sheetUser = sheetsByEmail.get(email) || {};
+      return {
+        ...user,
+        approved: sheetUser.approved ?? user.approved,
+        alive: sheetUser.alive ?? user.alive,
+        knockedOutGw: sheetUser.knockedOutGw ?? user.knockedOutGw,
+        knockedOutTeam: sheetUser.knockedOutTeam ?? user.knockedOutTeam,
+        firstName: user.firstName || sheetUser.firstName || "",
+        lastName: user.lastName || sheetUser.lastName || "",
+        clubTeam: user.clubTeam || sheetUser.clubTeam || ""
+      };
+    })
+    .filter(user => wasAliveForGwFromEntry_(user, targetGwId));
+
+  const merged = [];
+  const seen = new Set();
+
+  aliveUsers.forEach(user => {
+    const email = String(user.email || "").trim().toLowerCase();
+    if (!email) return;
+
+    const report = reportByEmail.get(email);
+    seen.add(email);
+
+    merged.push({
+      ...user,
+      ...(report || {}),
+      email,
+      gwId: targetGwId,
+      name:
+        report?.name ||
+        `${user.firstName || ""} ${user.lastName || ""}`.trim() ||
+        user.name ||
+        email,
+      clubTeam: report?.clubTeam || user.clubTeam || "",
+      selection: String(report?.selection || report?.team || "").trim(),
+      outcome: String(report?.outcome || "").trim().toUpperCase()
+    });
+  });
+
+  return merged.sort((a, b) =>
+    String(a.name || a.email || "").localeCompare(String(b.name || b.email || ""))
+  );
+}
+
+function getGwReportStatsFromRows_(rows) {
+  const alivePlayers = rows.length;
+  const selections = rows.filter(row =>
+    String(row.selection || row.team || "").trim()
+  ).length;
+
+  return { alivePlayers, selections };
+}
+
+function updateFixtureGwSubmissionSummary_(gwId, stats) {
+  const box = document.querySelector(`[data-gw-submission-summary="${CSS.escape(String(gwId || ""))}"]`);
+  if (!box || !stats) return;
+
+  const playersEl = box.querySelector("[data-gw-summary-players]");
+  const selectionsEl = box.querySelector("[data-gw-summary-selections]");
+
+  if (playersEl) playersEl.textContent = String(stats.alivePlayers);
+  if (selectionsEl) selectionsEl.textContent = String(stats.selections);
+}
+
 function getGwIdForSelectionsCard_() {
   // Manual override still wins
   if (DEBUG_REPORT_GW_ID) return DEBUG_REPORT_GW_ID;
@@ -1591,15 +1689,17 @@ async function refreshGwReportCount_(gwId) {
   lastGwReportCountFetchAt = now;
 
   try {
-    let rows = await fetchGwReportRows_(gwId);
+    let rows = await fetchGwReportRowsWithAlivePlayers_(gwId);
     rows = Array.isArray(rows) ? rows : [];
-    rows = rows.filter(r => shouldShowGwReportRow_(r, gwId));
 
-    const count = rows.length;
+    const stats = getGwReportStatsFromRows_(rows);
+    const count = stats.selections;
 
     if (lastGwReportCountGwId !== gwId || lastGwReportCount !== count) {
       lastGwReportCountGwId = gwId;
       lastGwReportCount = count;
+      lastGwReportStatsGwId = gwId;
+      lastGwReportStats = stats;
 
       const countEl = document.getElementById("gwReportCardCount");
       const dotsEl = document.getElementById("gwReportCardDots");
@@ -1620,15 +1720,20 @@ async function openGwReportModal_(gwId) {
   if (!modal || !bodyEl || !titleEl) return;
 
   titleEl.innerHTML = `
-    ${escapeHtml(gwLabelLong(gwId))} - Selections:
-    <span class="muted" id="gwReportModalCountDots">
-      <span class="dots" aria-label="Loading"></span>
-    </span>
-    <span id="gwReportModalCount"></span>
+    <div class="gw-report-title-row">
+      <span>${escapeHtml(gwLabelLong(gwId))}</span>
+      <span class="gw-report-player-pill">
+        Players:
+        <span id="gwReportModalPlayersDots">
+          <span class="dots" aria-label="Loading"></span>
+        </span>
+        <span id="gwReportModalPlayers"></span>
+      </span>
+    </div>
   `;
 
   bodyEl.innerHTML = `
-    <div class="gw-report-summary muted small" id="gwReportModalSummary" style="margin:0 0 10px 0;">
+    <div class="gw-report-summary" id="gwReportModalSummary" style="margin:0 0 10px 0;">
       Loading…
     </div>
 
@@ -1658,33 +1763,41 @@ async function openGwReportModal_(gwId) {
   let rows = [];
 
   try {
-    rows = await fetchGwReportRows_(gwId);
+    rows = await fetchGwReportRowsWithAlivePlayers_(gwId);
     rows = Array.isArray(rows) ? rows : [];
   } catch {
     rows = [];
   }
 
-  rows = rows.filter(r => shouldShowGwReportRow_(r, gwId));
-
   const wonCount = rows.filter(r => String(r.outcome || "").trim().toUpperCase() === "WIN").length;
   const lostCount = rows.filter(r => String(r.outcome || "").trim().toUpperCase() === "LOSS").length;
   const pendingCount = rows.filter(r => String(r.outcome || "").trim().toUpperCase() === "PENDING").length;
+  const notSubmittedCount = rows.filter(r => !String(r.selection || r.team || "").trim()).length;
 
-  const totalSelections = rows.length;
+  const stats = getGwReportStatsFromRows_(rows);
 
-  const countEl = document.getElementById("gwReportModalCount");
-  const dotsEl = document.getElementById("gwReportModalCountDots");
+  const playersEl = document.getElementById("gwReportModalPlayers");
+  const playersDotsEl = document.getElementById("gwReportModalPlayersDots");
   const summaryEl = document.getElementById("gwReportModalSummary");
 
-  if (countEl) countEl.textContent = String(totalSelections);
-  if (dotsEl) dotsEl.style.display = "none";
+  if (playersEl) playersEl.textContent = String(stats.alivePlayers);
+  if (playersDotsEl) playersDotsEl.style.display = "none";
 
   if (summaryEl) {
-    summaryEl.innerHTML = `
-      Won: <strong>${wonCount}</strong>,
-      Lost: <strong>${lostCount}</strong>
-      ${pendingCount > 0 ? `, Pending: <strong>${pendingCount}</strong>` : ""}
-    `;
+    const summaryItems = [
+      `<span class="gw-summary-item gw-summary-won">Won: <strong>${wonCount}</strong></span>`,
+      `<span class="gw-summary-item gw-summary-lost">Lost: <strong>${lostCount}</strong></span>`,
+    ];
+
+    if (pendingCount > 0) {
+      summaryItems.push(`<span class="gw-summary-item gw-summary-muted">Pending: <strong>${pendingCount}</strong></span>`);
+    }
+
+    if (notSubmittedCount > 0) {
+      summaryItems.push(`<span class="gw-summary-item gw-summary-muted">Not submitted: <strong>${notSubmittedCount}</strong></span>`);
+    }
+
+    summaryEl.innerHTML = summaryItems.join(`<span class="gw-summary-sep">•</span>`);
   }
 
   const tbodyHtml = rows.map(r => {
@@ -1694,9 +1807,9 @@ async function openGwReportModal_(gwId) {
     const hasSelection = !!sel;
 
     const outcomeRaw = String(r.outcome || "").trim().toUpperCase();
-    const outcomeForDisplay = hasSelection ? outcomeRaw : "LOSS";
-    const resLabel = hasSelection ? outcomeLabel_(outcomeForDisplay) : "Lost";
-    const resCls = hasSelection ? outcomeCls_(outcomeForDisplay) : "lost";
+    const outcomeForDisplay = hasSelection ? outcomeRaw : "";
+    const resLabel = hasSelection ? outcomeLabel_(outcomeForDisplay) : "TBC";
+    const resCls = hasSelection ? outcomeCls_(outcomeForDisplay) : "tbc";
 
     return `
       <tr>
@@ -1799,18 +1912,7 @@ function getActiveGame_() {
 }
 
 function getEntriesViewGwId_() {
-  // For Players tab, show the earliest active pick GW first.
-  // This avoids showing people as "Not submitted" for GW2/GW3
-  // when they have correctly submitted GW1.
-  const submittedGwIds = (sessionPicks || [])
-    .filter(p => String(p?.team || "").trim())
-    .map(p => String(p.gwId || "").trim().toUpperCase())
-    .filter(Boolean)
-    .sort((a, b) => gwNumberFromId_(a) - gwNumberFromId_(b));
-
-  if (submittedGwIds.length) return submittedGwIds[0];
-
-  return String(currentGwId || computeDateGwId() || gameweeks[0]?.id || "GW1").toUpperCase();
+  return String(computeDateGwId() || currentGwId || gameweeks[0]?.id || "GW1").toUpperCase();
 }
 
 function formatGameDeadlineText_(value) {
@@ -3854,28 +3956,32 @@ async function openPlayerPicksModal_(player, gwIdForEntries, allUsers = []) {
         }
 
         const outcome = String(p.outcome || "PENDING").toUpperCase();
+        const displayOutcome =
+          outcome === "PENDING" && gwIndexForRank_(p.gwId) > gwIndexForRank_(currentGwKey)
+            ? "QUEUED"
+            : outcome;
 
         let rowCls = "pending";
         let stateCls = "warn";
         let icon = "…";
         let labelHtml = "Team submitted";
 
-        if (outcome === "QUEUED") {
+        if (displayOutcome === "QUEUED") {
           rowCls = "queued";
           stateCls = "muted";
           icon = "⏱";
           labelHtml = "Team queued";
-        } else if (outcome === "WIN") {
+        } else if (displayOutcome === "WIN") {
           rowCls = "win";
           stateCls = "good";
           icon = "✓";
           labelHtml = teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" });
-        } else if (outcome === "LOSS") {
+        } else if (displayOutcome === "LOSS") {
           rowCls = "loss";
           stateCls = "bad";
           icon = "✕";
           labelHtml = teamInlineHtml_(p.team || "—", { size: 16, logoPosition: "before" });
-        } else if (outcome === "VOID") {
+        } else if (displayOutcome === "VOID") {
           rowCls = "void";
           stateCls = "muted";
           icon = "—";
@@ -4946,21 +5052,66 @@ function renderFixtureGwNav() {
   function helperHtmlForGw_(gwId) {
     const pick = getPickForGw(gwId);
     const outcome = String(pick?.outcome || "").toUpperCase();
+    const gw = gameweeks.find(g => String(g.id || "").toUpperCase() === String(gwId || "").toUpperCase());
+    const hasStarted = !!gw?.deadline && Date.now() >= gw.deadline.getTime();
 
     if (pick?.team) {
-      if (outcome === "QUEUED") {
+      const teamHtml = teamInlineHtml_(pick.team, { size: 14, logoPosition: "before" });
+
+      if (outcome === "VOID") {
+        return `
+        <span class="fixture-gw-status-pill muted fixture-gw-status-pill--void">
+          <span>Selection void:</span>
+          ${teamHtml}
+        </span>
+      `;
+      }
+
+      if (!hasStarted) {
+        if (outcome === "QUEUED") {
+          return `
+          <span class="fixture-gw-status-pill">
+            <span>Selection queued for future gameweek:</span>
+            ${teamHtml}
+            <span class="state muted">...</span>
+          </span>
+        `;
+        }
+
         return `
         <span class="fixture-gw-status-pill">
-          Selection queued
-          <span class="state muted">🕒</span>
+          <span>Selection confirmed:</span>
+          ${teamHtml}
+          <span class="state good">✓</span>
+        </span>
+      `;
+      }
+
+      if (outcome === "WIN") {
+        return `
+        <span class="fixture-gw-status-pill">
+          <span>Selection:</span>
+          ${teamHtml}
+          <span class="state good">Won ✓</span>
+        </span>
+      `;
+      }
+
+      if (outcome === "LOSS") {
+        return `
+        <span class="fixture-gw-status-pill">
+          <span>Selection:</span>
+          ${teamHtml}
+          <span class="state bad">Lost ×</span>
         </span>
       `;
       }
 
       return `
       <span class="fixture-gw-status-pill">
-        Selection confirmed
-        <span class="state good">✓</span>
+        <span>Selection:</span>
+        ${teamHtml}
+        <span class="state muted">Pending ...</span>
       </span>
     `;
     }
@@ -4980,6 +5131,26 @@ function renderFixtureGwNav() {
       <span class="state muted">✎</span>
     </span>
   `;
+  }
+
+  function startedStatsHtmlForGw_(gw) {
+    if (!gw?.deadline || Date.now() < gw.deadline.getTime()) return "";
+
+    const stats =
+      lastGwReportStatsGwId === gw.id && lastGwReportStats
+        ? lastGwReportStats
+        : null;
+
+    const players = stats ? String(stats.alivePlayers) : `<span class="dots" aria-label="Loading"></span>`;
+    const selections = stats ? String(stats.selections) : `<span class="dots" aria-label="Loading"></span>`;
+
+    return `
+      <div class="fixture-gw-submission-summary muted small" data-gw-submission-summary="${escapeAttr(gw.id)}">
+        Players: <strong data-gw-summary-players>${players}</strong>
+        · Selections: <strong data-gw-summary-selections>${selections}</strong>
+        · <button class="link-btn" type="button" data-open-gw-report="${escapeAttr(gw.id)}">View All</button>
+      </div>
+    `;
   }
 
   const endDay = startOfDay(cur.lastKickoff || cur.firstKickoff);
@@ -5021,6 +5192,7 @@ function renderFixtureGwNav() {
         →
       </button>
     </div>
+    ${startedStatsHtmlForGw_(cur)}
     <div class="fixture-gw-helper">
       ${helperHtmlForGw_(cur.id)}
     </div>
@@ -5035,6 +5207,16 @@ function renderFixtureGwNav() {
       renderFixturesTab();
     });
   });
+
+  nav.querySelector("[data-open-gw-report]")?.addEventListener("click", () => {
+    openGwReportModal_(cur.id);
+  });
+
+  if (cur?.deadline && Date.now() >= cur.deadline.getTime()) {
+    refreshGwReportCount_(cur.id).then(() => {
+      if (String(viewingGwId || "") === String(cur.id || "")) updateFixtureGwSubmissionSummary_(cur.id, lastGwReportStats);
+    }).catch(() => { });
+  }
 }
 
 function getGwStageLabel_(gwId) {
@@ -5521,23 +5703,31 @@ async function renderEntriesTab() {
     }
     users = users.map(u => {
       const picks = Array.isArray(u.picks) ? u.picks : [];
-
-      const anySavedPick = picks.find(p =>
-        String(p.team || p.selection || "").trim() &&
-        ["PENDING", "QUEUED", "WIN", "LOSS"].includes(
-          String(p.outcome || "PENDING").trim().toUpperCase()
-        )
+      const currentGwPick = picks.find(p =>
+        String(p.gwId || "").trim().toUpperCase() === String(gwIdForEntries || "").trim().toUpperCase()
       );
 
-      if (!anySavedPick && !String(u.selection || u.team || "").trim()) {
-        return u;
-      }
+      const currentGwTeam = String(
+        currentGwPick?.team ||
+        currentGwPick?.selection ||
+        u.selection ||
+        u.team ||
+        ""
+      ).trim();
+
+      const currentGwOutcome = String(currentGwPick?.outcome || u.outcome || "PENDING")
+        .trim()
+        .toUpperCase();
+
+      const submittedForGw =
+        !!currentGwTeam &&
+        !["VOID"].includes(currentGwOutcome);
 
       return {
         ...u,
-        submittedForGw: true,
-        selection: String(u.selection || u.team || anySavedPick?.team || "").trim(),
-        team: String(u.team || u.selection || anySavedPick?.team || "").trim()
+        submittedForGw,
+        selection: currentGwTeam,
+        team: currentGwTeam
       };
     });
     const total = users.length;
@@ -5599,12 +5789,8 @@ async function renderEntriesTab() {
     function entryStatus_(u) {
       const approved = isApproved_(u);
 
-      const hasAnyPick =
-        !!String(u.selection || u.team || "").trim() ||
-        (Array.isArray(u.picks) && u.picks.some(p => String(p.team || "").trim()));
-
       if (!approved) return { text: "Pending approval", cls: "pending", icon: "…", stateCls: "warn" };
-      if (u.submittedForGw || hasAnyPick) return { text: "Team submitted", cls: "submitted", icon: "✓", stateCls: "good" };
+      if (u.submittedForGw) return { text: "Team submitted", cls: "submitted", icon: "✓", stateCls: "good" };
       return { text: "Not submitted", cls: "neutral", icon: "…", stateCls: "muted" };
     }
 

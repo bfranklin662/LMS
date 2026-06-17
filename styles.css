@@ -1818,6 +1818,8 @@ details[open]>summary.collapse-summary .caret {
 .status-row .team-logo {
   display: block;
   flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
 }
 
 /* Optional: keep long names from breaking layout */
@@ -2132,6 +2134,53 @@ input[type="checkbox"]:focus-visible {
 
 .gw-modal-body {
   margin-top: 10px;
+}
+
+.gw-report-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  font-size: 22px;
+  line-height: 1.1;
+}
+
+.gw-report-player-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, .16);
+  background: rgba(255, 255, 255, .08);
+  color: rgba(255, 255, 255, .86);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.gw-report-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255, 255, 255, .72);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.gw-summary-won strong {
+  color: #22c55e;
+}
+
+.gw-summary-lost strong {
+  color: #ff4d4d;
+}
+
+.gw-summary-muted strong,
+.gw-summary-sep {
+  color: rgba(255, 255, 255, .7);
 }
 
 /* Modal table look */
@@ -5025,6 +5074,15 @@ button:disabled {
   font-size: 14px;
 }
 
+.fixture-gw-submission-summary {
+  margin-top: 10px;
+}
+
+.fixture-gw-submission-summary .link-btn {
+  vertical-align: baseline;
+}
+
+
 .fixture-gw-nav-divider {
   height: 1px;
   margin: 12px 0;
@@ -5043,6 +5101,23 @@ button:disabled {
   background: rgba(255,255,255,.06);
   border: 1px solid rgba(255,255,255,.12);
 }
+
+.fixture-gw-status-pill .team-inline {
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.fixture-gw-status-pill .team-logo {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+}
+
+.fixture-gw-status-pill--void {
+  opacity: .65;
+}
+
 
 .fixture-gw-helper {
   display: flex;
