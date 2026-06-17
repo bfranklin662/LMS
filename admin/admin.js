@@ -1282,7 +1282,7 @@ async function renderGameAutoResolveReport_() {
     }
 
     const events = (game.events || [])
-      .filter(event => ["resolved", "dry-run", "skipped", "error"].includes(event.type))
+      .filter(event => ["resolved", "promoted", "dry-run", "skipped", "error"].includes(event.type))
       .slice(-8)
       .reverse();
 
@@ -1308,7 +1308,7 @@ async function renderGameAutoResolveReport_() {
               ${event.syncedToSheets ? " · Sheets synced" : ""}
             </div>
           </div>
-          <span class="state ${event.type === "resolved" ? "good" : event.type === "error" ? "bad" : "warn"}">
+          <span class="state ${["resolved", "promoted"].includes(event.type) ? "good" : event.type === "error" ? "bad" : "warn"}">
             ${escapeHtml(event.type)}
           </span>
         </div>

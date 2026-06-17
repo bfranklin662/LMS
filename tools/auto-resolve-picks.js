@@ -245,6 +245,104 @@ async function applyOutcome(row, gameId, outcome) {
   };
 }
 
+function getRowsByEmail(rows) {
+  const byEmail = new Map();
+
+  for (const row of rows) {
+    const email = String(row.email || "").trim().toLowerCase();
+    if (!email) continue;
+
+    if (!byEmail.has(email)) byEmail.set(email, []);
+    byEmail.get(email).push(row);
+  }
+
+  for (const list of byEmail.values()) {
+    list.sort((a, b) => gwNum(a.gwId) - gwNum(b.gwId));
+  }
+
+  return byEmail;
+}
+
+async function normalizeQueuedRowsForGame(game, rows, fixturesByGw) {
+  const gameId = String(game.id || "").trim();
+  const gameTitle = String(game.title || gameId).trim();
+  const events = [];
+
+  for (const [email, userRows] of getRowsByEmail(rows).entries()) {
+    const hasPending = userRows.some(row =>
+      String(row.outcome || "").trim().toUpperCase() === "PENDING"
+    );
+
+    if (hasPending) continue;
+
+    const hasLoss = userRows.some(row =>
+      String(row.outcome || "").trim().toUpperCase() === "LOSS"
+    );
+
+    if (hasLoss) continue;
+
+    const nextQueued = userRows.find(row =>
+      String(row.outcome || "").trim().toUpperCase() === "QUEUED"
+    );
+
+    if (!nextQueued) continue;
+
+    const actualGwId = getActualGwIdForGame(nextQueued.gwId, game);
+    const fixture = findFixtureForPick(fixturesByGw, actualGwId, nextQueued.pick);
+
+    if (fixture && hasFinalScore(fixture)) {
+      continue;
+    }
+
+    if (!APPLY) {
+      log(`[DRY RUN] [${gameTitle}] ${nextQueued.gwId} ${email} ${nextQueued.pick} QUEUED -> PENDING`);
+      events.push({
+        type: "dry-run",
+        gameId,
+        gameTitle,
+        gwId: nextQueued.gwId,
+        email,
+        pick: nextQueued.pick,
+        outcome: "PENDING",
+        reason: "Promote earliest queued pick"
+      });
+      continue;
+    }
+
+    try {
+      const response = await applyOutcome(nextQueued, gameId, "PENDING");
+      log(`[PROMOTED] [${gameTitle}] ${nextQueued.gwId} ${email} ${nextQueued.pick} QUEUED -> PENDING [sheets synced]`);
+      events.push({
+        type: response?.skipped ? "skipped" : "promoted",
+        gameId,
+        gameTitle,
+        gwId: nextQueued.gwId,
+        email,
+        pick: nextQueued.pick,
+        outcome: response?.outcome || "PENDING",
+        reason: response?.reason || "Promoted earliest queued pick",
+        syncedToSheets: response?.syncedToSheets === true
+      });
+
+      nextQueued.outcome = "PENDING";
+    } catch (err) {
+      log(`[${gameTitle}] ${nextQueued.gwId} ${email} promote failed: ${err.message || err}`);
+      events.push({
+        type: "error",
+        gameId,
+        gameTitle,
+        gwId: nextQueued.gwId,
+        email,
+        pick: nextQueued.pick,
+        outcome: "PENDING",
+        reason: String(err.message || err)
+      });
+    }
+  }
+
+  return events;
+}
+
 async function processGame(game, fixturesByGw) {
   const events = [];
   const gameId = String(game.id || "").trim();
@@ -270,6 +368,8 @@ async function processGame(game, fixturesByGw) {
     });
 
     const rows = Array.isArray(data.rows) ? data.rows : [];
+
+    events.push(...await normalizeQueuedRowsForGame(game, rows, fixturesByGw));
 
     for (const row of rows) {
       if (isResolvedOutcome(row.outcome)) continue;
