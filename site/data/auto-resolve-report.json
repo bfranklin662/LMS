@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-17T14:00:55.999Z",
+  "generatedAt": "2026-06-17T17:16:48.445Z",
   "mode": "apply",
-  "checked": 47,
+  "checked": 48,
   "resolved": 0,
-  "skipped": 47,
+  "skipped": 48,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 47,
+      "checked": 48,
       "resolved": 0,
-      "skipped": 47,
+      "skipped": 48,
       "events": [
         {
           "type": "error",
@@ -30,6 +30,16 @@
           "gameTitle": "World Cup 26",
           "gwId": "GW3",
           "email": "tdraynor@gmail.com",
+          "pick": "Brazil",
+          "outcome": "PENDING",
+          "reason": "pickedTeam is not defined"
+        },
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "adam.drysdale@hotmail.com",
           "pick": "Brazil",
           "outcome": "PENDING",
           "reason": "pickedTeam is not defined"
@@ -293,6 +303,16 @@
           "pick": "Ecuador",
           "reason": "Fixture unresolved",
           "fixture": "Ecuador v Curacao"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "adam.drysdale@hotmail.com",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
         },
         {
           "type": "skipped",
