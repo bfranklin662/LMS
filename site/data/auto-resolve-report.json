@@ -1,0 +1,541 @@
+{
+  "generatedAt": "2026-06-17T10:09:47.892Z",
+  "mode": "apply",
+  "checked": 49,
+  "resolved": 0,
+  "skipped": 49,
+  "ok": true,
+  "error": "",
+  "games": [
+    {
+      "gameId": "world_cup_26",
+      "gameTitle": "World Cup 26",
+      "checked": 49,
+      "resolved": 0,
+      "skipped": 49,
+      "events": [
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "morganleigh123@live.co.uk",
+          "pick": "Portugal",
+          "reason": "Fixture unresolved",
+          "fixture": "Portugal v DR Congo"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "ciarananthonykelly@gmail.com",
+          "pick": "Colombia",
+          "reason": "Fixture unresolved",
+          "fixture": "Uzbekistan v Colombia"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "Ghana",
+          "reason": "Fixture unresolved",
+          "fixture": "Ghana v Panama"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "griffinmosson@gmail.com",
+          "pick": "Portugal",
+          "reason": "Fixture unresolved",
+          "fixture": "Portugal v DR Congo"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "kozakalex10@gmail.com",
+          "pick": "Portugal",
+          "reason": "Fixture unresolved",
+          "fixture": "Portugal v DR Congo"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "sam.pett22@gmail.com",
+          "pick": "Portugal",
+          "reason": "Fixture unresolved",
+          "fixture": "Portugal v DR Congo"
+        },
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "sparksy2k14@gmail.com",
+          "pick": "Norway",
+          "outcome": "WIN",
+          "result": "Iraq 1-4 Norway",
+          "reason": "pickedTeam is not defined"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "patrick.mcclements@gmail.com",
+          "pick": "Portugal",
+          "reason": "Fixture unresolved",
+          "fixture": "Portugal v DR Congo"
+        },
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "tdraynor@gmail.com",
+          "pick": "Argentina",
+          "outcome": "WIN",
+          "result": "Argentina 3-0 Algeria",
+          "reason": "pickedTeam is not defined"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "robpiesse@gmail.com",
+          "pick": "Portugal",
+          "reason": "Fixture unresolved",
+          "fixture": "Portugal v DR Congo"
+        },
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "peleschkaewan12@gmail.com",
+          "pick": "Austria",
+          "outcome": "WIN",
+          "result": "Austria 3-1 Jordan",
+          "reason": "pickedTeam is not defined"
+        },
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "lucydavies6@outlook.com",
+          "pick": "France",
+          "outcome": "WIN",
+          "result": "France 3-1 Senegal",
+          "reason": "pickedTeam is not defined"
+        },
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "barnabysargent@gmail.com",
+          "pick": "Austria",
+          "outcome": "WIN",
+          "result": "Austria 3-1 Jordan",
+          "reason": "pickedTeam is not defined"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "thomas.g.barnard@gmail.com",
+          "pick": "Portugal",
+          "reason": "Fixture unresolved",
+          "fixture": "Portugal v DR Congo"
+        },
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "adam.drysdale@hotmail.com",
+          "pick": "Norway",
+          "outcome": "WIN",
+          "result": "Iraq 1-4 Norway",
+          "reason": "pickedTeam is not defined"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "adam@tatatastudios.com",
+          "pick": "Colombia",
+          "reason": "Fixture unresolved",
+          "fixture": "Uzbekistan v Colombia"
+        },
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "sandyfsmith@hotmail.com",
+          "pick": "Norway",
+          "outcome": "WIN",
+          "result": "Iraq 1-4 Norway",
+          "reason": "pickedTeam is not defined"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW2",
+          "email": "olimonguel@hotmail.co.uk",
+          "pick": "Portugal",
+          "reason": "Fixture unresolved",
+          "fixture": "Portugal v DR Congo"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "morganleigh123@live.co.uk",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "ciarananthonykelly@gmail.com",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "Ecuador",
+          "reason": "Fixture unresolved",
+          "fixture": "Ecuador v Curacao"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "griffinmosson@gmail.com",
+          "pick": "Japan",
+          "reason": "Fixture unresolved",
+          "fixture": "Tunisia v Japan"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "kozakalex10@gmail.com",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "sam.pett22@gmail.com",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "sparksy2k14@gmail.com",
+          "pick": "Ecuador",
+          "reason": "Fixture unresolved",
+          "fixture": "Ecuador v Curacao"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "patrick.mcclements@gmail.com",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "thomas.g.barnard@gmail.com",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "tdraynor@gmail.com",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "morganleigh123@live.co.uk",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Iraq"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "tdraynor@gmail.com",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Iraq"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "ciarananthonykelly@gmail.com",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Iraq"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Iraq"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "kozakalex10@gmail.com",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Iraq"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "sam.pett22@gmail.com",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Iraq"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "sparksy2k14@gmail.com",
+          "pick": "Belgium",
+          "reason": "Fixture unresolved",
+          "fixture": "Belgium v Iran"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "tdraynor@gmail.com",
+          "pick": "Germany",
+          "reason": "Fixture unresolved",
+          "fixture": "Ecuador v Germany"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "morganleigh123@live.co.uk",
+          "pick": "Morocco",
+          "reason": "Fixture unresolved",
+          "fixture": "Morocco v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "ciarananthonykelly@gmail.com",
+          "pick": "Morocco",
+          "reason": "Fixture unresolved",
+          "fixture": "Morocco v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "Ivory Coast",
+          "reason": "Fixture unresolved",
+          "fixture": "Curacao v Ivory Coast"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "kozakalex10@gmail.com",
+          "pick": "Morocco",
+          "reason": "Fixture unresolved",
+          "fixture": "Morocco v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "sam.pett22@gmail.com",
+          "pick": "Morocco",
+          "reason": "Fixture unresolved",
+          "fixture": "Morocco v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "sparksy2k14@gmail.com",
+          "pick": "Morocco",
+          "reason": "Fixture unresolved",
+          "fixture": "Morocco v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "tdraynor@gmail.com",
+          "pick": "England",
+          "reason": "Fixture unresolved",
+          "fixture": "Panama v England"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "morganleigh123@live.co.uk",
+          "pick": "Belgium",
+          "reason": "Fixture unresolved",
+          "fixture": "New Zealand v Belgium"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "ciarananthonykelly@gmail.com",
+          "pick": "England",
+          "reason": "Fixture unresolved",
+          "fixture": "Panama v England"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "England",
+          "reason": "Fixture unresolved",
+          "fixture": "Panama v England"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "kozakalex10@gmail.com",
+          "pick": "Belgium",
+          "reason": "Fixture unresolved",
+          "fixture": "New Zealand v Belgium"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "sam.pett22@gmail.com",
+          "pick": "Argentina",
+          "reason": "Fixture unresolved",
+          "fixture": "Jordan v Argentina"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "sparksy2k14@gmail.com",
+          "pick": "Senegal",
+          "reason": "Fixture unresolved",
+          "fixture": "Senegal v Iraq"
+        }
+      ]
+    },
+    {
+      "gameId": "the_run_in",
+      "gameTitle": "The Run In",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    },
+    {
+      "gameId": "spring_2026_lms",
+      "gameTitle": "Spring 2026 LMS",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    },
+    {
+      "gameId": "jan_2026_lms",
+      "gameTitle": "January 2026 LMS",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    }
+  ]
+}
