@@ -245,6 +245,67 @@ async function applyOutcome(row, gameId, outcome) {
   };
 }
 
+async function runPostResolveConsistency(game) {
+  const gameId = String(game.id || "").trim();
+  const gameTitle = String(game.title || gameId).trim();
+  const events = [];
+
+  if (!gameId || !APPLY) return events;
+
+  const fromGw = "GW1";
+  const toGw = "GW99";
+
+  const steps = [
+    {
+      type: "queue-recalc",
+      action: "adminRecalcFirebasePickQueueStatuses",
+      payload: { action: "adminRecalcFirebasePickQueueStatuses", adminKey: ADMIN_KEY, gameId, apply: true },
+      label: "Recalculated Firebase queued/pending/void picks"
+    },
+    {
+      type: "registration-recalc",
+      action: "adminRecalcFirebaseRegistrationsFromPicks",
+      payload: { action: "adminRecalcFirebaseRegistrationsFromPicks", adminKey: ADMIN_KEY, gameId, apply: true },
+      label: "Recalculated Firebase alive/dead registrations"
+    },
+    {
+      type: "sheets-sync",
+      action: "adminSyncSheetsFromFirebasePicks",
+      payload: { action: "adminSyncSheetsFromFirebasePicks", adminKey: ADMIN_KEY, gameId, fromGw, toGw, apply: true },
+      label: "Synced Sheets picks from Firebase"
+    }
+  ];
+
+  for (const step of steps) {
+    try {
+      const result = await api(step.payload);
+
+      log(`[CONSISTENCY] [${gameTitle}] ${step.label}`);
+
+      events.push({
+        type: step.type,
+        gameId,
+        gameTitle,
+        reason: step.label,
+        changed: result.changed ?? result.sheets?.updated ?? result.updated ?? 0,
+        checked: result.checked ?? result.sheets?.checked ?? 0,
+        ok: true
+      });
+    } catch (err) {
+      log(`[CONSISTENCY] [${gameTitle}] ${step.action} failed: ${err.message || err}`);
+
+      events.push({
+        type: "error",
+        gameId,
+        gameTitle,
+        reason: `${step.action} failed: ${String(err.message || err)}`
+      });
+    }
+  }
+
+  return events;
+}
+
 function getRowsByEmail(rows) {
   const byEmail = new Map();
 
@@ -573,6 +634,7 @@ async function main() {
 
   for (const game of games) {
     const summary = await processGame(game, fixturesByGw);
+    const consistencyEvents = await runPostResolveConsistency(game);
 
     totalChecked += summary.checked;
     totalResolved += summary.resolved;
@@ -584,7 +646,10 @@ async function main() {
       checked: summary.checked,
       resolved: summary.resolved,
       skipped: summary.skipped,
-      events: summary.events || []
+      events: [
+        ...(summary.events || []),
+        ...consistencyEvents
+      ]
     });
   }
 

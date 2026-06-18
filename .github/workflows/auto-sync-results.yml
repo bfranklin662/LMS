@@ -51,6 +51,8 @@ jobs:
 
       - name: Commit changes if needed
         run: |
+          git pull --rebase origin main
+
           if git diff --quiet; then
             echo "No changes to commit"
             exit 0

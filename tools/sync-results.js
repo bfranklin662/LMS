@@ -72,11 +72,7 @@ function buildResultSyncPlan({ localData, scrapedResults, from, to, file }) {
     const match = localData.matches[i];
     if (!isWithinWindow(match.date, from, to)) continue;
 
-    const scraped = scrapedResults.find(item =>
-      normalizeTeamName(item.team1) === normalizeTeamName(match.team1) &&
-      normalizeTeamName(item.team2) === normalizeTeamName(match.team2) &&
-      String(item.date || "") === String(match.date || "")
-    );
+    const scraped = findScrapedResultForMatch(scrapedResults, match);
 
     if (!scraped) {
       console.log("NO MATCH FOR LOCAL RESULT:", JSON.stringify({
@@ -163,6 +159,58 @@ function applyResultSyncPlan({ localData, operations, selectedOperationIds }) {
       ))
     }))
   };
+}
+
+function findScrapedResultForMatch(scrapedResults, match) {
+  const localHome = normalizeTeamName(match.team1);
+  const localAway = normalizeTeamName(match.team2);
+  const localDate = String(match.date || "");
+
+  const sameTeams = item =>
+    normalizeTeamName(item.team1) === localHome &&
+    normalizeTeamName(item.team2) === localAway;
+
+  const exact = scrapedResults.find(item =>
+    sameTeams(item) &&
+    String(item.date || "") === localDate
+  );
+
+  if (exact) return exact;
+
+  const nearDate = scrapedResults.find(item =>
+    sameTeams(item) &&
+    isWithinOneDay(item.date, localDate)
+  );
+
+  if (nearDate) {
+    console.log("MATCHED RESULT BY NEAR DATE:", JSON.stringify({
+      local: {
+        date: match.date,
+        team1: match.team1,
+        team2: match.team2
+      },
+      scraped: {
+        date: nearDate.date,
+        team1: nearDate.team1,
+        team2: nearDate.team2,
+        homeScore: nearDate.homeScore,
+        awayScore: nearDate.awayScore
+      }
+    }, null, 2));
+  }
+
+  return nearDate || null;
+}
+
+function isWithinOneDay(a, b) {
+  if (!a || !b) return false;
+
+  const aMs = new Date(`${a}T12:00:00Z`).getTime();
+  const bMs = new Date(`${b}T12:00:00Z`).getTime();
+
+  if (!Number.isFinite(aMs) || !Number.isFinite(bMs)) return false;
+
+  return Math.abs(aMs - bMs) <= 24 * 60 * 60 * 1000;
 }
 
 function parseFlashscoreResultLine(line, from, to) {
@@ -757,10 +805,18 @@ function cleanTeamName(name) {
 
 function normalizeTeamName(name) {
   return String(getCanonicalTeamName(name) || name || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toLowerCase()
     .replace(/&/g, "and")
     .replace(/\./g, "")
     .replace(/'/g, "")
+    .replace(/\bcote d ivoire\b/g, "ivory coast")
+    .replace(/\bcote divoire\b/g, "ivory coast")
+    .replace(/\bivory coast\b/g, "ivory coast")
+    .replace(/\bdemocratic republic of congo\b/g, "dr congo")
+    .replace(/\bcongo dr\b/g, "dr congo")
+    .replace(/\bd r congo\b/g, "dr congo")
     .replace(/\bfootball club\b/g, "")
     .replace(/\bfc\b/g, "")
     .replace(/\bafc\b/g, "")
