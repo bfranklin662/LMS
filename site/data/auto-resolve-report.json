@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-18T06:35:23.970Z",
+  "generatedAt": "2026-06-18T11:03:13.534Z",
   "mode": "apply",
   "checked": 50,
   "resolved": 0,
@@ -31,16 +31,6 @@
           "gwId": "GW3",
           "email": "tdraynor@gmail.com",
           "pick": "Brazil",
-          "outcome": "PENDING",
-          "reason": "pickedTeam is not defined"
-        },
-        {
-          "type": "error",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "barnabysargent@gmail.com",
-          "pick": "Japan",
           "outcome": "PENDING",
           "reason": "pickedTeam is not defined"
         },
@@ -351,17 +341,17 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW3",
-          "email": "barnabysargent@gmail.com",
-          "pick": "Japan",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "Brazil",
           "reason": "Fixture unresolved",
-          "fixture": "Tunisia v Japan"
+          "fixture": "Brazil v Haiti"
         },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW3",
-          "email": "patrickdeclankelly@gmail.com",
+          "email": "barnabysargent@gmail.com",
           "pick": "Brazil",
           "reason": "Fixture unresolved",
           "fixture": "Brazil v Haiti"
