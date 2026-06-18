@@ -2183,6 +2183,125 @@ input[type="checkbox"]:focus-visible {
   color: rgba(255, 255, 255, .7);
 }
 
+.gw-report-tabs {
+  display: flex;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, .12);
+  background: rgba(255, 255, 255, .045);
+  margin: 0 0 10px;
+}
+
+.gw-report-tab {
+  flex: 1;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 8px;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.gw-report-tab.active {
+  background: rgba(225, 29, 46, 0.2);
+  color: var(--text);
+}
+
+.gw-report-panel.hidden {
+  display: none;
+}
+
+.gw-top-picks-table-wrap {
+  overflow: auto;
+  max-height: 34vh;
+  border-radius: 14px;
+}
+
+.gw-top-picks-table .team-inline {
+  justify-content: flex-start;
+}
+
+.gw-top-picks-number {
+  text-align: right !important;
+}
+
+.gw-pie-card {
+  display: grid;
+  grid-template-columns: 170px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, .10);
+  background: rgba(255, 255, 255, .035);
+}
+
+.gw-pie-chart-wrap {
+  display: flex;
+  justify-content: center;
+}
+
+.gw-pie-chart {
+  width: 160px;
+  height: 160px;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, .25));
+}
+
+.gw-pie-total {
+  fill: #fff;
+  font-size: 20px;
+  font-weight: 950;
+}
+
+.gw-pie-caption {
+  fill: rgba(255, 255, 255, .62);
+  font-size: 10px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.gw-pie-legend {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gw-pie-legend-row {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  font-size: 12px;
+}
+
+.gw-pie-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+}
+
+.gw-pie-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 800;
+}
+
+.gw-pie-value {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+@media (max-width: 520px) {
+  .gw-pie-card {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Modal table look */
 .gw-table {
   width: 100%;

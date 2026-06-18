@@ -1737,24 +1737,37 @@ async function openGwReportModal_(gwId) {
       Loading…
     </div>
 
-    <div class="gw-report-body" style="overflow:auto; max-height:60vh;">
-      <table class="gw-table">
-        <thead>
-          <tr>
-            <th class="gw-col-player">Player</th>
-            <th class="gw-col-club">Team</th>
-            <th class="gw-col-team">Selection</th>
-            <th class="gw-col-result">Result</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colspan="4" class="muted small" style="padding:10px 6px;">
-              Loading…
-            </td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="gw-report-tabs" role="tablist" aria-label="Gameweek report tabs">
+      <button class="gw-report-tab active" type="button" data-gw-report-tab="selections">Selections</button>
+      <button class="gw-report-tab" type="button" data-gw-report-tab="top-picks">Top picks</button>
+    </div>
+
+    <div class="gw-report-panel" data-gw-report-panel="selections">
+      <div class="gw-report-body" style="overflow:auto; max-height:60vh;">
+        <table class="gw-table">
+          <thead>
+            <tr>
+              <th class="gw-col-player">Player</th>
+              <th class="gw-col-club">Team</th>
+              <th class="gw-col-team">Selection</th>
+              <th class="gw-col-result">Result</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td colspan="4" class="muted small" style="padding:10px 6px;">
+                Loading…
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="gw-report-panel hidden" data-gw-report-panel="top-picks">
+      <div class="gw-report-top-picks" id="gwReportTopPicks">
+        <div class="muted small" style="padding:10px 6px;">Loading…</div>
+      </div>
     </div>
   `;
 
@@ -1832,6 +1845,149 @@ async function openGwReportModal_(gwId) {
   if (tbody) {
     tbody.innerHTML = tbodyHtml || `<tr><td colspan="4" class="muted small" style="padding:10px 6px;">No selections.</td></tr>`;
   }
+
+  const topPicksEl = document.getElementById("gwReportTopPicks");
+  if (topPicksEl) topPicksEl.innerHTML = buildGwReportTopPicksHtml_(rows);
+
+  bodyEl.querySelectorAll("[data-gw-report-tab]").forEach(button => {
+    button.addEventListener("click", () => {
+      const tab = button.dataset.gwReportTab;
+
+      bodyEl.querySelectorAll("[data-gw-report-tab]").forEach(btn => {
+        btn.classList.toggle("active", btn === button);
+      });
+
+      bodyEl.querySelectorAll("[data-gw-report-panel]").forEach(panel => {
+        panel.classList.toggle("hidden", panel.dataset.gwReportPanel !== tab);
+      });
+    });
+  });
+}
+
+function getGwReportTopPicks_(rows) {
+  const byTeam = new Map();
+
+  (Array.isArray(rows) ? rows : []).forEach(row => {
+    const team = String(row.selection || row.team || "").trim();
+    const outcome = String(row.outcome || "").trim().toUpperCase();
+
+    if (!team || outcome === "VOID") return;
+
+    const key = normTeamKey_(getCanonicalTeamName_(team));
+    const existing = byTeam.get(key) || { team, count: 0 };
+
+    existing.count += 1;
+    byTeam.set(key, existing);
+  });
+
+  return [...byTeam.values()].sort((a, b) =>
+    b.count - a.count || a.team.localeCompare(b.team)
+  );
+}
+
+function buildGwReportTopPicksHtml_(rows) {
+  const topPicks = getGwReportTopPicks_(rows);
+  const total = topPicks.reduce((sum, item) => sum + item.count, 0);
+
+  if (!topPicks.length || total <= 0) {
+    return `<div class="fixtures-card"><div class="muted">No top picks to show.</div></div>`;
+  }
+
+  return `
+    <div class="gw-top-picks-table-wrap">
+      <table class="gw-table gw-top-picks-table">
+        <thead>
+          <tr>
+            <th>Team</th>
+            <th class="gw-top-picks-number">Picks</th>
+            <th class="gw-top-picks-number">Percentage</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${topPicks.map(item => {
+            const pct = Math.round((item.count / total) * 100);
+
+            return `
+              <tr>
+                <td>${teamInlineHtml_(item.team, { size: 13, logoPosition: "before" })}</td>
+                <td class="gw-top-picks-number"><strong>${item.count}</strong></td>
+                <td class="gw-top-picks-number">${pct}%</td>
+              </tr>
+            `;
+          }).join("")}
+        </tbody>
+      </table>
+    </div>
+
+    ${buildGwReportPieHtml_(topPicks, total)}
+  `;
+}
+
+function buildGwReportPieHtml_(items, total) {
+  const colours = [
+    "#ef4444", "#f97316", "#facc15", "#22c55e", "#14b8a6",
+    "#3b82f6", "#6366f1", "#a855f7", "#ec4899", "#94a3b8"
+  ];
+
+  const cx = 80;
+  const cy = 80;
+  const radius = 66;
+  let angle = -90;
+
+  function pointForAngle(deg) {
+    const rad = (deg * Math.PI) / 180;
+    return {
+      x: cx + radius * Math.cos(rad),
+      y: cy + radius * Math.sin(rad)
+    };
+  }
+
+  const slices = items.map((item, index) => {
+    const sweep = (item.count / total) * 360;
+    const start = pointForAngle(angle);
+    const end = pointForAngle(angle + sweep);
+    const largeArc = sweep > 180 ? 1 : 0;
+    const colour = colours[index % colours.length];
+
+    angle += sweep;
+
+    if (sweep >= 359.99) {
+      return `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="${colour}" />`;
+    }
+
+    return `
+      <path
+        d="M ${cx} ${cy} L ${start.x.toFixed(2)} ${start.y.toFixed(2)} A ${radius} ${radius} 0 ${largeArc} 1 ${end.x.toFixed(2)} ${end.y.toFixed(2)} Z"
+        fill="${colour}"
+      />
+    `;
+  }).join("");
+
+  return `
+    <div class="gw-pie-card">
+      <div class="gw-pie-chart-wrap">
+        <svg class="gw-pie-chart" viewBox="0 0 160 160" role="img" aria-label="Top picks pie chart">
+          ${slices}
+          <circle cx="${cx}" cy="${cy}" r="32" fill="rgba(15, 23, 42, .95)" />
+          <text x="${cx}" y="${cy - 2}" text-anchor="middle" class="gw-pie-total">${total}</text>
+          <text x="${cx}" y="${cy + 15}" text-anchor="middle" class="gw-pie-caption">picks</text>
+        </svg>
+      </div>
+
+      <div class="gw-pie-legend">
+        ${items.map((item, index) => {
+          const pct = Math.round((item.count / total) * 100);
+          return `
+            <div class="gw-pie-legend-row">
+              <span class="gw-pie-dot" style="background:${colours[index % colours.length]}"></span>
+              <span class="gw-pie-label">${escapeHtml(item.team)}</span>
+              <span class="gw-pie-value">${item.count} · ${pct}%</span>
+            </div>
+          `;
+        }).join("")}
+      </div>
+    </div>
+  `;
 }
 
 function showPickConfirmModal_(team, gwId) {
