@@ -5356,7 +5356,9 @@ async function renderFixturesTab() {
         const pickOutcome = String(currentPick?.outcome || "PENDING").toUpperCase();
 
         const selectedFixtureClass =
-          pickOutcome === "QUEUED"
+          pickOutcome === "VOID"
+            ? "fixture-team-side--void"
+            : pickOutcome === "QUEUED"
             ? "fixture-team-side--queued"
             : pickOutcome === "WIN"
               ? "fixture-team-side--win"

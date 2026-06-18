@@ -4778,7 +4778,8 @@ button:disabled {
 .fixture-team-side--pending,
 .fixture-team-side--queued,
 .fixture-team-side--win,
-.fixture-team-side--loss {
+.fixture-team-side--loss,
+.fixture-team-side--void {
   border-radius: 10px;
   padding: 6px 8px;
 }
@@ -4801,6 +4802,13 @@ button:disabled {
 .fixture-team-side--loss {
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.45);
+}
+
+.fixture-team-side--void {
+  background: rgba(255, 255, 255, 0.055);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.5);
+  opacity: 0.72;
 }
 
 .status-stage-title {
