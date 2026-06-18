@@ -282,12 +282,12 @@
       "date": "2026-06-18",
       "team1": "Uzbekistan",
       "team2": "Colombia",
-      "time": "03:00",
+      "time": "02:00",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-18T01:41:08.056Z",
+  "generatedAt": "2026-06-18T06:35:23.970Z",
   "mode": "apply",
   "checked": 50,
   "resolved": 0,
@@ -86,14 +86,15 @@
           "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "ciarananthonykelly@gmail.com",
           "pick": "Colombia",
-          "reason": "Fixture unresolved",
-          "fixture": "Uzbekistan v Colombia"
+          "outcome": "WIN",
+          "result": "Uzbekistan 1-3 Colombia",
+          "reason": "pickedTeam is not defined"
         },
         {
           "type": "skipped",
@@ -172,14 +173,15 @@
           "reason": "pickedTeam is not defined"
         },
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW2",
           "email": "adam@tatatastudios.com",
           "pick": "Colombia",
-          "reason": "Fixture unresolved",
-          "fixture": "Uzbekistan v Colombia"
+          "outcome": "WIN",
+          "result": "Uzbekistan 1-3 Colombia",
+          "reason": "pickedTeam is not defined"
         },
         {
           "type": "error",
@@ -233,16 +235,6 @@
           "pick": "Brazil",
           "reason": "Fixture unresolved",
           "fixture": "Brazil v Haiti"
-        },
-        {
-          "type": "skipped",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "patrickdeclankelly@gmail.com",
-          "pick": "Ecuador",
-          "reason": "Fixture unresolved",
-          "fixture": "Ecuador v Curacao"
         },
         {
           "type": "skipped",
@@ -363,6 +355,16 @@
           "pick": "Japan",
           "reason": "Fixture unresolved",
           "fixture": "Tunisia v Japan"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW3",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "Brazil",
+          "reason": "Fixture unresolved",
+          "fixture": "Brazil v Haiti"
         },
         {
           "type": "skipped",
