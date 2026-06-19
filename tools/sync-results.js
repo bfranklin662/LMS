@@ -264,13 +264,34 @@ function parseResultsFromPageText(bodyText, from, to) {
     let awayScore = null;
     let resultStatus = "final";
 
-    // 1) Try separate numeric lines first
+    // 1) Try separate numeric lines first. If Flashscore exposes more than
+    // one adjacent numeric pair, the extra pair is usually cards/stats mixed
+    // into the text stream, so skip instead of guessing a bad score.
+    const numericPairs = [];
     for (let j = 0; j < block.length - 1; j++) {
       if (/^\d+$/.test(block[j]) && /^\d+$/.test(block[j + 1])) {
-        homeScore = Number(block[j]);
-        awayScore = Number(block[j + 1]);
-        break;
+        numericPairs.push({
+          home: Number(block[j]),
+          away: Number(block[j + 1]),
+          index: j,
+          raw: [block[j], block[j + 1]]
+        });
       }
+    }
+
+    if (numericPairs.length === 1) {
+      homeScore = numericPairs[0].home;
+      awayScore = numericPairs[0].away;
+    } else if (numericPairs.length > 1) {
+      console.log("AMBIGUOUS FLASHSCORE NUMERIC RESULT - SKIPPING:", JSON.stringify({
+        date: dt.date,
+        time: dt.time,
+        team1,
+        team2,
+        numericPairs,
+        block
+      }, null, 2));
+      continue;
     }
 
     // 2) Fallback to combined score line like "2-3"
