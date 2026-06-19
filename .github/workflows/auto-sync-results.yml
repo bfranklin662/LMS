@@ -32,6 +32,9 @@ jobs:
       - name: Check Playwright installed
         run: node -e "console.log(require.resolve('playwright'))"
 
+      - name: Rebase before auto sync
+        run: git pull --rebase origin main
+
       - name: Run auto sync
         run: node tools/auto-sync-results.js
         env:
@@ -51,8 +54,6 @@ jobs:
 
       - name: Commit changes if needed
         run: |
-          git pull --rebase origin main
-
           if git diff --quiet; then
             echo "No changes to commit"
             exit 0
