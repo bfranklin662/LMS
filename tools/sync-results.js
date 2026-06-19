@@ -264,34 +264,12 @@ function parseResultsFromPageText(bodyText, from, to) {
     let awayScore = null;
     let resultStatus = "final";
 
-    // 1) Try separate numeric lines. Flashscore can include card counts before
-    // the score lines, so keep the last adjacent numeric pair in the block.
-    const numericPairs = [];
+    // 1) Try separate numeric lines first
     for (let j = 0; j < block.length - 1; j++) {
       if (/^\d+$/.test(block[j]) && /^\d+$/.test(block[j + 1])) {
-        numericPairs.push({
-          home: Number(block[j]),
-          away: Number(block[j + 1]),
-          raw: [block[j], block[j + 1]],
-          index: j
-        });
-      }
-    }
-
-    if (numericPairs.length) {
-      const selectedPair = numericPairs[numericPairs.length - 1];
-      homeScore = selectedPair.home;
-      awayScore = selectedPair.away;
-
-      if (numericPairs.length > 1) {
-        console.log("MULTIPLE NUMERIC SCORE CANDIDATES:", JSON.stringify({
-          date: dt.date,
-          team1,
-          team2,
-          candidates: numericPairs,
-          selected: selectedPair,
-          block
-        }, null, 2));
+        homeScore = Number(block[j]);
+        awayScore = Number(block[j + 1]);
+        break;
       }
     }
 
