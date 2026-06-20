@@ -402,12 +402,12 @@
       "date": "2026-06-20",
       "team1": "Germany",
       "team2": "Ivory Coast",
-      "time": "21:00",
+      "time": "20:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
