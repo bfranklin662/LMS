@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-20T00:22:02.382Z",
+  "generatedAt": "2026-06-20T04:50:33.587Z",
   "mode": "apply",
-  "checked": 22,
+  "checked": 23,
   "resolved": 0,
-  "skipped": 22,
+  "skipped": 23,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 22,
+      "checked": 23,
       "resolved": 0,
-      "skipped": 22,
+      "skipped": 23,
       "events": [
         {
           "type": "skipped",
@@ -138,6 +138,16 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "adam.drysdale@hotmail.com",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Iraq"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
           "gwId": "GW3",
           "email": "ciarananthonykelly@gmail.com",
           "pick": "Brazil",
@@ -240,7 +250,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 220,
+          "checked": 221,
           "ok": true
         },
         {
@@ -253,10 +263,13 @@
           "ok": true
         },
         {
-          "type": "error",
+          "type": "sheets-sync",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "adminSyncSheetsFromFirebasePicks failed: error code: 524\n"
+          "reason": "Synced Sheets picks from Firebase",
+          "changed": 221,
+          "checked": 221,
+          "ok": true
         }
       ]
     },
