@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-06-20T07:46:01.985Z",
+  "generatedAt": "2026-06-20T08:20:37.701Z",
   "mode": "apply",
-  "checked": 24,
-  "resolved": 8,
+  "checked": 16,
+  "resolved": 0,
   "skipped": 16,
   "ok": true,
   "error": "",
@@ -10,8 +10,8 @@
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 24,
-      "resolved": 8,
+      "checked": 16,
+      "resolved": 0,
       "skipped": 16,
       "events": [
         {
@@ -155,18 +155,6 @@
           "fixture": "Panama v Croatia"
         },
         {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "ciarananthonykelly@gmail.com",
-          "pick": "Brazil",
-          "outcome": "WIN",
-          "result": "Brazil 3-0 Haiti",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
@@ -177,78 +165,6 @@
           "fixture": "Ecuador v Curacao"
         },
         {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "tdraynor@gmail.com",
-          "pick": "Brazil",
-          "outcome": "WIN",
-          "result": "Brazil 3-0 Haiti",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "peleschkaewan12@gmail.com",
-          "pick": "Brazil",
-          "outcome": "WIN",
-          "result": "Brazil 3-0 Haiti",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "adam.drysdale@hotmail.com",
-          "pick": "Brazil",
-          "outcome": "WIN",
-          "result": "Brazil 3-0 Haiti",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "lucydavies6@outlook.com",
-          "pick": "Brazil",
-          "outcome": "WIN",
-          "result": "Brazil 3-0 Haiti",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "patrickdeclankelly@gmail.com",
-          "pick": "Brazil",
-          "outcome": "WIN",
-          "result": "Brazil 3-0 Haiti",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "barnabysargent@gmail.com",
-          "pick": "Brazil",
-          "outcome": "WIN",
-          "result": "Brazil 3-0 Haiti",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
@@ -257,18 +173,6 @@
           "pick": "Ecuador",
           "reason": "Fixture unresolved",
           "fixture": "Ecuador v Curacao"
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW3",
-          "email": "adam@tatatastudios.com",
-          "pick": "Brazil",
-          "outcome": "WIN",
-          "result": "Brazil 3-0 Haiti",
-          "reason": "",
-          "syncedToSheets": true
         },
         {
           "type": "queue-recalc",
@@ -298,6 +202,30 @@
           "ok": true
         }
       ]
+    },
+    {
+      "gameId": "the_run_in",
+      "gameTitle": "The Run In",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    },
+    {
+      "gameId": "spring_2026_lms",
+      "gameTitle": "Spring 2026 LMS",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    },
+    {
+      "gameId": "jan_2026_lms",
+      "gameTitle": "January 2026 LMS",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
     }
   ]
 }

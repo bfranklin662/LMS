@@ -378,12 +378,12 @@
       "date": "2026-06-20",
       "team1": "Turkey",
       "team2": "Paraguay",
-      "time": "04:00",
+      "time": "03:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
