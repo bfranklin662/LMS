@@ -1,19 +1,30 @@
 {
-  "generatedAt": "2026-06-20T17:44:36.276Z",
+  "generatedAt": "2026-06-20T19:02:10.362Z",
   "mode": "apply",
-  "checked": 17,
+  "checked": 18,
   "resolved": 0,
-  "skipped": 17,
+  "skipped": 18,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 17,
+      "checked": 18,
       "resolved": 0,
-      "skipped": 17,
+      "skipped": 18,
       "events": [
+        {
+          "type": "promoted",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "adam@tatatastudios.com",
+          "pick": "France",
+          "outcome": "PENDING",
+          "reason": "Promoted earliest queued pick",
+          "syncedToSheets": true
+        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
@@ -168,6 +179,16 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "adam@tatatastudios.com",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Iraq"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
           "gwId": "GW3",
           "email": "sparksy2k14@gmail.com",
           "pick": "Ecuador",
@@ -190,7 +211,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 223,
+          "checked": 224,
           "ok": true
         },
         {
@@ -207,8 +228,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 223,
-          "checked": 223,
+          "changed": 224,
+          "checked": 224,
           "ok": true
         }
       ]
