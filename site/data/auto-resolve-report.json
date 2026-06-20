@@ -1,19 +1,30 @@
 {
-  "generatedAt": "2026-06-20T12:20:17.093Z",
+  "generatedAt": "2026-06-20T14:36:05.823Z",
   "mode": "apply",
-  "checked": 16,
+  "checked": 17,
   "resolved": 0,
-  "skipped": 16,
+  "skipped": 17,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 16,
+      "checked": 17,
       "resolved": 0,
-      "skipped": 16,
+      "skipped": 17,
       "events": [
+        {
+          "type": "promoted",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "peleschkaewan12@gmail.com",
+          "pick": "Egypt",
+          "outcome": "PENDING",
+          "reason": "Promoted earliest queued pick",
+          "syncedToSheets": true
+        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
@@ -158,6 +169,16 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "peleschkaewan12@gmail.com",
+          "pick": "Egypt",
+          "reason": "Fixture unresolved",
+          "fixture": "New Zealand v Egypt"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
           "gwId": "GW3",
           "email": "sparksy2k14@gmail.com",
           "pick": "Ecuador",
@@ -180,7 +201,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 222,
+          "checked": 223,
           "ok": true
         },
         {
@@ -197,8 +218,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 222,
-          "checked": 222,
+          "changed": 223,
+          "checked": 223,
           "ok": true
         }
       ]
