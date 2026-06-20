@@ -390,12 +390,12 @@
       "date": "2026-06-20",
       "team1": "Netherlands",
       "team2": "Sweden",
-      "time": "18:00",
+      "time": "17:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
