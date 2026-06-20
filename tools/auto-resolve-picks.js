@@ -634,7 +634,9 @@ async function main() {
 
   for (const game of games) {
     const summary = await processGame(game, fixturesByGw);
-    const consistencyEvents = await runPostResolveConsistency(game);
+    const consistencyEvents = summary.checked > 0
+      ? await runPostResolveConsistency(game)
+      : [];
 
     totalChecked += summary.checked;
     totalResolved += summary.resolved;

@@ -357,9 +357,9 @@
       "time": "23:00",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",
@@ -369,9 +369,9 @@
       "time": "01:30",
       "stage": "Group Stage",
       "group": "Group C",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW3",

@@ -257,7 +257,15 @@ function parseResultsFromPageText(bodyText, from, to) {
     if (!looksLikeTeamName(team1) || !looksLikeTeamName(team2)) continue;
     if (dt.date < from || dt.date > to) continue;
 
-    const block = lines.slice(i + 3, i + 18);
+    const nextDateOffset = lines
+      .slice(i + 3)
+      .findIndex(line => parseFlashscoreDateTime(line, from, to));
+
+    const blockEnd = nextDateOffset >= 0
+      ? i + 3 + nextDateOffset
+      : i + 18;
+
+    const block = lines.slice(i + 3, blockEnd);
     const upperBlock = block.map(x => String(x).trim().toUpperCase());
 
     let homeScore = null;
