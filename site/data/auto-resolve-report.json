@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-20T14:36:05.823Z",
+  "generatedAt": "2026-06-20T16:05:33.069Z",
   "mode": "apply",
   "checked": 17,
   "resolved": 0,
@@ -14,17 +14,6 @@
       "resolved": 0,
       "skipped": 17,
       "events": [
-        {
-          "type": "promoted",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW4",
-          "email": "peleschkaewan12@gmail.com",
-          "pick": "Egypt",
-          "outcome": "PENDING",
-          "reason": "Promoted earliest queued pick",
-          "syncedToSheets": true
-        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
