@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-21T10:41:22.468Z",
+  "generatedAt": "2026-06-21T12:30:38.661Z",
   "mode": "apply",
-  "checked": 13,
+  "checked": 14,
   "resolved": 0,
-  "skipped": 13,
+  "skipped": 14,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 13,
+      "checked": 14,
       "resolved": 0,
-      "skipped": 13,
+      "skipped": 14,
       "events": [
         {
           "type": "skipped",
@@ -118,6 +118,16 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
+          "gwId": "GW4",
+          "email": "lucydavies6@outlook.com",
+          "pick": "Spain",
+          "reason": "Fixture unresolved",
+          "fixture": "Spain v Saudi Arabia"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
           "gwId": "GW5",
           "email": "ciarananthonykelly@gmail.com",
           "pick": "Morocco",
@@ -150,7 +160,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 224,
+          "checked": 225,
           "ok": true
         },
         {
@@ -163,13 +173,10 @@
           "ok": true
         },
         {
-          "type": "sheets-sync",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 224,
-          "checked": 224,
-          "ok": true
+          "reason": "adminSyncSheetsFromFirebasePicks failed: error code: 524\n"
         }
       ]
     },
