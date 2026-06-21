@@ -450,12 +450,12 @@
       "date": "2026-06-21",
       "team1": "Belgium",
       "team2": "Iran",
-      "time": "20:00",
+      "time": "19:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
