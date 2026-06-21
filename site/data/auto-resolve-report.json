@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-06-21T19:17:15.039Z",
+  "generatedAt": "2026-06-21T20:47:56.165Z",
   "mode": "apply",
-  "checked": 14,
-  "resolved": 1,
+  "checked": 13,
+  "resolved": 0,
   "skipped": 13,
   "ok": true,
   "error": "",
@@ -10,8 +10,8 @@
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 14,
-      "resolved": 1,
+      "checked": 13,
+      "resolved": 0,
       "skipped": 13,
       "events": [
         {
@@ -115,18 +115,6 @@
           "fixture": "France v Iraq"
         },
         {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW4",
-          "email": "lucydavies6@outlook.com",
-          "pick": "Spain",
-          "outcome": "WIN",
-          "result": "Spain 4-0 Saudi Arabia",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
@@ -166,22 +154,16 @@
           "ok": true
         },
         {
-          "type": "registration-recalc",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Recalculated Firebase alive/dead registrations",
-          "changed": 0,
-          "checked": 61,
-          "ok": true
+          "reason": "adminRecalcFirebaseRegistrationsFromPicks failed: Unauthorized"
         },
         {
-          "type": "sheets-sync",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 225,
-          "checked": 225,
-          "ok": true
+          "reason": "adminSyncSheetsFromFirebasePicks failed: POST only. Send JSON body with {action:...}"
         }
       ]
     },
