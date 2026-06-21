@@ -438,12 +438,12 @@
       "date": "2026-06-21",
       "team1": "Spain",
       "team2": "Saudi Arabia",
-      "time": "17:00",
+      "time": "16:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 4,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",

@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-21T17:57:33.399Z",
+  "generatedAt": "2026-06-21T19:17:15.039Z",
   "mode": "apply",
   "checked": 14,
-  "resolved": 0,
-  "skipped": 14,
+  "resolved": 1,
+  "skipped": 13,
   "ok": true,
   "error": "",
   "games": [
@@ -11,8 +11,8 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 14,
-      "resolved": 0,
-      "skipped": 14,
+      "resolved": 1,
+      "skipped": 13,
       "events": [
         {
           "type": "skipped",
@@ -115,14 +115,16 @@
           "fixture": "France v Iraq"
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "lucydavies6@outlook.com",
           "pick": "Spain",
-          "reason": "Fixture unresolved",
-          "fixture": "Spain v Saudi Arabia"
+          "outcome": "WIN",
+          "result": "Spain 4-0 Saudi Arabia",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
