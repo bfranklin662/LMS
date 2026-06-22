@@ -486,12 +486,12 @@
       "date": "2026-06-22",
       "team1": "Argentina",
       "team2": "Austria",
-      "time": "18:00",
+      "time": "17:00",
       "stage": "Group Stage",
       "group": "Group J",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
