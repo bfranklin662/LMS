@@ -462,12 +462,12 @@
       "date": "2026-06-21",
       "team1": "Uruguay",
       "team2": "Cape Verde",
-      "time": "23:00",
+      "time": "22:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
