@@ -474,12 +474,12 @@
       "date": "2026-06-22",
       "team1": "New Zealand",
       "team2": "Egypt",
-      "time": "02:00",
+      "time": "01:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
