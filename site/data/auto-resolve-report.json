@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-22T12:59:04.443Z",
+  "generatedAt": "2026-06-22T17:28:32.039Z",
   "mode": "apply",
   "checked": 13,
   "resolved": 0,
@@ -14,17 +14,6 @@
       "resolved": 0,
       "skipped": 13,
       "events": [
-        {
-          "type": "promoted",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW5",
-          "email": "peleschkaewan12@gmail.com",
-          "pick": "Morocco",
-          "outcome": "PENDING",
-          "reason": "Promoted earliest queued pick",
-          "syncedToSheets": true
-        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
