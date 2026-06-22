@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-22T07:12:34.991Z",
+  "generatedAt": "2026-06-22T12:59:04.443Z",
   "mode": "apply",
   "checked": 13,
-  "resolved": 1,
-  "skipped": 12,
+  "resolved": 0,
+  "skipped": 13,
   "ok": true,
   "error": "",
   "games": [
@@ -11,9 +11,20 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 13,
-      "resolved": 1,
-      "skipped": 12,
+      "resolved": 0,
+      "skipped": 13,
       "events": [
+        {
+          "type": "promoted",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "peleschkaewan12@gmail.com",
+          "pick": "Morocco",
+          "outcome": "PENDING",
+          "reason": "Promoted earliest queued pick",
+          "syncedToSheets": true
+        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
@@ -85,18 +96,6 @@
           "fixture": "Panama v Croatia"
         },
         {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW4",
-          "email": "peleschkaewan12@gmail.com",
-          "pick": "Egypt",
-          "outcome": "WIN",
-          "result": "New Zealand 1-3 Egypt",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
@@ -147,12 +146,22 @@
           "fixture": "Ecuador v Germany"
         },
         {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "peleschkaewan12@gmail.com",
+          "pick": "Morocco",
+          "reason": "Fixture unresolved",
+          "fixture": "Morocco v Haiti"
+        },
+        {
           "type": "queue-recalc",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 225,
+          "checked": 226,
           "ok": true
         },
         {
@@ -169,8 +178,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 225,
-          "checked": 225,
+          "changed": 226,
+          "checked": 226,
           "ok": true
         }
       ]
