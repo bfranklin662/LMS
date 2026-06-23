@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-23T11:49:15.458Z",
+  "generatedAt": "2026-06-23T14:09:39.019Z",
   "mode": "apply",
   "checked": 10,
   "resolved": 0,
@@ -14,17 +14,6 @@
       "resolved": 0,
       "skipped": 10,
       "events": [
-        {
-          "type": "promoted",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW5",
-          "email": "adam@tatatastudios.com",
-          "pick": "Netherlands",
-          "outcome": "PENDING",
-          "reason": "Promoted earliest queued pick",
-          "syncedToSheets": true
-        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
