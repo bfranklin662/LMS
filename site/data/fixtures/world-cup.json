@@ -498,12 +498,12 @@
       "date": "2026-06-22",
       "team1": "France",
       "team2": "Iraq",
-      "time": "22:00",
+      "time": "21:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",

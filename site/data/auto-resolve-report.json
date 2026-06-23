@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-22T23:46:50.307Z",
+  "generatedAt": "2026-06-23T01:42:31.443Z",
   "mode": "apply",
   "checked": 13,
-  "resolved": 0,
-  "skipped": 13,
+  "resolved": 5,
+  "skipped": 8,
   "ok": true,
   "error": "",
   "games": [
@@ -11,8 +11,8 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 13,
-      "resolved": 0,
-      "skipped": 13,
+      "resolved": 5,
+      "skipped": 8,
       "events": [
         {
           "type": "skipped",
@@ -45,34 +45,40 @@
           "fixture": "Panama v England"
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "ciarananthonykelly@gmail.com",
           "pick": "France",
-          "reason": "Fixture unresolved",
-          "fixture": "France v Iraq"
+          "outcome": "WIN",
+          "result": "France 3-0 Iraq",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "patrickdeclankelly@gmail.com",
           "pick": "France",
-          "reason": "Fixture unresolved",
-          "fixture": "France v Iraq"
+          "outcome": "WIN",
+          "result": "France 3-0 Iraq",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "adam.drysdale@hotmail.com",
           "pick": "France",
-          "reason": "Fixture unresolved",
-          "fixture": "France v Iraq"
+          "outcome": "WIN",
+          "result": "France 3-0 Iraq",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
@@ -85,24 +91,28 @@
           "fixture": "Panama v Croatia"
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "adam@tatatastudios.com",
           "pick": "France",
-          "reason": "Fixture unresolved",
-          "fixture": "France v Iraq"
+          "outcome": "WIN",
+          "result": "France 3-0 Iraq",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "tdraynor@gmail.com",
           "pick": "France",
-          "reason": "Fixture unresolved",
-          "fixture": "France v Iraq"
+          "outcome": "WIN",
+          "result": "France 3-0 Iraq",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
