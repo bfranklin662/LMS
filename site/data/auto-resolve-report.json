@@ -1,19 +1,30 @@
 {
-  "generatedAt": "2026-06-23T18:26:47.682Z",
+  "generatedAt": "2026-06-23T20:36:22.455Z",
   "mode": "apply",
-  "checked": 10,
+  "checked": 11,
   "resolved": 0,
-  "skipped": 10,
+  "skipped": 11,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 10,
+      "checked": 11,
       "resolved": 0,
-      "skipped": 10,
+      "skipped": 11,
       "events": [
+        {
+          "type": "promoted",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "lucydavies6@outlook.com",
+          "pick": "Morocco",
+          "outcome": "PENDING",
+          "reason": "Promoted earliest queued pick",
+          "syncedToSheets": true
+        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
@@ -108,6 +119,16 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "lucydavies6@outlook.com",
+          "pick": "Morocco",
+          "reason": "Fixture unresolved",
+          "fixture": "Morocco v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "barnabysargent@gmail.com",
           "pick": "Croatia",
@@ -120,7 +141,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 228,
+          "checked": 229,
           "ok": true
         },
         {
@@ -133,13 +154,10 @@
           "ok": true
         },
         {
-          "type": "sheets-sync",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 228,
-          "checked": 228,
-          "ok": true
+          "reason": "adminSyncSheetsFromFirebasePicks failed: error code: 524\n"
         }
       ]
     },

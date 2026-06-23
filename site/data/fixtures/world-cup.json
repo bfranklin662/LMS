@@ -534,12 +534,12 @@
       "date": "2026-06-23",
       "team1": "Portugal",
       "team2": "Uzbekistan",
-      "time": "18:00",
+      "time": "17:00",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW4",
