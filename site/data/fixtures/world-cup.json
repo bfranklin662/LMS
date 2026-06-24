@@ -582,24 +582,24 @@
       "date": "2026-06-24",
       "team1": "Switzerland",
       "team2": "Canada",
-      "time": "20:00",
+      "time": "19:00",
       "stage": "Group Stage",
       "group": "Group B",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
       "date": "2026-06-24",
-      "team1": "Bosnia and Herzegovina",
+      "team1": "Bosnia & Herzegovina",
       "team2": "Qatar",
-      "time": "20:00",
+      "time": "19:00",
       "stage": "Group Stage",
       "group": "Group B",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
