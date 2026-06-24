@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-24T05:58:19.418Z",
+  "generatedAt": "2026-06-24T08:54:30.921Z",
   "mode": "apply",
-  "checked": 11,
+  "checked": 12,
   "resolved": 0,
-  "skipped": 11,
+  "skipped": 12,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 11,
+      "checked": 12,
       "resolved": 0,
-      "skipped": 11,
+      "skipped": 12,
       "events": [
         {
           "type": "skipped",
@@ -118,6 +118,16 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
+          "gwId": "GW5",
+          "email": "barnabysargent@gmail.com",
+          "pick": "Morocco",
+          "reason": "Fixture unresolved",
+          "fixture": "Morocco v Haiti"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "barnabysargent@gmail.com",
           "pick": "Croatia",
@@ -130,7 +140,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 229,
+          "checked": 230,
           "ok": true
         },
         {
@@ -147,8 +157,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 229,
-          "checked": 229,
+          "changed": 230,
+          "checked": 230,
           "ok": true
         }
       ]
