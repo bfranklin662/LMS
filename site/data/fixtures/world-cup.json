@@ -569,13 +569,13 @@
       "gwId": "GW4",
       "date": "2026-06-24",
       "team1": "Colombia",
-      "team2": "DR Congo",
-      "time": "03:00",
+      "team2": "D.R. Congo",
+      "time": "02:00",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
