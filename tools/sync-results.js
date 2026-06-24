@@ -170,12 +170,47 @@ function findScrapedResultForMatch(scrapedResults, match) {
     normalizeTeamName(item.team1) === localHome &&
     normalizeTeamName(item.team2) === localAway;
 
+  const reversedTeams = item =>
+    normalizeTeamName(item.team1) === localAway &&
+    normalizeTeamName(item.team2) === localHome;
+
+  const flipResult = item => ({
+    ...item,
+    team1: match.team1,
+    team2: match.team2,
+    homeScore: item.awayScore,
+    awayScore: item.homeScore
+  });
+
   const exact = scrapedResults.find(item =>
     sameTeams(item) &&
     String(item.date || "") === localDate
   );
 
   if (exact) return exact;
+
+  const exactReversed = scrapedResults.find(item =>
+    reversedTeams(item) &&
+    String(item.date || "") === localDate
+  );
+
+  if (exactReversed) {
+    console.log("MATCHED RESULT WITH REVERSED TEAMS:", JSON.stringify({
+      local: {
+        date: match.date,
+        team1: match.team1,
+        team2: match.team2
+      },
+      scraped: {
+        date: exactReversed.date,
+        team1: exactReversed.team1,
+        team2: exactReversed.team2,
+        homeScore: exactReversed.homeScore,
+        awayScore: exactReversed.awayScore
+      }
+    }, null, 2));
+    return flipResult(exactReversed);
+  }
 
   const nearDate = scrapedResults.find(item =>
     sameTeams(item) &&
@@ -197,9 +232,33 @@ function findScrapedResultForMatch(scrapedResults, match) {
         awayScore: nearDate.awayScore
       }
     }, null, 2));
+    return nearDate;
   }
 
-  return nearDate || null;
+  const nearDateReversed = scrapedResults.find(item =>
+    reversedTeams(item) &&
+    isWithinOneDay(item.date, localDate)
+  );
+
+  if (nearDateReversed) {
+    console.log("MATCHED RESULT BY NEAR DATE WITH REVERSED TEAMS:", JSON.stringify({
+      local: {
+        date: match.date,
+        team1: match.team1,
+        team2: match.team2
+      },
+      scraped: {
+        date: nearDateReversed.date,
+        team1: nearDateReversed.team1,
+        team2: nearDateReversed.team2,
+        homeScore: nearDateReversed.homeScore,
+        awayScore: nearDateReversed.awayScore
+      }
+    }, null, 2));
+    return flipResult(nearDateReversed);
+  }
+
+  return null;
 }
 
 function isWithinOneDay(a, b) {
@@ -442,13 +501,6 @@ async function scrapeFlashscoreResults({ url, from, to, headful }) {
     const parsedResults = parseResultsFromPageText(bodyText, from, to);
 
     console.log("SCRAPED RESULTS:", JSON.stringify(parsedResults, null, 2));
-
-    const westHamLeeds = parsedResults.find(r =>
-      normalizeTeamName(r.team1) === normalizeTeamName("West Ham") &&
-      normalizeTeamName(r.team2) === normalizeTeamName("Leeds")
-    );
-
-    console.log("WEST HAM LEEDS PARSED RESULT:", westHamLeeds || null);
 
     return parsedResults;
   } finally {

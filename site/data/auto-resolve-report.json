@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-24T11:39:48.536Z",
+  "generatedAt": "2026-06-24T11:43:56.692Z",
   "mode": "apply",
   "checked": 12,
-  "resolved": 0,
-  "skipped": 12,
+  "resolved": 1,
+  "skipped": 11,
   "ok": true,
   "error": "",
   "games": [
@@ -11,8 +11,8 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 12,
-      "resolved": 0,
-      "skipped": 12,
+      "resolved": 1,
+      "skipped": 11,
       "events": [
         {
           "type": "skipped",
@@ -125,14 +125,16 @@
           "fixture": "Morocco v Haiti"
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW4",
           "email": "barnabysargent@gmail.com",
           "pick": "Croatia",
-          "reason": "Fixture unresolved",
-          "fixture": "Panama v Croatia"
+          "outcome": "WIN",
+          "result": "Panama 0-1 Croatia",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "queue-recalc",
