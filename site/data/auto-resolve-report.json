@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-06-24T11:43:56.692Z",
+  "generatedAt": "2026-06-24T13:42:22.635Z",
   "mode": "apply",
-  "checked": 12,
-  "resolved": 1,
+  "checked": 11,
+  "resolved": 0,
   "skipped": 11,
   "ok": true,
   "error": "",
@@ -10,8 +10,8 @@
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 12,
-      "resolved": 1,
+      "checked": 11,
+      "resolved": 0,
       "skipped": 11,
       "events": [
         {
@@ -125,18 +125,6 @@
           "fixture": "Morocco v Haiti"
         },
         {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW4",
-          "email": "barnabysargent@gmail.com",
-          "pick": "Croatia",
-          "outcome": "WIN",
-          "result": "Panama 0-1 Croatia",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
           "type": "queue-recalc",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
@@ -155,13 +143,10 @@
           "ok": true
         },
         {
-          "type": "sheets-sync",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 230,
-          "checked": 230,
-          "ok": true
+          "reason": "adminSyncSheetsFromFirebasePicks failed: error code: 524\n"
         }
       ]
     },
