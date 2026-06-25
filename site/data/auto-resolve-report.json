@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-25T08:47:16.389Z",
+  "generatedAt": "2026-06-25T11:26:47.569Z",
   "mode": "apply",
   "checked": 8,
   "resolved": 0,
@@ -14,17 +14,6 @@
       "resolved": 0,
       "skipped": 8,
       "events": [
-        {
-          "type": "promoted",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW6",
-          "email": "peleschkaewan12@gmail.com",
-          "pick": "Argentina",
-          "outcome": "PENDING",
-          "reason": "Promoted earliest queued pick",
-          "syncedToSheets": true
-        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
