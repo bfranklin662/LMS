@@ -630,12 +630,12 @@
       "date": "2026-06-25",
       "team1": "South Africa",
       "team2": "South Korea",
-      "time": "02:00",
+      "time": "01:00",
       "stage": "Group Stage",
       "group": "Group A",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
