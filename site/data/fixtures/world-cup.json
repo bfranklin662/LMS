@@ -654,24 +654,24 @@
       "date": "2026-06-25",
       "team1": "Curacao",
       "team2": "Ivory Coast",
-      "time": "21:00",
+      "time": "20:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
       "date": "2026-06-25",
       "team1": "Ecuador",
       "team2": "Germany",
-      "time": "21:00",
+      "time": "20:00",
       "stage": "Group Stage",
       "group": "Group E",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
