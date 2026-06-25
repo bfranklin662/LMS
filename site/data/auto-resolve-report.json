@@ -1,29 +1,19 @@
 {
-  "generatedAt": "2026-06-25T22:06:06.382Z",
+  "generatedAt": "2026-06-25T23:20:44.702Z",
   "mode": "apply",
-  "checked": 8,
-  "resolved": 1,
-  "skipped": 7,
+  "checked": 6,
+  "resolved": 0,
+  "skipped": 6,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 8,
-      "resolved": 1,
-      "skipped": 7,
+      "checked": 6,
+      "resolved": 0,
+      "skipped": 6,
       "events": [
-        {
-          "type": "skipped",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW6",
-          "email": "tdraynor@gmail.com",
-          "pick": "England",
-          "reason": "Fixture unresolved",
-          "fixture": "Panama v England"
-        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
@@ -63,18 +53,6 @@
           "pick": "Netherlands",
           "reason": "Fixture unresolved",
           "fixture": "Tunisia v Netherlands"
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW5",
-          "email": "tdraynor@gmail.com",
-          "pick": "Germany",
-          "outcome": "LOSS",
-          "result": "Ecuador 2-1 Germany",
-          "reason": "",
-          "syncedToSheets": true
         },
         {
           "type": "skipped",
