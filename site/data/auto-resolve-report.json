@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-24T23:38:02.276Z",
+  "generatedAt": "2026-06-25T01:42:22.187Z",
   "mode": "apply",
   "checked": 11,
-  "resolved": 0,
-  "skipped": 11,
+  "resolved": 4,
+  "skipped": 7,
   "ok": true,
   "error": "",
   "games": [
@@ -11,8 +11,8 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 11,
-      "resolved": 0,
-      "skipped": 11,
+      "resolved": 4,
+      "skipped": 7,
       "events": [
         {
           "type": "skipped",
@@ -45,14 +45,16 @@
           "fixture": "Panama v England"
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW5",
           "email": "ciarananthonykelly@gmail.com",
           "pick": "Morocco",
-          "reason": "Fixture unresolved",
-          "fixture": "Morocco v Haiti"
+          "outcome": "WIN",
+          "result": "Morocco 4-2 Haiti",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
@@ -75,14 +77,16 @@
           "fixture": "Ecuador v Germany"
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW5",
           "email": "peleschkaewan12@gmail.com",
           "pick": "Morocco",
-          "reason": "Fixture unresolved",
-          "fixture": "Morocco v Haiti"
+          "outcome": "WIN",
+          "result": "Morocco 4-2 Haiti",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
@@ -105,24 +109,28 @@
           "fixture": "Tunisia v Netherlands"
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW5",
           "email": "lucydavies6@outlook.com",
           "pick": "Morocco",
-          "reason": "Fixture unresolved",
-          "fixture": "Morocco v Haiti"
+          "outcome": "WIN",
+          "result": "Morocco 4-2 Haiti",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW5",
           "email": "barnabysargent@gmail.com",
           "pick": "Morocco",
-          "reason": "Fixture unresolved",
-          "fixture": "Morocco v Haiti"
+          "outcome": "WIN",
+          "result": "Morocco 4-2 Haiti",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "queue-recalc",
