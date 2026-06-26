@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-26T11:34:12.829Z",
+  "generatedAt": "2026-06-26T13:36:58.694Z",
   "mode": "apply",
   "checked": 6,
   "resolved": 0,
@@ -93,13 +93,10 @@
           "ok": true
         },
         {
-          "type": "sheets-sync",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 234,
-          "checked": 234,
-          "ok": true
+          "reason": "adminSyncSheetsFromFirebasePicks failed: POST only. Send JSON body with {action:...}"
         }
       ]
     },
