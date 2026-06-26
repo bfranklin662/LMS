@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-26T09:28:14.462Z",
+  "generatedAt": "2026-06-26T11:34:12.829Z",
   "mode": "apply",
-  "checked": 5,
+  "checked": 6,
   "resolved": 0,
-  "skipped": 5,
+  "skipped": 6,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 5,
+      "checked": 6,
       "resolved": 0,
-      "skipped": 5,
+      "skipped": 6,
       "events": [
         {
           "type": "skipped",
@@ -65,12 +65,22 @@
           "fixture": "Panama v England"
         },
         {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "adam.drysdale@hotmail.com",
+          "pick": "England",
+          "reason": "Fixture unresolved",
+          "fixture": "Panama v England"
+        },
+        {
           "type": "queue-recalc",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 233,
+          "checked": 234,
           "ok": true
         },
         {
@@ -87,8 +97,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 233,
-          "checked": 233,
+          "changed": 234,
+          "checked": 234,
           "ok": true
         }
       ]
