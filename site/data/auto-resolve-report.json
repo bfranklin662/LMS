@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-26T13:36:58.694Z",
+  "generatedAt": "2026-06-26T15:57:38.775Z",
   "mode": "apply",
-  "checked": 6,
+  "checked": 7,
   "resolved": 0,
-  "skipped": 6,
+  "skipped": 7,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 6,
+      "checked": 7,
       "resolved": 0,
-      "skipped": 6,
+      "skipped": 7,
       "events": [
         {
           "type": "skipped",
@@ -75,12 +75,22 @@
           "fixture": "Panama v England"
         },
         {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "barnabysargent@gmail.com",
+          "pick": "Argentina",
+          "reason": "Fixture unresolved",
+          "fixture": "Jordan v Argentina"
+        },
+        {
           "type": "queue-recalc",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 234,
+          "checked": 235,
           "ok": true
         },
         {
@@ -93,10 +103,13 @@
           "ok": true
         },
         {
-          "type": "error",
+          "type": "sheets-sync",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "adminSyncSheetsFromFirebasePicks failed: POST only. Send JSON body with {action:...}"
+          "reason": "Synced Sheets picks from Firebase",
+          "changed": 235,
+          "checked": 235,
+          "ok": true
         }
       ]
     },
