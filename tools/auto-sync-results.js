@@ -147,6 +147,62 @@ function buildDateWindows(dates) {
   windows.push({ from: start, to: prev });
   return windows;
 }
+function formatIsoDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+function addDays(date, days) {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+}
+
+async function runWorldCupTbdFixtureSync() {
+  const now = new Date();
+  const from = formatIsoDate(now);
+  const to = formatIsoDate(addDays(now, 21));
+
+  return new Promise((resolve, reject) => {
+    const args = [
+      "tools/sync-fixtures.js",
+      "--file=site/data/fixtures/world-cup.json",
+      `--from=${from}`,
+      `--to=${to}`,
+      "--update-tbd-only"
+    ];
+
+    const child = spawn("node", args, {
+      cwd: PROJECT_ROOT,
+      env: process.env,
+    });
+
+    let stdout = "";
+    let stderr = "";
+
+    child.stdout.on("data", d => {
+      stdout += d.toString();
+    });
+
+    child.stderr.on("data", d => {
+      stderr += d.toString();
+    });
+
+    child.on("error", reject);
+
+    child.on("close", code => {
+      if (stdout) process.stdout.write(stdout);
+
+      if (code !== 0) {
+        return reject(new Error(stderr || stdout || `sync-fixtures exited with code ${code}`));
+      }
+
+      resolve(stdout);
+    });
+  });
+}
 
 async function runSyncResults({ file, from, to }) {
   return new Promise((resolve, reject) => {
@@ -355,6 +411,13 @@ async function tick() {
 
 async function main() {
   log("auto-sync-results started");
+
+  try {
+    log("[fixtures] updating World Cup TBD fixtures before result sync");
+    await runWorldCupTbdFixtureSync();
+  } catch (err) {
+    log(`[fixtures] TBD fixture sync failed: ${err.message || err}`);
+  }
 
   await tick();
 

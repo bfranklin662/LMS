@@ -52,6 +52,14 @@ const FILE_CONFIG = {
     url: "https://www.flashscore.co.uk/football/england/fa-cup/fixtures/",
     label: "FA Cup",
   },
+  "site/data/fixtures/world-cup-test.json": {
+    url: "https://www.flashscore.co.uk/football/world/world-cup/fixtures/",
+    label: "World Cup",
+  },
+  "site/data/fixtures/world-cup.json": {
+    url: "https://www.flashscore.co.uk/football/world/world-cup/fixtures/",
+    label: "World Cup",
+  },
 };
 
 const {
@@ -59,7 +67,7 @@ const {
   areTeamsEquivalent
 } = require("./team-name-utils");
 
-function buildSyncPlan({ localData, scrapedFixtures, from, to, file, forceGwId = null }) {
+function buildSyncPlan({ localData, scrapedFixtures, from, to, file, forceGwId = null, updateTbdOnly = false }) {
   if (!localData || !Array.isArray(localData.matches)) {
     throw new Error("JSON does not contain a valid { matches: [] } structure.");
   }
@@ -81,6 +89,65 @@ function buildSyncPlan({ localData, scrapedFixtures, from, to, file, forceGwId =
     const key = makeFixtureKey(fixture.team1, fixture.team2);
     if (!scrapedBuckets.has(key)) scrapedBuckets.set(key, []);
     scrapedBuckets.get(key).push(fixture);
+  }
+
+  if (updateTbdOnly) {
+    const scrapedBySlot = new Map();
+
+    for (const fixture of scrapedFixtures) {
+      if (!fixture.date || !fixture.time) continue;
+      if (isTbdTeam(fixture.team1) || isTbdTeam(fixture.team2)) continue;
+
+      const slotKey = makeFixtureSlotKey(fixture);
+      if (!scrapedBySlot.has(slotKey)) scrapedBySlot.set(slotKey, []);
+      scrapedBySlot.get(slotKey).push(fixture);
+    }
+
+    for (let i = 0; i < localData.matches.length; i++) {
+      const match = localData.matches[i];
+      if (!isWithinWindow(match.date, from, to)) continue;
+      if (!isTbdTeam(match.team1) && !isTbdTeam(match.team2)) continue;
+      if (!match.date || !match.time) continue;
+
+      const slotKey = makeFixtureSlotKey(match);
+      const candidates = scrapedBySlot.get(slotKey) || [];
+
+      if (candidates.length !== 1) {
+        console.log("TBD FIXTURE UPDATE SKIPPED:", JSON.stringify({
+          reason: candidates.length ? "Multiple scraped fixtures for slot" : "No scraped fixture for slot",
+          fixture: {
+            gwId: match.gwId,
+            stage: match.stage,
+            date: match.date,
+            time: match.time,
+            team1: match.team1,
+            team2: match.team2
+          },
+          candidates
+        }, null, 2));
+        continue;
+      }
+
+      const scraped = candidates[0];
+      const updatedMatch = buildUpdatedMatch(match, scraped);
+
+      if (
+        String(match.team1 || "") !== String(updatedMatch.team1 || "") ||
+        String(match.team2 || "") !== String(updatedMatch.team2 || "") ||
+        String(normalizeTime(match.time || "") || "") !== String(normalizeTime(updatedMatch.time || "") || "") ||
+        String(match.date || "") !== String(updatedMatch.date || "")
+      ) {
+        operations.push({
+          id: file + "::update-tbd::" + match.date + "::" + normalizeTime(match.time || "") + "::" + i,
+          type: "update",
+          index: i,
+          before: match,
+          after: updatedMatch
+        });
+      }
+    }
+
+    return operations;
   }
 
   const allKeys = new Set([
@@ -278,6 +345,7 @@ async function main() {
   const verbose = Boolean(args.verbose);
   const opsFile = args["ops-file"] || null;
   const forceGwId = args["force-gw-id"] || null;
+  const updateTbdOnly = Boolean(args["update-tbd-only"]);
 
   if (!from || !to) {
     throw new Error("You must provide --from=YYYY-MM-DD and --to=YYYY-MM-DD");
@@ -305,6 +373,7 @@ async function main() {
   console.log(`Add missing: ${addMissing ? "yes" : "no"}`);
   console.log(`Run all: ${runAll ? "yes" : "no"}`);
   console.log(`Use test files: ${useTestFiles ? "yes" : "no"}`);
+  console.log(`Update TBD only: ${updateTbdOnly ? "yes" : "no"}`);
   console.log("");
 
   const summaries = [];
@@ -320,6 +389,7 @@ async function main() {
       headful,
       opsFile,
       forceGwId,
+      updateTbdOnly,
     });
     summaries.push(summary);
   }
@@ -350,6 +420,7 @@ async function processSingleFile({
   headful,
   opsFile,
   forceGwId,
+  updateTbdOnly,
 }) {
   const cfg = FILE_CONFIG[file];
   const filePath = path.resolve(PROJECT_ROOT, file);
@@ -369,6 +440,7 @@ async function processSingleFile({
     to,
     file,
     forceGwId,
+    updateTbdOnly,
   });
 
   let selectedOperationIds = operations
@@ -605,7 +677,7 @@ async function scrapeFlashscoreFixtures({ url, from, to, headful }) {
 }
 
 function isFixturesUrl(url) {
-  return url.includes("/football/england/") && url.includes("/fixtures/");
+  return url.includes("/football/") && url.includes("/fixtures/");
 }
 
 function parseFixturesFromPageText(bodyText, from, to) {
@@ -1079,6 +1151,15 @@ function parseArgs(argv) {
 function normalizeTime(value) {
   if (!value) return value;
   return value.slice(0, 5);
+}
+
+function isTbdTeam(value) {
+  const s = String(value || "").trim().toUpperCase();
+  return !s || s === "TBD" || s === "TBC";
+}
+
+function makeFixtureSlotKey(fixture) {
+  return String(fixture.date || "").trim() + "T" + (normalizeTime(String(fixture.time || "").trim()) || "");
 }
 
 function isWithinWindow(dateStr, from, to) {
