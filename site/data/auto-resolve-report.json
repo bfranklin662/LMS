@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-06-26T05:54:35.110Z",
+  "generatedAt": "2026-06-26T08:48:25.348Z",
   "mode": "apply",
-  "checked": 7,
-  "resolved": 3,
+  "checked": 4,
+  "resolved": 0,
   "skipped": 4,
   "ok": true,
   "error": "",
@@ -10,8 +10,8 @@
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 7,
-      "resolved": 3,
+      "checked": 4,
+      "resolved": 0,
       "skipped": 4,
       "events": [
         {
@@ -53,42 +53,6 @@
           "pick": "Argentina",
           "reason": "Fixture unresolved",
           "fixture": "Jordan v Argentina"
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW5",
-          "email": "patrickdeclankelly@gmail.com",
-          "pick": "Netherlands",
-          "outcome": "WIN",
-          "result": "Tunisia 1-3 Netherlands",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW5",
-          "email": "adam.drysdale@hotmail.com",
-          "pick": "Netherlands",
-          "outcome": "WIN",
-          "result": "Tunisia 1-3 Netherlands",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW5",
-          "email": "adam@tatatastudios.com",
-          "pick": "Netherlands",
-          "outcome": "WIN",
-          "result": "Tunisia 1-3 Netherlands",
-          "reason": "",
-          "syncedToSheets": true
         },
         {
           "type": "queue-recalc",
