@@ -645,9 +645,9 @@
       "time": "02:00",
       "stage": "Group Stage",
       "group": "Group A",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
