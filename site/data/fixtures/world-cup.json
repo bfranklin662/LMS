@@ -726,24 +726,24 @@
       "date": "2026-06-26",
       "team1": "Norway",
       "team2": "France",
-      "time": "20:00",
+      "time": "19:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 4,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-06-26",
       "team1": "Senegal",
       "team2": "Iraq",
-      "time": "20:00",
+      "time": "19:00",
       "stage": "Group Stage",
       "group": "Group I",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 5,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
