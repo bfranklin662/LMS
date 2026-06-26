@@ -675,51 +675,51 @@
     },
     {
       "gwId": "GW5",
-      "date": "2026-06-26",
+      "date": "2026-06-25",
       "team1": "Tunisia",
       "team2": "Netherlands",
-      "time": "00:00",
+      "time": "23:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
-      "date": "2026-06-26",
+      "date": "2026-06-25",
       "team1": "Japan",
       "team2": "Sweden",
-      "time": "00:00",
+      "time": "23:00",
       "stage": "Group Stage",
       "group": "Group F",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
       "date": "2026-06-26",
       "team1": "Turkey",
       "team2": "USA",
-      "time": "03:00",
+      "time": "02:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW5",
       "date": "2026-06-26",
       "team1": "Paraguay",
       "team2": "Australia",
-      "time": "03:00",
+      "time": "02:00",
       "stage": "Group Stage",
       "group": "Group D",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
