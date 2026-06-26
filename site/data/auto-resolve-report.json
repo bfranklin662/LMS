@@ -1,19 +1,30 @@
 {
-  "generatedAt": "2026-06-25T23:20:44.702Z",
+  "generatedAt": "2026-06-26T01:36:49.389Z",
   "mode": "apply",
-  "checked": 6,
+  "checked": 7,
   "resolved": 0,
-  "skipped": 6,
+  "skipped": 7,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 6,
+      "checked": 7,
       "resolved": 0,
-      "skipped": 6,
+      "skipped": 7,
       "events": [
+        {
+          "type": "promoted",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "lucydavies6@outlook.com",
+          "pick": "Argentina",
+          "outcome": "PENDING",
+          "reason": "Promoted earliest queued pick",
+          "syncedToSheets": true
+        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
@@ -40,6 +51,16 @@
           "gameTitle": "World Cup 26",
           "gwId": "GW6",
           "email": "peleschkaewan12@gmail.com",
+          "pick": "Argentina",
+          "reason": "Fixture unresolved",
+          "fixture": "Jordan v Argentina"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW6",
+          "email": "lucydavies6@outlook.com",
           "pick": "Argentina",
           "reason": "Fixture unresolved",
           "fixture": "Jordan v Argentina"
@@ -80,7 +101,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 231,
+          "checked": 232,
           "ok": true
         },
         {
@@ -97,8 +118,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 231,
-          "checked": 231,
+          "changed": 232,
+          "checked": 232,
           "ok": true
         }
       ]
