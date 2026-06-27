@@ -750,48 +750,48 @@
       "date": "2026-06-27",
       "team1": "Cape Verde",
       "team2": "Saudi Arabia",
-      "time": "01:00",
+      "time": "00:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-06-27",
       "team1": "Uruguay",
       "team2": "Spain",
-      "time": "01:00",
+      "time": "00:00",
       "stage": "Group Stage",
       "group": "Group H",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-06-27",
       "team1": "New Zealand",
       "team2": "Belgium",
-      "time": "04:00",
+      "time": "03:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 5,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-06-27",
       "team1": "Egypt",
       "team2": "Iran",
-      "time": "04:00",
+      "time": "03:00",
       "stage": "Group Stage",
       "group": "Group G",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
