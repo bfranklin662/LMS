@@ -1,19 +1,78 @@
 {
-  "generatedAt": "2026-06-28T10:40:40.069Z",
+  "generatedAt": "2026-06-28T12:08:18.162Z",
   "mode": "apply",
-  "checked": 0,
+  "checked": 2,
   "resolved": 0,
-  "skipped": 0,
+  "skipped": 2,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 0,
+      "checked": 2,
       "resolved": 0,
-      "skipped": 0,
-      "events": []
+      "skipped": 2,
+      "events": [
+        {
+          "type": "promoted",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW8",
+          "email": "ciarananthonykelly@gmail.com",
+          "pick": "Argentina",
+          "outcome": "PENDING",
+          "reason": "Promoted earliest queued pick",
+          "syncedToSheets": true
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW7",
+          "email": "adam@tatatastudios.com",
+          "pick": "Mexico",
+          "reason": "Fixture unresolved",
+          "fixture": "Mexico v Ecuador"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW8",
+          "email": "ciarananthonykelly@gmail.com",
+          "pick": "Argentina",
+          "reason": "Fixture unresolved",
+          "fixture": "Argentina v Cabo Verde"
+        },
+        {
+          "type": "queue-recalc",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "reason": "Recalculated Firebase queued/pending/void picks",
+          "changed": 0,
+          "checked": 237,
+          "ok": true
+        },
+        {
+          "type": "registration-recalc",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "reason": "Recalculated Firebase alive/dead registrations",
+          "changed": 0,
+          "checked": 61,
+          "ok": true
+        },
+        {
+          "type": "sheets-sync",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "reason": "Synced Sheets picks from Firebase",
+          "changed": 237,
+          "checked": 237,
+          "ok": true
+        }
+      ]
     },
     {
       "gameId": "the_run_in",
