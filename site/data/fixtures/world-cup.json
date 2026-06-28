@@ -798,24 +798,24 @@
       "date": "2026-06-27",
       "team1": "Panama",
       "team2": "England",
-      "time": "22:00",
+      "time": "21:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
       "date": "2026-06-27",
       "team1": "Croatia",
       "team2": "Ghana",
-      "time": "22:00",
+      "time": "21:00",
       "stage": "Group Stage",
       "group": "Group L",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
