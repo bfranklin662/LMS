@@ -4517,6 +4517,26 @@ function getTeamReuseGroupForGw_(gwId, game = getActiveGame_()) {
   return `FROM_GW${groupStart}`;
 }
 
+function getUsedTeamsForGw_(gwId, game = getActiveGame_()) {
+  const targetGroup = getTeamReuseGroupForGw_(gwId, game);
+
+  return new Set(
+    (sessionPicks || [])
+      .filter(p => String(p.outcome || "").toUpperCase() === "WIN")
+      .filter(p => getTeamReuseGroupForGw_(p.gwId, game) === targetGroup)
+      .map(p => normTeamKey_(getCanonicalTeamName_(p.team)))
+  );
+}
+
+function hasUsedTeamForGw_(team, gwId, existingTeam = "", game = getActiveGame_()) {
+  const teamKey = normTeamKey_(getCanonicalTeamName_(team));
+  if (!teamKey) return false;
+
+  if (areTeamsSame_(existingTeam, team)) return false;
+
+  return getUsedTeamsForGw_(gwId, game).has(teamKey);
+}
+
 function bindConnectionToClubToggleOnce_() {
   if (!registerForm || registerForm.dataset.boundConn === "1") return;
   registerForm.dataset.boundConn = "1";
@@ -8552,11 +8572,8 @@ submitPickBtn?.addEventListener("click", () => {
   const match = getCanonicalTeamName_(matchedTeam);
   const existing = getPickForGw(targetGwId);
 
-  if (
-    usedTeams.has(normTeamKey_(getCanonicalTeamName_(match))) &&
-    !areTeamsSame_(existing?.team, match)
-  ) {
-    return showFixturesMessage("You already used that team in a previous gameweek.", "bad");
+  if (hasUsedTeamForGw_(match, targetGwId, existing?.team)) {
+    return showFixturesMessage("You already used that team in this part of the competition.", "bad");
   }
 
   showPickConfirmModal_(match, targetGwId);
