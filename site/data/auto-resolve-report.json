@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-28T14:11:12.022Z",
+  "generatedAt": "2026-06-28T15:38:52.388Z",
   "mode": "apply",
-  "checked": 3,
+  "checked": 5,
   "resolved": 0,
-  "skipped": 3,
+  "skipped": 5,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 3,
+      "checked": 5,
       "resolved": 0,
-      "skipped": 3,
+      "skipped": 5,
       "events": [
         {
           "type": "skipped",
@@ -38,6 +38,26 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
+          "gwId": "GW7",
+          "email": "adam.drysdale@hotmail.com",
+          "pick": "Germany",
+          "reason": "Fixture unresolved",
+          "fixture": "Germany v Paraguay"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW7",
+          "email": "ciarananthonykelly@gmail.com",
+          "pick": "England",
+          "reason": "Fixture unresolved",
+          "fixture": "England v DR Congo"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
           "gwId": "GW8",
           "email": "ciarananthonykelly@gmail.com",
           "pick": "Argentina",
@@ -49,8 +69,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
-          "changed": 0,
-          "checked": 238,
+          "changed": 2,
+          "checked": 240,
           "ok": true
         },
         {
@@ -67,8 +87,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 238,
-          "checked": 238,
+          "changed": 240,
+          "checked": 240,
           "ok": true
         }
       ]
