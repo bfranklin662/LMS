@@ -825,9 +825,9 @@
       "time": "00:30",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 0,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
@@ -837,9 +837,9 @@
       "time": "00:30",
       "stage": "Group Stage",
       "group": "Group K",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 3,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW6",
