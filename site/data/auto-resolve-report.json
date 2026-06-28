@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-06-28T16:47:31.214Z",
+  "generatedAt": "2026-06-28T17:52:11.102Z",
   "mode": "apply",
-  "checked": 7,
+  "checked": 8,
   "resolved": 0,
-  "skipped": 7,
+  "skipped": 8,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 7,
+      "checked": 8,
       "resolved": 0,
-      "skipped": 7,
+      "skipped": 8,
       "events": [
         {
           "type": "skipped",
@@ -78,6 +78,16 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
+          "gwId": "GW7",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "France",
+          "reason": "Fixture unresolved",
+          "fixture": "France v Sweden"
+        },
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
           "gwId": "GW8",
           "email": "ciarananthonykelly@gmail.com",
           "pick": "Argentina",
@@ -90,7 +100,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 242,
+          "checked": 243,
           "ok": true
         },
         {
@@ -107,8 +117,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 242,
-          "checked": 242,
+          "changed": 243,
+          "checked": 243,
           "ok": true
         }
       ]
