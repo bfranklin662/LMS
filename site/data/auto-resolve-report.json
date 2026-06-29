@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-29T06:23:26.609Z",
+  "generatedAt": "2026-06-29T11:31:18.924Z",
   "mode": "apply",
   "checked": 8,
   "resolved": 0,
@@ -92,7 +92,7 @@
           "email": "ciarananthonykelly@gmail.com",
           "pick": "Argentina",
           "reason": "Fixture unresolved",
-          "fixture": "Argentina v Cabo Verde"
+          "fixture": "Argentina v Cape Verde"
         },
         {
           "type": "queue-recalc",
