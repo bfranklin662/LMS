@@ -882,10 +882,10 @@
       "date": "2026-06-29",
       "team1": "Brazil",
       "team2": "Japan",
-      "time": "18:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "17:00",
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
