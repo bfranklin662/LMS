@@ -3219,6 +3219,15 @@ function renderPendingFixtureBlock_(rows) {
         </div>
       </div>
     </div>
+
+    <div class="admin-manual-resolve-actions" style="display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:12px;">
+      <button class="btn btn-ghost" data-manual-resolve-group="LOSS" type="button">
+        Resolve LOSS
+      </button>
+      <button class="btn btn-primary" data-manual-resolve-group="WIN" type="button">
+        Resolve WIN
+      </button>
+    </div>
   `;
 
   const playersList = document.createElement("div");
@@ -3252,6 +3261,49 @@ function renderPendingFixtureBlock_(rows) {
   });
 
   wrap.appendChild(playersList);
+
+  wrap.querySelectorAll("[data-manual-resolve-group]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const outcome = String(btn.getAttribute("data-manual-resolve-group") || "").toUpperCase();
+      if (!["WIN", "LOSS"].includes(outcome)) return;
+
+      const count = rows.length;
+      const fixtureText = fixture
+        ? `${fixture.home} ${formatFixtureResultDisplay_(fixture)} ${fixture.away}`
+        : pickedTeam || "this group";
+
+      openBulkResolveModal({
+        title: `Resolve ${count} pick${count === 1 ? "" : "s"} as ${outcome}?`,
+        html: `
+          <p style="margin:0 0 10px;line-height:1.5;">
+            This will set <strong>${escapeHtml(pickedTeam || "Unknown team")}</strong>
+            pick${count === 1 ? "" : "s"} to <strong>${escapeHtml(outcome)}</strong>.
+          </p>
+          <p class="muted" style="margin:0;line-height:1.5;">
+            ${escapeHtml(fixtureText)}
+          </p>
+        `,
+        onConfirm: async () => {
+          try {
+            setBtnLoading(btn, true);
+
+            await Promise.all(
+              rows.map(row => setPickOutcomeDirect_(row, outcome))
+            );
+
+            await refreshSubmissionsIncremental({ full: true });
+            await renderGameAutoResolveReport_().catch(() => {});
+            showMsg(`${count} pick${count === 1 ? "" : "s"} resolved as ${outcome}`, true, true);
+          } catch (e) {
+            showMsg(String(e.message || e), false);
+          } finally {
+            setBtnLoading(btn, false);
+          }
+        }
+      });
+    });
+  });
+
   return wrap;
 }
 
