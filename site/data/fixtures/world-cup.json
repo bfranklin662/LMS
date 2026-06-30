@@ -894,9 +894,9 @@
       "team1": "Germany",
       "team2": "Paraguay",
       "time": "21:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
@@ -905,9 +905,9 @@
       "team1": "Netherlands",
       "team2": "Morocco",
       "time": "02:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",
