@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-01T06:26:11.073Z",
+  "generatedAt": "2026-07-01T10:19:32.705Z",
   "mode": "apply",
-  "checked": 3,
-  "resolved": 1,
+  "checked": 2,
+  "resolved": 0,
   "skipped": 2,
   "ok": true,
   "error": "",
@@ -10,22 +10,10 @@
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 3,
-      "resolved": 1,
+      "checked": 2,
+      "resolved": 0,
       "skipped": 2,
       "events": [
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW7",
-          "email": "adam@tatatastudios.com",
-          "pick": "Mexico",
-          "outcome": "WIN",
-          "result": "Mexico 2-0 Ecuador",
-          "reason": "",
-          "syncedToSheets": true
-        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
