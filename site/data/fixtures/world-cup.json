@@ -926,10 +926,10 @@
       "date": "2026-06-30",
       "team1": "France",
       "team2": "Sweden",
-      "time": "22:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "21:00",
+      "homeScore": 3,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",

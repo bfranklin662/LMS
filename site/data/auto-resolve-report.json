@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-06-30T23:44:47.706Z",
+  "generatedAt": "2026-07-01T02:04:45.123Z",
   "mode": "apply",
   "checked": 4,
-  "resolved": 0,
-  "skipped": 4,
+  "resolved": 1,
+  "skipped": 3,
   "ok": true,
   "error": "",
   "games": [
@@ -11,8 +11,8 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 4,
-      "resolved": 0,
-      "skipped": 4,
+      "resolved": 1,
+      "skipped": 3,
       "events": [
         {
           "type": "skipped",
@@ -35,14 +35,16 @@
           "fixture": "England v DR Congo"
         },
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW7",
           "email": "patrickdeclankelly@gmail.com",
           "pick": "France",
-          "reason": "Fixture unresolved",
-          "fixture": "France v Sweden"
+          "outcome": "WIN",
+          "result": "France 3-0 Sweden",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
