@@ -937,10 +937,10 @@
       "date": "2026-07-01",
       "team1": "Mexico",
       "team2": "Ecuador",
-      "time": "02:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "01:00",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW7",

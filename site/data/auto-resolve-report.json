@@ -1,28 +1,30 @@
 {
-  "generatedAt": "2026-07-01T02:04:45.123Z",
+  "generatedAt": "2026-07-01T06:26:11.073Z",
   "mode": "apply",
-  "checked": 4,
+  "checked": 3,
   "resolved": 1,
-  "skipped": 3,
+  "skipped": 2,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 4,
+      "checked": 3,
       "resolved": 1,
-      "skipped": 3,
+      "skipped": 2,
       "events": [
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW7",
           "email": "adam@tatatastudios.com",
           "pick": "Mexico",
-          "reason": "Fixture unresolved",
-          "fixture": "Mexico v Ecuador"
+          "outcome": "WIN",
+          "result": "Mexico 2-0 Ecuador",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
@@ -33,18 +35,6 @@
           "pick": "England",
           "reason": "Fixture unresolved",
           "fixture": "England v DR Congo"
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW7",
-          "email": "patrickdeclankelly@gmail.com",
-          "pick": "France",
-          "outcome": "WIN",
-          "result": "France 3-0 Sweden",
-          "reason": "",
-          "syncedToSheets": true
         },
         {
           "type": "skipped",
