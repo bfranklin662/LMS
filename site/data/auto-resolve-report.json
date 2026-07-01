@@ -1,19 +1,30 @@
 {
-  "generatedAt": "2026-07-01T12:51:36.470Z",
+  "generatedAt": "2026-07-01T15:33:43.096Z",
   "mode": "apply",
-  "checked": 2,
+  "checked": 3,
   "resolved": 0,
-  "skipped": 2,
+  "skipped": 3,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 2,
+      "checked": 3,
       "resolved": 0,
-      "skipped": 2,
+      "skipped": 3,
       "events": [
+        {
+          "type": "promoted",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW8",
+          "email": "adam@tatatastudios.com",
+          "pick": "Argentina",
+          "outcome": "PENDING",
+          "reason": "Promoted earliest queued pick",
+          "syncedToSheets": true
+        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
@@ -35,12 +46,22 @@
           "fixture": "Argentina v Cape Verde"
         },
         {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW8",
+          "email": "adam@tatatastudios.com",
+          "pick": "Argentina",
+          "reason": "Fixture unresolved",
+          "fixture": "Argentina v Cape Verde"
+        },
+        {
           "type": "queue-recalc",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 243,
+          "checked": 244,
           "ok": true
         },
         {
@@ -53,13 +74,10 @@
           "ok": true
         },
         {
-          "type": "sheets-sync",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 243,
-          "checked": 243,
-          "ok": true
+          "reason": "adminSyncSheetsFromFirebasePicks failed: Non-JSON API response (502): <!DOCTYPE html>\n<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js ie7 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-js ie8 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html class=\"no-js\" lang=\"en-US\"> <!"
         }
       ]
     },
