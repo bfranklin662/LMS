@@ -947,11 +947,11 @@
       "stage": "R32",
       "date": "2026-07-01",
       "team1": "England",
-      "team2": "DR Congo",
-      "time": "17:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "team2": "D.R. Congo",
+      "time": "16:00",
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",

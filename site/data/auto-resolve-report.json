@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-07-01T17:34:26.450Z",
+  "generatedAt": "2026-07-01T19:28:40.006Z",
   "mode": "apply",
   "checked": 3,
-  "resolved": 0,
-  "skipped": 3,
+  "resolved": 1,
+  "skipped": 2,
   "ok": true,
   "error": "",
   "games": [
@@ -11,18 +11,20 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 3,
-      "resolved": 0,
-      "skipped": 3,
+      "resolved": 1,
+      "skipped": 2,
       "events": [
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW7",
           "email": "ciarananthonykelly@gmail.com",
           "pick": "England",
-          "reason": "Fixture unresolved",
-          "fixture": "England v DR Congo"
+          "outcome": "WIN",
+          "result": "England 2-1 D.R. Congo",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
