@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-01T15:33:43.096Z",
+  "generatedAt": "2026-07-01T17:34:26.450Z",
   "mode": "apply",
   "checked": 3,
   "resolved": 0,
@@ -14,17 +14,6 @@
       "resolved": 0,
       "skipped": 3,
       "events": [
-        {
-          "type": "promoted",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW8",
-          "email": "adam@tatatastudios.com",
-          "pick": "Argentina",
-          "outcome": "PENDING",
-          "reason": "Promoted earliest queued pick",
-          "syncedToSheets": true
-        },
         {
           "type": "skipped",
           "gameId": "world_cup_26",
@@ -74,10 +63,13 @@
           "ok": true
         },
         {
-          "type": "error",
+          "type": "sheets-sync",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "adminSyncSheetsFromFirebasePicks failed: Non-JSON API response (502): <!DOCTYPE html>\n<!--[if lt IE 7]> <html class=\"no-js ie6 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 7]>    <html class=\"no-js ie7 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if IE 8]>    <html class=\"no-js ie8 oldie\" lang=\"en-US\"> <![endif]-->\n<!--[if gt IE 8]><!--> <html class=\"no-js\" lang=\"en-US\"> <!"
+          "reason": "Synced Sheets picks from Firebase",
+          "changed": 244,
+          "checked": 244,
+          "ok": true
         }
       ]
     },
