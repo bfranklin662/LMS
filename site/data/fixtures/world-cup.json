@@ -969,11 +969,11 @@
       "stage": "R32",
       "date": "2026-07-02",
       "team1": "USA",
-      "team2": "Bosnia and Herzegovina",
-      "time": "01:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "team2": "Bosnia & Herzegovina",
+      "time": "00:00",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
