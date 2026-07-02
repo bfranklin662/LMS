@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-02T08:41:09.961Z",
+  "generatedAt": "2026-07-02T11:20:40.823Z",
   "mode": "apply",
   "checked": 3,
   "resolved": 0,
@@ -30,9 +30,9 @@
           "gameTitle": "World Cup 26",
           "gwId": "GW8",
           "email": "adam@tatatastudios.com",
-          "pick": "Argentina",
+          "pick": "Spain",
           "reason": "Fixture unresolved",
-          "fixture": "Argentina v Cape Verde"
+          "fixture": "Spain v Austria"
         },
         {
           "type": "skipped",
@@ -63,13 +63,10 @@
           "ok": true
         },
         {
-          "type": "sheets-sync",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 245,
-          "checked": 245,
-          "ok": true
+          "reason": "adminSyncSheetsFromFirebasePicks failed: error code: 524\n"
         }
       ]
     },
