@@ -1,75 +1,24 @@
 {
-  "generatedAt": "2026-07-02T17:15:38.057Z",
+  "generatedAt": "2026-07-02T18:50:43.410Z",
   "mode": "apply",
-  "checked": 3,
+  "checked": 0,
   "resolved": 0,
-  "skipped": 3,
+  "skipped": 0,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 3,
+      "checked": 0,
       "resolved": 0,
-      "skipped": 3,
+      "skipped": 0,
       "events": [
         {
-          "type": "skipped",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "gwId": "GW8",
-          "email": "ciarananthonykelly@gmail.com",
-          "pick": "Argentina",
-          "reason": "Fixture unresolved",
-          "fixture": "Argentina v Cape Verde"
-        },
-        {
-          "type": "skipped",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW8",
-          "email": "adam@tatatastudios.com",
-          "pick": "Spain",
-          "reason": "Fixture unresolved",
-          "fixture": "Spain v Austria"
-        },
-        {
-          "type": "skipped",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW8",
-          "email": "patrickdeclankelly@gmail.com",
-          "pick": "Argentina",
-          "reason": "Fixture unresolved",
-          "fixture": "Argentina v Cape Verde"
-        },
-        {
-          "type": "queue-recalc",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Recalculated Firebase queued/pending/void picks",
-          "changed": 0,
-          "checked": 245,
-          "ok": true
-        },
-        {
-          "type": "registration-recalc",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Recalculated Firebase alive/dead registrations",
-          "changed": 0,
-          "checked": 61,
-          "ok": true
-        },
-        {
-          "type": "sheets-sync",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 245,
-          "checked": 245,
-          "ok": true
+          "reason": "failed to load picks: POST only. Send JSON body with {action:...}"
         }
       ]
     },
