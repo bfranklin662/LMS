@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-02T22:37:32.693Z",
+  "generatedAt": "2026-07-02T23:43:58.373Z",
   "mode": "apply",
-  "checked": 3,
-  "resolved": 1,
+  "checked": 2,
+  "resolved": 0,
   "skipped": 2,
   "ok": true,
   "error": "",
@@ -10,8 +10,8 @@
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 3,
-      "resolved": 1,
+      "checked": 2,
+      "resolved": 0,
       "skipped": 2,
       "events": [
         {
@@ -23,18 +23,6 @@
           "pick": "Argentina",
           "reason": "Fixture unresolved",
           "fixture": "Argentina v Cape Verde"
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW8",
-          "email": "adam@tatatastudios.com",
-          "pick": "Spain",
-          "outcome": "WIN",
-          "result": "Spain 3-0 Austria",
-          "reason": "",
-          "syncedToSheets": true
         },
         {
           "type": "skipped",
