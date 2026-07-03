@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-03T08:08:57.125Z",
+  "generatedAt": "2026-07-03T10:39:14.126Z",
   "mode": "apply",
   "checked": 2,
   "resolved": 0,
@@ -30,9 +30,9 @@
           "gameTitle": "World Cup 26",
           "gwId": "GW8",
           "email": "patrickdeclankelly@gmail.com",
-          "pick": "Argentina",
+          "pick": "Colombia",
           "reason": "Fixture unresolved",
-          "fixture": "Argentina v Cape Verde"
+          "fixture": "Colombia v Ghana"
         },
         {
           "type": "queue-recalc",
