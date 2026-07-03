@@ -1003,10 +1003,10 @@
       "date": "2026-07-03",
       "team1": "Switzerland",
       "team2": "Algeria",
-      "time": "04:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "03:00",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
