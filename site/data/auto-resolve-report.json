@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-07-04T12:16:24.280Z",
+  "generatedAt": "2026-07-04T14:00:11.451Z",
   "mode": "apply",
-  "checked": 1,
+  "checked": 2,
   "resolved": 0,
-  "skipped": 1,
+  "skipped": 2,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 1,
+      "checked": 2,
       "resolved": 0,
-      "skipped": 1,
+      "skipped": 2,
       "events": [
         {
           "type": "skipped",
@@ -25,12 +25,22 @@
           "fixture": "Paraguay v France"
         },
         {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW9",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "Argentina",
+          "reason": "Fixture unresolved",
+          "fixture": "Argentina v Egypt"
+        },
+        {
           "type": "queue-recalc",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 246,
+          "checked": 247,
           "ok": true
         },
         {
@@ -43,10 +53,13 @@
           "ok": true
         },
         {
-          "type": "error",
+          "type": "sheets-sync",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "adminSyncSheetsFromFirebasePicks failed: POST only. Send JSON body with {action:...}"
+          "reason": "Synced Sheets picks from Firebase",
+          "changed": 247,
+          "checked": 247,
+          "ok": true
         }
       ]
     },
