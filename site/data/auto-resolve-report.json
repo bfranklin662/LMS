@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-04T09:47:35.856Z",
+  "generatedAt": "2026-07-04T11:09:54.258Z",
   "mode": "apply",
   "checked": 1,
   "resolved": 0,
@@ -18,11 +18,11 @@
           "type": "skipped",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "gwId": "GW8",
-          "email": "ciarananthonykelly@gmail.com",
-          "pick": "Argentina",
+          "gwId": "GW9",
+          "email": "adam@tatatastudios.com",
+          "pick": "France",
           "reason": "Fixture unresolved",
-          "fixture": "Argentina v Cape Verde"
+          "fixture": "Paraguay v France"
         },
         {
           "type": "queue-recalc",
@@ -30,7 +30,7 @@
           "gameTitle": "World Cup 26",
           "reason": "Recalculated Firebase queued/pending/void picks",
           "changed": 0,
-          "checked": 245,
+          "checked": 246,
           "ok": true
         },
         {
@@ -47,8 +47,8 @@
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "reason": "Synced Sheets picks from Firebase",
-          "changed": 245,
-          "checked": 245,
+          "changed": 246,
+          "checked": 246,
           "ok": true
         }
       ]
