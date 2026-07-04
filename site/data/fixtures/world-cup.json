@@ -1047,10 +1047,10 @@
       "date": "2026-07-04",
       "team1": "Canada",
       "team2": "Morocco",
-      "time": "18:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "17:00",
+      "homeScore": 0,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
