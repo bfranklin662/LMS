@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-04T04:58:09.152Z",
+  "generatedAt": "2026-07-04T07:42:09.517Z",
   "mode": "apply",
-  "checked": 2,
-  "resolved": 1,
+  "checked": 1,
+  "resolved": 0,
   "skipped": 1,
   "ok": true,
   "error": "",
@@ -10,8 +10,8 @@
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 2,
-      "resolved": 1,
+      "checked": 1,
+      "resolved": 0,
       "skipped": 1,
       "events": [
         {
@@ -23,18 +23,6 @@
           "pick": "Argentina",
           "reason": "Fixture unresolved",
           "fixture": "Argentina v Cape Verde"
-        },
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW8",
-          "email": "patrickdeclankelly@gmail.com",
-          "pick": "Colombia",
-          "outcome": "WIN",
-          "result": "Colombia 1-0 Ghana",
-          "reason": "",
-          "syncedToSheets": true
         },
         {
           "type": "queue-recalc",
