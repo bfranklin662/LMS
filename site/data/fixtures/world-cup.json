@@ -1036,10 +1036,10 @@
       "date": "2026-07-04",
       "team1": "Colombia",
       "team2": "Ghana",
-      "time": "02:30",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "01:30",
+      "homeScore": 1,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
