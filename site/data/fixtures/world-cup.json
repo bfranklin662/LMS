@@ -960,9 +960,9 @@
       "team1": "Belgium",
       "team2": "Senegal",
       "time": "21:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 2,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -993,9 +993,9 @@
       "team1": "Portugal",
       "team2": "Croatia",
       "time": "00:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -1015,9 +1015,9 @@
       "team1": "Australia",
       "team2": "Egypt",
       "time": "19:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
@@ -1026,9 +1026,9 @@
       "team1": "Argentina",
       "team2": "Cape Verde",
       "time": "23:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 1,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW8",
