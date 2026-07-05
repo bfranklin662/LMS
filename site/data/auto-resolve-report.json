@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-05T21:16:27.704Z",
+  "generatedAt": "2026-07-05T22:16:01.775Z",
   "mode": "apply",
   "checked": 1,
   "resolved": 0,
@@ -43,13 +43,10 @@
           "ok": true
         },
         {
-          "type": "sheets-sync",
+          "type": "error",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 247,
-          "checked": 247,
-          "ok": true
+          "reason": "adminSyncSheetsFromFirebasePicks failed: error code: 524\n"
         }
       ]
     },
