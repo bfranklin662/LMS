@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-07-04T23:38:11.449Z",
+  "generatedAt": "2026-07-05T01:26:49.443Z",
   "mode": "apply",
   "checked": 2,
-  "resolved": 0,
-  "skipped": 2,
+  "resolved": 1,
+  "skipped": 1,
   "ok": true,
   "error": "",
   "games": [
@@ -11,18 +11,20 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 2,
-      "resolved": 0,
-      "skipped": 2,
+      "resolved": 1,
+      "skipped": 1,
       "events": [
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW9",
           "email": "adam@tatatastudios.com",
           "pick": "France",
-          "reason": "Fixture unresolved",
-          "fixture": "Paraguay v France"
+          "outcome": "WIN",
+          "result": "Paraguay 0-1 France",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
