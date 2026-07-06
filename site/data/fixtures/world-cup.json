@@ -1091,10 +1091,10 @@
       "date": "2026-07-06",
       "team1": "Portugal",
       "team2": "Spain",
-      "time": "20:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "19:00",
+      "homeScore": 0,
+      "awayScore": 1,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
