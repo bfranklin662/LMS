@@ -1081,9 +1081,9 @@
       "team1": "Mexico",
       "team2": "England",
       "time": "01:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "homeScore": 2,
+      "awayScore": 3,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
