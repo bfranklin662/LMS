@@ -1102,10 +1102,10 @@
       "date": "2026-07-07",
       "team1": "USA",
       "team2": "Belgium",
-      "time": "01:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "00:00",
+      "homeScore": 1,
+      "awayScore": 4,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW9",
