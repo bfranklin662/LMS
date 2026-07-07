@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-07-07T20:22:43.708Z",
+  "generatedAt": "2026-07-07T21:41:42.029Z",
   "mode": "apply",
-  "checked": 1,
-  "resolved": 1,
+  "checked": 0,
+  "resolved": 0,
   "skipped": 0,
   "ok": true,
   "error": "",
@@ -10,50 +10,10 @@
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 1,
-      "resolved": 1,
+      "checked": 0,
+      "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "resolved",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW9",
-          "email": "patrickdeclankelly@gmail.com",
-          "pick": "Argentina",
-          "outcome": "WIN",
-          "result": "Argentina 3-2 Egypt",
-          "reason": "",
-          "syncedToSheets": true
-        },
-        {
-          "type": "queue-recalc",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Recalculated Firebase queued/pending/void picks",
-          "changed": 0,
-          "checked": 247,
-          "ok": true
-        },
-        {
-          "type": "registration-recalc",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Recalculated Firebase alive/dead registrations",
-          "changed": 0,
-          "checked": 61,
-          "ok": true
-        },
-        {
-          "type": "sheets-sync",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 247,
-          "checked": 247,
-          "ok": true
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "the_run_in",
