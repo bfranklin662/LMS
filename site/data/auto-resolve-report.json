@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-07-07T18:14:20.400Z",
+  "generatedAt": "2026-07-07T20:22:43.708Z",
   "mode": "apply",
   "checked": 1,
-  "resolved": 0,
-  "skipped": 1,
+  "resolved": 1,
+  "skipped": 0,
   "ok": true,
   "error": "",
   "games": [
@@ -11,18 +11,20 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 1,
-      "resolved": 0,
-      "skipped": 1,
+      "resolved": 1,
+      "skipped": 0,
       "events": [
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW9",
           "email": "patrickdeclankelly@gmail.com",
           "pick": "Argentina",
-          "reason": "Fixture unresolved",
-          "fixture": "Argentina v Egypt"
+          "outcome": "WIN",
+          "result": "Argentina 3-2 Egypt",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "queue-recalc",
