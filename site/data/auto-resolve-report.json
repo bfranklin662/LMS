@@ -1,19 +1,57 @@
 {
-  "generatedAt": "2026-07-08T09:19:52.059Z",
+  "generatedAt": "2026-07-08T11:20:10.950Z",
   "mode": "apply",
-  "checked": 0,
+  "checked": 1,
   "resolved": 0,
-  "skipped": 0,
+  "skipped": 1,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 0,
+      "checked": 1,
       "resolved": 0,
-      "skipped": 0,
-      "events": []
+      "skipped": 1,
+      "events": [
+        {
+          "type": "skipped",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "gwId": "GW10",
+          "email": "patrickdeclankelly@gmail.com",
+          "pick": "Spain",
+          "reason": "Fixture unresolved",
+          "fixture": "Spain v Belgium"
+        },
+        {
+          "type": "queue-recalc",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "reason": "Recalculated Firebase queued/pending/void picks",
+          "changed": 0,
+          "checked": 248,
+          "ok": true
+        },
+        {
+          "type": "registration-recalc",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "reason": "Recalculated Firebase alive/dead registrations",
+          "changed": 0,
+          "checked": 61,
+          "ok": true
+        },
+        {
+          "type": "sheets-sync",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "reason": "Synced Sheets picks from Firebase",
+          "changed": 248,
+          "checked": 248,
+          "ok": true
+        }
+      ]
     },
     {
       "gameId": "the_run_in",
