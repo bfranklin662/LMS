@@ -1135,10 +1135,10 @@
       "date": "2026-07-09",
       "team1": "France",
       "team2": "Morocco",
-      "time": "21:00",
-      "homeScore": null,
-      "awayScore": null,
-      "resultStatus": "pending"
+      "time": "20:00",
+      "homeScore": 2,
+      "awayScore": 0,
+      "resultStatus": "final"
     },
     {
       "gwId": "GW10",
