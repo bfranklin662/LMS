@@ -1,9 +1,9 @@
 {
-  "generatedAt": "2026-07-10T21:17:51.312Z",
+  "generatedAt": "2026-07-10T22:22:55.943Z",
   "mode": "apply",
   "checked": 2,
-  "resolved": 0,
-  "skipped": 2,
+  "resolved": 1,
+  "skipped": 1,
   "ok": true,
   "error": "",
   "games": [
@@ -11,18 +11,20 @@
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
       "checked": 2,
-      "resolved": 0,
-      "skipped": 2,
+      "resolved": 1,
+      "skipped": 1,
       "events": [
         {
-          "type": "skipped",
+          "type": "resolved",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
           "gwId": "GW10",
           "email": "patrickdeclankelly@gmail.com",
           "pick": "Spain",
-          "reason": "Fixture unresolved",
-          "fixture": "Spain v Belgium"
+          "outcome": "WIN",
+          "result": "Spain 2-1 Belgium",
+          "reason": "",
+          "syncedToSheets": true
         },
         {
           "type": "skipped",
@@ -53,10 +55,13 @@
           "ok": true
         },
         {
-          "type": "error",
+          "type": "sheets-sync",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "adminSyncSheetsFromFirebasePicks failed: error code: 524\n"
+          "reason": "Synced Sheets picks from Firebase",
+          "changed": 249,
+          "checked": 249,
+          "ok": true
         }
       ]
     },
