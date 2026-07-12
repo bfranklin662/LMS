@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T07:22:01.225Z",
+  "generatedAt": "2026-07-12T09:23:35.284Z",
   "mode": "apply",
   "checked": 1,
   "resolved": 0,
@@ -25,10 +25,13 @@
           "fixture": "Argentina v Switzerland"
         },
         {
-          "type": "error",
+          "type": "queue-recalc",
           "gameId": "world_cup_26",
           "gameTitle": "World Cup 26",
-          "reason": "adminRecalcFirebasePickQueueStatuses failed: Unauthorized"
+          "reason": "Recalculated Firebase queued/pending/void picks",
+          "changed": 0,
+          "checked": 249,
+          "ok": true
         },
         {
           "type": "registration-recalc",
