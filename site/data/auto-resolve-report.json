@@ -1,57 +1,19 @@
 {
-  "generatedAt": "2026-07-13T13:16:09.261Z",
+  "generatedAt": "2026-07-13T15:54:24.977Z",
   "mode": "apply",
-  "checked": 1,
+  "checked": 0,
   "resolved": 0,
-  "skipped": 1,
+  "skipped": 0,
   "ok": true,
   "error": "",
   "games": [
     {
       "gameId": "world_cup_26",
       "gameTitle": "World Cup 26",
-      "checked": 1,
+      "checked": 0,
       "resolved": 0,
-      "skipped": 1,
-      "events": [
-        {
-          "type": "skipped",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "gwId": "GW10",
-          "email": "adam@tatatastudios.com",
-          "pick": "Argentina",
-          "reason": "Fixture unresolved",
-          "fixture": "Argentina v Switzerland"
-        },
-        {
-          "type": "queue-recalc",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Recalculated Firebase queued/pending/void picks",
-          "changed": 0,
-          "checked": 249,
-          "ok": true
-        },
-        {
-          "type": "registration-recalc",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Recalculated Firebase alive/dead registrations",
-          "changed": 0,
-          "checked": 61,
-          "ok": true
-        },
-        {
-          "type": "sheets-sync",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "Synced Sheets picks from Firebase",
-          "changed": 249,
-          "checked": 249,
-          "ok": true
-        }
-      ]
+      "skipped": 0,
+      "events": []
     },
     {
       "gameId": "the_run_in",
