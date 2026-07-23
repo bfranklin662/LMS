@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T09:37:04.965Z",
+  "generatedAt": "2026-07-23T11:30:26.781Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -21,7 +21,14 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": []
+      "events": [
+        {
+          "type": "error",
+          "gameId": "the_run_in",
+          "gameTitle": "The Run In",
+          "reason": "failed to load picks: API error (524)"
+        }
+      ]
     },
     {
       "gameId": "spring_2026_lms",
