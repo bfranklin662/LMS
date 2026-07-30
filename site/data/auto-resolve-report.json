@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-30T08:44:23.405Z",
+  "generatedAt": "2026-07-30T10:51:37.885Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -29,14 +29,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "spring_2026_lms",
-          "gameTitle": "Spring 2026 LMS",
-          "reason": "failed to load picks: POST only. Send JSON body with {action:...}"
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "jan_2026_lms",
