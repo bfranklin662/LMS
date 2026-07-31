@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-31T10:11:56.418Z",
+  "generatedAt": "2026-07-31T12:11:03.791Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -13,14 +13,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "failed to load picks: API error (524)"
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "the_run_in",
