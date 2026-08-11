@@ -1,10 +1,43 @@
 {
-  "generatedAt": "2026-08-11T04:10:52.486Z",
+  "generatedAt": "2026-08-11T05:19:09.909Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
   "skipped": 0,
-  "ok": false,
-  "error": "API error (524)",
-  "games": []
+  "ok": true,
+  "error": "",
+  "games": [
+    {
+      "gameId": "world_cup_26",
+      "gameTitle": "World Cup 26",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    },
+    {
+      "gameId": "the_run_in",
+      "gameTitle": "The Run In",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    },
+    {
+      "gameId": "spring_2026_lms",
+      "gameTitle": "Spring 2026 LMS",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    },
+    {
+      "gameId": "jan_2026_lms",
+      "gameTitle": "January 2026 LMS",
+      "checked": 0,
+      "resolved": 0,
+      "skipped": 0,
+      "events": []
+    }
+  ]
 }
