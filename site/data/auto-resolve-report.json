@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-12T12:55:23.205Z",
+  "generatedAt": "2026-08-12T14:11:21.889Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -13,7 +13,14 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": []
+      "events": [
+        {
+          "type": "error",
+          "gameId": "world_cup_26",
+          "gameTitle": "World Cup 26",
+          "reason": "failed to load picks: POST only. Send JSON body with {action:...}"
+        }
+      ]
     },
     {
       "gameId": "the_run_in",
