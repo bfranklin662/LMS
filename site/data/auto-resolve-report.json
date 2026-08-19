@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-19T06:05:29.340Z",
+  "generatedAt": "2026-08-19T07:00:23.410Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -37,14 +37,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "jan_2026_lms",
-          "gameTitle": "January 2026 LMS",
-          "reason": "failed to load picks: API error (404)"
-        }
-      ]
+      "events": []
     }
   ]
 }
