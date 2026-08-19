@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-19T05:21:05.187Z",
+  "generatedAt": "2026-08-19T05:49:41.038Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -28,14 +28,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "the_run_in",
-          "gameTitle": "The Run In",
-          "reason": "failed to load picks: API error (404)"
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "spring_2026_lms",
@@ -58,7 +51,14 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": []
+      "events": [
+        {
+          "type": "error",
+          "gameId": "jan_2026_lms",
+          "gameTitle": "January 2026 LMS",
+          "reason": "failed to load picks: POST only. Send JSON body with {action:...}"
+        }
+      ]
     }
   ]
 }
