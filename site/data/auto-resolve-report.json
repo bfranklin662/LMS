@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-19T05:49:41.038Z",
+  "generatedAt": "2026-08-19T06:05:29.340Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -13,14 +13,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "world_cup_26",
-          "gameTitle": "World Cup 26",
-          "reason": "failed to load picks: API error (404)"
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "the_run_in",
@@ -36,14 +29,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "spring_2026_lms",
-          "gameTitle": "Spring 2026 LMS",
-          "reason": "failed to load picks: POST only. Send JSON body with {action:...}"
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "jan_2026_lms",
@@ -56,7 +42,7 @@
           "type": "error",
           "gameId": "jan_2026_lms",
           "gameTitle": "January 2026 LMS",
-          "reason": "failed to load picks: POST only. Send JSON body with {action:...}"
+          "reason": "failed to load picks: API error (404)"
         }
       ]
     }
