@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-23T19:45:10.278Z",
+  "generatedAt": "2026-08-23T19:56:48.331Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -37,7 +37,14 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": []
+      "events": [
+        {
+          "type": "error",
+          "gameId": "jan_2026_lms",
+          "gameTitle": "January 2026 LMS",
+          "reason": "failed to load picks: Service Spreadsheets failed while accessing document with id 1NRLf79jGBQhu1BHJ2OF4VAKwH1XinPJHhRWaoPS3Zyk."
+        }
+      ]
     }
   ]
 }
