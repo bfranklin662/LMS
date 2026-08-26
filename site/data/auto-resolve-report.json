@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-26T18:31:54.166Z",
+  "generatedAt": "2026-08-26T21:03:53.544Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -21,14 +21,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "the_run_in",
-          "gameTitle": "The Run In",
-          "reason": "failed to load picks: POST only. Send JSON body with {action:...}"
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "spring_2026_lms",
