@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T16:34:13.699Z",
+  "generatedAt": "2026-09-12T18:41:08.830Z",
   "mode": "apply",
   "checked": 0,
   "resolved": 0,
@@ -21,14 +21,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "the_run_in",
-          "gameTitle": "The Run In",
-          "reason": "failed to load picks: API error (404)"
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "spring_2026_lms",
@@ -36,14 +29,7 @@
       "checked": 0,
       "resolved": 0,
       "skipped": 0,
-      "events": [
-        {
-          "type": "error",
-          "gameId": "spring_2026_lms",
-          "gameTitle": "Spring 2026 LMS",
-          "reason": "failed to load picks: API error (404)"
-        }
-      ]
+      "events": []
     },
     {
       "gameId": "jan_2026_lms",
