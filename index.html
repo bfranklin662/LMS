@@ -5,8 +5,90 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <title>Poly FC – Last Man Standing</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&family=Libre+Baskerville:wght@700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="site/images/lmsSquare5.jpg">
+  <style>
+    .site-relocation-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 2147483647;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(180, 18, 34, 0.34), transparent 38%),
+        radial-gradient(circle at 15% 80%, rgba(220, 38, 38, 0.18), transparent 34%),
+        linear-gradient(145deg, #160204 0%, #080101 52%, #1f0708 100%);
+      color: #f8fafc;
+      text-align: center;
+    }
+
+    .site-relocation-card {
+      width: min(100%, 560px);
+      padding: clamp(28px, 6vw, 52px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 30px;
+      background: rgba(18, 12, 14, 0.88);
+      box-shadow: 0 28px 90px rgba(0, 0, 0, 0.48);
+      backdrop-filter: blur(18px);
+    }
+
+    .site-relocation-logo {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 18px;
+      border-radius: 18px;
+      object-fit: cover;
+      box-shadow: 0 16px 35px rgba(0, 0, 0, 0.36);
+    }
+
+    .site-relocation-kicker {
+      margin: 0 0 12px;
+      color: #ff4b5c;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+    }
+
+    .site-relocation-card h1 {
+      margin: 0;
+      color: #fff;
+      font-size: clamp(34px, 8vw, 58px);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
+    }
+
+    .site-relocation-copy {
+      margin: 18px auto 26px;
+      max-width: 420px;
+      color: rgba(248, 250, 252, 0.78);
+      font-size: clamp(16px, 3.8vw, 19px);
+      line-height: 1.55;
+    }
+
+    .site-relocation-link {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 52px;
+      padding: 0 22px;
+      border-radius: 999px;
+      background: linear-gradient(135deg, #ff3048, #b50f20);
+      color: #fff;
+      font-size: clamp(15px, 3.8vw, 18px);
+      font-weight: 900;
+      text-decoration: none;
+      box-shadow: 0 14px 36px rgba(255, 48, 72, 0.28);
+    }
+
+    body:has(.site-relocation-overlay) {
+      overflow: hidden;
+    }
+  </style>
   <!-- Social sharing (WhatsApp / Facebook / iMessage etc) -->
   <meta property="og:title" content="Polytechnic FC – Last Man Standing" />
   <meta property="og:description"
@@ -18,6 +100,20 @@
 </head>
 
 <body>
+  <div class="site-relocation-overlay" role="dialog" aria-modal="true" aria-labelledby="siteRelocationTitle">
+    <div class="site-relocation-card">
+      <img class="site-relocation-logo" src="site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
+      <p class="site-relocation-kicker">Polytechnic FC LMS has moved</p>
+      <h1 id="siteRelocationTitle">This site has relocated</h1>
+      <p class="site-relocation-copy">
+        Please use the new Grassroots LMS page from now on.
+      </p>
+      <a class="site-relocation-link" href="https://www.grassrootslms.com/polytechnic-fc">
+        www.grassrootslms.com/polytechnic-fc
+      </a>
+    </div>
+  </div>
+
   <div id="splash" class="splash hidden">
     <div class="splash-inner">
       <img class="splash-logo" src="site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
@@ -28,23 +124,185 @@
   </div>
   <div class="app">
 
-    <!-- AUTH -->
-    <main id="authView" class="view">
-      <div class="card">
-        <div class="brand auth-brand reg-brand" id="homeBrandBtn" style="cursor:pointer;">
-          <img class="brand-logo" src="site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
-          <div class="brand-text">
-            <div class="brand-title">Last Man Standing</div>
-            <div class="brand-sub">Polytechnic FC</div>
+    <!-- AUTH / LANDING -->
+    <main id="authView" class="view landing-view">
+      <section class="landing-page">
+        <nav class="landing-nav" aria-label="Landing page navigation">
+          <button class="landing-logo-btn" id="homeBrandBtn" type="button" data-landing-scroll="top">
+            <img class="brand-logo" src="site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
+            <span>
+              <strong>Last Man Standing</strong>
+              <small>Polytechnic FC</small>
+            </span>
+          </button>
+
+          <div class="landing-nav-links">
+            <button type="button" data-landing-scroll="features">Features</button>
+            <button type="button" data-landing-scroll="how">How it works</button>
           </div>
-        </div>
 
-        <hr class="auth-divider reg-card">
+          <button class="btn btn-primary landing-nav-cta" type="button" data-auth-mode="register">Register / Login</button>
+        </nav>
 
-        <div class="segmented">
-          <button id="showRegisterBtn" class="seg-btn active" type="button">Register</button>
-          <button id="showLoginBtn" class="seg-btn" type="button">Login</button>
-        </div>
+        <section class="landing-hero" id="landingTop">
+          <div class="landing-hero-copy">
+            <div class="landing-season-pill">New games opening soon</div>
+            <p class="landing-superline">The Ultimate Football Survival Game</p>
+            <h1 class="landing-main-title">
+              <span>Play the</span>
+              <span>Polytechnic FC</span>
+              <span class="landing-red">Last Man Standing</span>
+              <span>Football Game</span>
+            </h1>
+            <p class="landing-lede">
+              Pick a team to win, survive the gameweek, and watch the field shrink until one player is left standing.
+              Designed for mobile, built for club teammates, and made to help raise money for Polytechnic FC.
+            </p>
+
+            <div class="landing-actions">
+              <button class="btn btn-primary" type="button" data-auth-mode="register">Create account</button>
+              <button class="btn btn-secondary" type="button" data-auth-mode="login">Login</button>
+              <button class="btn btn-ghost" type="button" data-auth-mode="app">View games lobby</button>
+              <button class="landing-text-link" type="button" data-landing-scroll="how">See how it works</button>
+            </div>
+
+            <div class="landing-hero-points">
+              <span>Premier League</span>
+              <span>Top 4 English leagues</span>
+              <span>International tournaments</span>
+            </div>
+          </div>
+
+          <div class="landing-phone-stage" aria-label="App previews">
+            <div class="landing-phone landing-phone-main">
+              <div class="landing-phone-screen landing-phone-screen--image">
+                <img class="landing-phone-screenshot" src="site/images/phone/phone_home2.png" alt="LMS app home screen preview" />
+              </div>
+            </div>
+
+            <div class="landing-phone landing-phone-back">
+              <div class="landing-phone-screen landing-phone-screen--image">
+                <img class="landing-phone-screenshot" src="site/images/phone/phone_selections.png" alt="LMS player selections screen preview" />
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="landing-section landing-how" id="landingHow">
+          <div class="landing-section-head">
+            <p class="landing-kicker">How it works</p>
+            <h2>Simple rules. Brutal little game</h2>
+            <p>It takes about ten seconds to understand, which is exactly why everyone gets far too invested.</p>
+          </div>
+
+          <div class="landing-how-grid">
+            <article>
+              <span class="landing-how-icon" aria-hidden="true">
+                <b>01</b>
+                <svg viewBox="0 0 24 24" role="img">
+                  <path d="M16 11a4 4 0 1 0-8 0" />
+                  <path d="M4 20c.7-3.2 3.3-5 8-5s7.3 1.8 8 5" />
+                  <path d="M18 9.5a2.8 2.8 0 0 1 2.5 2.8" />
+                  <path d="M6 9.5a2.8 2.8 0 0 0-2.5 2.8" />
+                </svg>
+              </span>
+              <h3>Join a game</h3>
+              <p>Create an account, enter the lobby and register for the competition you want to play.</p>
+            </article>
+            <article>
+              <span class="landing-how-icon" aria-hidden="true">
+                <b>02</b>
+                <svg viewBox="0 0 24 24" role="img">
+                  <circle cx="12" cy="12" r="8" />
+                  <path d="M12 7v5l4 2" />
+                </svg>
+              </span>
+              <h3>Pick a team</h3>
+              <p>Choose one team to win before the deadline. In most games, you can only use a winning team once.</p>
+            </article>
+            <article>
+              <span class="landing-how-icon" aria-hidden="true">
+                <b>03</b>
+                <svg viewBox="0 0 24 24" role="img">
+                  <path d="M8 4h8v3a4 4 0 0 1-8 0V4Z" />
+                  <path d="M7 5H4a4 4 0 0 0 4 5" />
+                  <path d="M17 5h3a4 4 0 0 1-4 5" />
+                  <path d="M12 11v5" />
+                  <path d="M8 20h8" />
+                  <path d="M10 16h4" />
+                </svg>
+              </span>
+              <h3>Survive or drop</h3>
+              <p>If your team wins, you go through. If they draw, lose, or you miss the deadline, you are out.</p>
+            </article>
+          </div>
+        </section>
+
+
+        <section class="landing-section" id="landingFeatures">
+          <div class="landing-section-head">
+            <p class="landing-kicker">Features</p>
+            <h2>Play Last Man Standing with your club teammates</h2>
+            <p>Fast lobby access, current fixtures, live-ish results, player tracking and admin tools without relying on a messy spreadsheet front-end.</p>
+          </div>
+
+          <div class="landing-feature-grid">
+            <article class="landing-feature-card">
+              <div class="landing-feature-media landing-feature-media--phone">
+                <img src="site/images/phone/phone_home2.png" alt="Games lobby preview" />
+              </div>
+              <div class="landing-feature-body">
+                <span>🏟️</span>
+                <h3>Games lobby</h3>
+                <p>Run multiple competitions at once and let players jump into the right game from one place.</p>
+              </div>
+            </article>
+            <article class="landing-feature-card">
+              <div class="landing-feature-media landing-feature-media--phone">
+                <img src="site/images/phone/phone_selections.png" alt="Fixtures and selections preview" />
+              </div>
+              <div class="landing-feature-body">
+                <span>⚽</span>
+                <h3>Fixtures and results</h3>
+                <p>Players can see upcoming fixtures, recent scores, and their own gameweek status quickly.</p>
+              </div>
+            </article>
+            <article class="landing-feature-card">
+              <div class="landing-feature-media landing-feature-media--competitions">
+                <img src="site/images/competitions/premier-league.png" alt="Premier League competition preview" />
+                <img src="site/images/competitions/championship.png" alt="Championship competition preview" />
+                <img src="site/images/competitions/fa-cup.png" alt="Cup competition preview" />
+              </div>
+              <div class="landing-feature-body">
+                <span>🏆</span>
+                <h3>League and cup coverage</h3>
+                <p>Premier League, Championship, League One, League Two, cups and international competitions.</p>
+              </div>
+            </article>
+            <article class="landing-feature-card">
+              <div class="landing-feature-media landing-feature-media--phone">
+                <img src="site/images/phone/phone_top_picks.png" alt="Top picks and player tracking preview" />
+              </div>
+              <div class="landing-feature-body">
+                <span>✅</span>
+                <h3>Automatic tracking</h3>
+                <p>Selections, alive/dead status, winners, prize pots and fundraising all stay organised.</p>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <div id="authPanel" class="card landing-auth-card">
+          <div class="landing-auth-head">
+            <button class="landing-auth-back" type="button" data-landing-scroll="top">← Back to home</button>
+            <h2>Enter LMS</h2>
+            <p class="muted">Create your account or log back in to view your games.</p>
+          </div>
+
+          <div class="segmented">
+            <button id="showRegisterBtn" class="seg-btn active" type="button">Register</button>
+            <button id="showLoginBtn" class="seg-btn" type="button">Login</button>
+          </div>
 
         <!-- Register -->
         <form id="registerForm" class="form" novalidate>
@@ -77,10 +335,13 @@
               <option>2nd Team</option>
               <option>3rd Team</option>
               <option>4th Team</option>
+              <option>5th Team</option>
               <option>6th Team</option>
               <option>7th Team</option>
+              <option>8th Team</option>
               <option>Womens Team</option>
               <option>Vets</option>
+              <option>Strollers</option>
               <option>Staff</option>
               <option>Old player</option>
               <option>Friend of player</option>
@@ -150,7 +411,8 @@
         </form>
 
         <div id="authMsg" class="msg hidden"></div>
-      </div>
+        </div>
+      </section>
     </main>
 
 
