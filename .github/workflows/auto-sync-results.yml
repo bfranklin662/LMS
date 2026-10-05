@@ -1,8 +1,8 @@
 name: Auto Sync Results
 
 on:
-  schedule:
-    - cron: "*/10 * * * *"
+  # Disabled after moving LMS to Grassroots LMS. Keep manual dispatch only in case
+  # this workflow is ever needed for archive/debug work.
   workflow_dispatch:
 
 concurrency:
