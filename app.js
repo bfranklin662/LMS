@@ -162,6 +162,60 @@ let gamesList = [];        // from API
 let myEntries = [];          // entries for this account across games
 let activeEntry = null;
 
+const PRIVATE_DUMMY_GAME_EMAIL = "nickhorne552@gmail.com";
+const PRIVATE_DUMMY_GAME_ID = "private_preview_lms_26_27";
+const PRIVATE_DUMMY_GAME = {
+  id: PRIVATE_DUMMY_GAME_ID,
+  title: "Private Preview LMS 26/27",
+  status: "RUNNING",
+  season: "2026/27",
+  bio: "Preview game for testing the new LMS setup. Premier League fixtures only.",
+  competitions: "Premier League",
+  competitionsText: "Premier League",
+  entryFee: 10,
+  prize: 0,
+  fundraiser: 0,
+  admin: 0,
+  startGw: "GW1",
+  startDate: "2026-08-14",
+  fixtureGrouping: "DATE_WEEKEND",
+  queuePicks: true,
+  privatePreview: true,
+  visibleTo: [PRIVATE_DUMMY_GAME_EMAIL]
+};
+
+function shouldShowPrivateDummyGame_(email = sessionEmail) {
+  return String(email || "").trim().toLowerCase() === PRIVATE_DUMMY_GAME_EMAIL;
+}
+
+function applyPrivateDummyGame_() {
+  if (!shouldShowPrivateDummyGame_()) return;
+
+  if (!(gamesList || []).some(game => String(game.id || "") === PRIVATE_DUMMY_GAME_ID)) {
+    gamesList = [PRIVATE_DUMMY_GAME, ...(gamesList || [])];
+  }
+
+  if (!(myEntries || []).some(entry => String(entry.gameId || "") === PRIVATE_DUMMY_GAME_ID)) {
+    myEntries = [
+      {
+        gameId: PRIVATE_DUMMY_GAME_ID,
+        gameTitle: PRIVATE_DUMMY_GAME.title,
+        email: PRIVATE_DUMMY_GAME_EMAIL,
+        firstName: sessionUser?.firstName || "Nick",
+        lastName: sessionUser?.lastName || "Horne",
+        name: `${sessionUser?.firstName || "Nick"} ${sessionUser?.lastName || "Horne"}`.trim(),
+        clubTeam: sessionUser?.clubTeam || "Preview",
+        approved: true,
+        alive: true,
+        submitted: false,
+        submittedForGw: false,
+        privatePreview: true
+      },
+      ...(myEntries || [])
+    ];
+  }
+}
+
 const tabButtons = document.querySelectorAll(".tab2");
 const fixturesPanel = document.getElementById("panel-fixtures");
 const entriesPanel = document.getElementById("panel-entries");
@@ -423,6 +477,7 @@ async function fetchGames_(viewerEmail = "") {
   console.log("getGames response =", data);
 
   gamesList = Array.isArray(data.games) ? data.games : [];
+  applyPrivateDummyGame_();
 }
 
 function isPaymentWorkflowGame_(gameId) {
@@ -488,6 +543,7 @@ async function fetchMyEntries_() {
   );
 
   myEntries = Array.isArray(data.entries) ? data.entries : [];
+  applyPrivateDummyGame_();
 }
 
 function getMyEntryForGame_(gameId) {
@@ -1125,6 +1181,13 @@ async function refreshLobbyCounts_() {
     const status = String(g.status || "").toUpperCase();
     const archivedCounts = GAME_ARCHIVES[gameId];
 
+    if (g?.privatePreview) {
+      lobbyCountsByGame[gameId] = { registered: 1, remaining: 1, total: 1, alive: 1, dead: 0 };
+      lobbyCountsLoading[gameId] = false;
+      renderLobby_();
+      return;
+    }
+
     if (status === "FINISHED" && archivedCounts) {
       lobbyCountsByGame[gameId] = archivedCounts;
       lobbyCountsLoading[gameId] = false;
@@ -1341,6 +1404,86 @@ function startOfDayUTC(d) {
   return x;
 }
 
+function isoDateFromLocalDate_(date) {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getWeekendStartDateKey_(date) {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  d.setHours(12, 0, 0, 0);
+  const daysSinceFriday = (d.getDay() + 2) % 7;
+  d.setDate(d.getDate() - daysSinceFriday);
+  return isoDateFromLocalDate_(d);
+}
+
+function usesDateWeekendFixtureGrouping_(game) {
+  return String(game?.fixtureGrouping || "").trim().toUpperCase() === "DATE_WEEKEND";
+}
+
+function buildDateWeekendGameweeks_(fixturesArr, game) {
+  const startDate = String(game?.startDate || "").trim();
+  const buckets = new Map();
+
+  for (const f of fixturesArr) {
+    if (!gameIncludesLeague_(f.league, game)) continue;
+
+    const bucketDate = getWeekendStartDateKey_(f.kickoff);
+    if (!bucketDate) continue;
+    if (startDate && bucketDate < startDate) continue;
+
+    if (!buckets.has(bucketDate)) {
+      buckets.set(bucketDate, { bucketDate, fixtures: [] });
+    }
+
+    buckets.get(bucketDate).fixtures.push(f);
+  }
+
+  return Array.from(buckets.values())
+    .sort((a, b) => a.bucketDate.localeCompare(b.bucketDate))
+    .map((bucket, index) => {
+      const displayGwId = `GW${index + 1}`;
+      const clonedFixtures = bucket.fixtures
+        .map(f => ({
+          ...f,
+          actualGwId: f.actualGwId || f.gwId,
+          gwId: displayGwId
+        }))
+        .sort((a, b) => a.kickoff - b.kickoff);
+
+      const firstKickoff = clonedFixtures[0].kickoff;
+      const lastKickoff = clonedFixtures[clonedFixtures.length - 1].kickoff;
+      const start = startOfDayUTC(firstKickoff);
+      const fallbackDeadline = new Date(firstKickoff.getTime() - DEADLINE_HOURS_BEFORE_FIRST_FIXTURE * 3600 * 1000);
+      const fallbackLateDeadline = new Date(lastKickoff.getTime());
+      const endDay = startOfDayUTC(lastKickoff);
+
+      return {
+        id: displayGwId,
+        actualGwId: bucket.bucketDate,
+        displayGwId,
+        num: index + 1,
+        actualNum: index + 1,
+        dateBucket: bucket.bucketDate,
+        fixtures: clonedFixtures,
+        start,
+        firstKickoff,
+        lastKickoff,
+        deadline: fallbackDeadline,
+        lateDeadline: fallbackLateDeadline,
+        endDay,
+        endCutoff: fallbackLateDeadline
+      };
+    });
+}
+
 function buildGameweeks(fixturesArr, game) {
   const map = new Map();
   const startGwNum = getGameStartGwNum_(game);
@@ -1431,7 +1574,12 @@ function applyDeadlinesToGameweeks_(gws) {
 
 function getGameweeksForGame_(game) {
   if (!game || !fixtures.length) return [];
-  return applyDeadlinesToGameweeks_(buildGameweeks(fixtures, game), game);
+
+  const rawGameweeks = usesDateWeekendFixtureGrouping_(game)
+    ? buildDateWeekendGameweeks_(fixtures, game)
+    : buildGameweeks(fixtures, game);
+
+  return applyDeadlinesToGameweeks_(rawGameweeks, game);
 }
 
 function shouldShowGwReportRow_(row, gwId) {
@@ -5016,6 +5164,21 @@ async function loadFixturesAndDeadlines_() {
 async function refreshProfile() {
   if (!sessionEmail || !activeGameId) return;
 
+  if (activeGameId === PRIVATE_DUMMY_GAME_ID && shouldShowPrivateDummyGame_()) {
+    const entry = getMyEntryForGame_(activeGameId) || {};
+    sessionUser = {
+      ...(sessionUser || {}),
+      ...entry,
+      email: sessionEmail,
+      approved: true,
+      alive: true
+    };
+    sessionPicks = [];
+    usedTeams = new Set();
+    renderGameTitleBox_();
+    return;
+  }
+
   const data = await api({
     action: "getProfile",
     email: sessionEmail,
@@ -6268,6 +6431,151 @@ function isEntryWinner_(entry, remainingCount) {
   return !!entry && !!entry.approved && entry.alive !== false && Number(remainingCount || 0) === 1;
 }
 
+function getUserInitials_() {
+  const sess = getSession() || {};
+  const first = String(sessionUser?.firstName || sess.firstName || "").trim();
+  const last = String(sessionUser?.lastName || sess.lastName || "").trim();
+  const email = String(sessionUser?.email || sess.email || sessionEmail || "").trim();
+  const initials = `${first.charAt(0)}${last.charAt(0)}`.trim() || email.slice(0, 2);
+  return initials.toUpperCase() || "👤";
+}
+
+function getProfileValue_(key, fallback = "") {
+  const sess = getSession() || {};
+  return String(sessionUser?.[key] || sess?.[key] || fallback || "").trim();
+}
+
+function renderAccountPage_() {
+  if (!lobbyView) return;
+
+  const firstName = getProfileValue_("firstName");
+  const lastName = getProfileValue_("lastName");
+  const email = getProfileValue_("email", sessionEmail || "");
+  const phone = getProfileValue_("phone");
+  const clubTeam = getProfileValue_("clubTeam");
+  const teamOptions = [
+    "1st Team", "2nd Team", "3rd Team", "4th Team", "5th Team", "6th Team", "7th Team", "8th Team",
+    "Womens Team", "Vets", "Strollers", "Staff", "Old player", "Friend of player", "Relative of player"
+  ];
+
+  const optionHtml = teamOptions.map(team => `
+    <option ${team === clubTeam ? "selected" : ""}>${escapeHtml(team)}</option>
+  `).join("");
+
+  lobbyView.innerHTML = `
+    <div class="phone account-page-shell">
+      <header class="topbar">
+        <div class="brand auth-brand" data-lobby-home>
+          <img class="brand-logo" src="site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
+          <div class="brand-text">
+            <div class="brand-title">Last Man Standing</div>
+            <div class="brand-sub">Polytechnic FC</div>
+          </div>
+        </div>
+
+        <div class="top-actions">
+          <button id="accountBackBtn" class="btn btn-secondary" type="button">Back to lobby</button>
+        </div>
+      </header>
+
+      <hr class="auth-divider">
+
+      <main class="content account-page-content">
+        <section class="account-settings-card">
+          <h2>Profile settings</h2>
+          <form class="form account-settings-form">
+            <label>
+              <span>First name</span>
+              <input name="firstName" value="${escapeAttr(firstName)}" />
+            </label>
+            <label>
+              <span>Last name</span>
+              <input name="lastName" value="${escapeAttr(lastName)}" />
+            </label>
+            <label>
+              <span>Email</span>
+              <input name="email" type="email" value="${escapeAttr(email)}" />
+            </label>
+            <label>
+              <span>Phone</span>
+              <input name="phone" type="tel" value="${escapeAttr(phone)}" />
+            </label>
+            <label>
+              <span>Team / connection</span>
+              <select name="clubTeam">
+                <option value="">Select team</option>
+                ${optionHtml}
+              </select>
+            </label>
+            <button class="btn btn-primary" type="button" data-account-save="profile" disabled>Save profile</button>
+          </form>
+        </section>
+
+        <section class="account-settings-card">
+          <h2>Marketing and email settings</h2>
+          <form class="form account-settings-form">
+            <div class="account-check-list">
+              <label class="gdpr-row account-check-row">
+                <input type="checkbox" checked />
+                <span class="gdpr-text">Receive gameweek report emails</span>
+              </label>
+              <label class="gdpr-row account-check-row">
+                <input type="checkbox" checked />
+                <span class="gdpr-text">Receive pick reminder emails</span>
+              </label>
+              <label class="gdpr-row account-check-row">
+                <input type="checkbox" checked />
+                <span class="gdpr-text">Receive new game announcement emails</span>
+              </label>
+            </div>
+            <button class="btn btn-primary" type="button" data-account-save="marketing" disabled>Save marketing settings</button>
+          </form>
+        </section>
+
+        <section class="account-logout-card">
+          <button id="accountLogoutBtn" class="btn btn-primary account-logout-btn" type="button">Log out</button>
+        </section>
+      </main>
+    </div>
+  `;
+
+  document.getElementById("accountBackBtn")?.addEventListener("click", () => {
+    showLobby_();
+    lastLobbyRenderSig = "";
+    renderLobby_();
+  });
+
+  document.getElementById("accountLogoutBtn")?.addEventListener("click", doLogout);
+
+  lobbyView.querySelector("[data-lobby-home]")?.addEventListener("click", () => {
+    showLobby_();
+    lastLobbyRenderSig = "";
+    renderLobby_();
+  });
+
+  lobbyView.querySelectorAll(".account-settings-form").forEach(form => {
+    const saveBtn = form.querySelector("[data-account-save]");
+    if (!saveBtn) return;
+
+    const markChanged = () => {
+      saveBtn.disabled = false;
+      saveBtn.classList.remove("btn-disabled");
+    };
+
+    form.querySelectorAll("input, select").forEach(field => {
+      field.addEventListener("input", markChanged);
+      field.addEventListener("change", markChanged);
+    });
+  });
+
+  lobbyView.querySelectorAll("[data-account-save]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.disabled) return;
+      showSystemModal_("Account settings", "<p>Account saving needs one small backend action before these changes can be stored permanently.</p>");
+    });
+  });
+}
+
 function renderLobby_() {
   if (!lobbyView) return;
 
@@ -6283,7 +6591,7 @@ function renderLobby_() {
     }))
   });
 
-  if (lobbySig === lastLobbyRenderSig) return;
+  if (lobbySig === lastLobbyRenderSig && String(lobbyView.innerHTML || "").trim()) return;
   lastLobbyRenderSig = lobbySig;
 
   const renderGameCard_ = (g) => {
@@ -6312,7 +6620,9 @@ function renderLobby_() {
 
     let actionsHtml = "";
 
-    if (!sessionEmail) {
+    if (status === "FINISHED") {
+      actionsHtml = `<button class="btn btn-ghost" type="button" data-enter-game="${escapeAttr(gameId)}">View game →</button>`;
+    } else if (!sessionEmail) {
       if (canRegisterNow || lateRegistrationOpen) {
         actionsHtml = `<button class="btn btn-secondary" type="button" data-auth-required="1">Login to register</button>`;
       } else {
@@ -6546,19 +6856,24 @@ function renderLobby_() {
   const finishedCardsHtml = finishedGames.map(renderGameCard_).join("");
 
   const cardsHtml = `
-    ${activeCardsHtml || `<div class="muted">No active games available.</div>`}
+    <section class="lobby-section-card lobby-section-card--upcoming">
+      <div class="lobby-section-head">
+        <h3>Season 26/27</h3>
+        <span class="muted small">${activeGames.length ? `${activeGames.length} available` : "Opening soon"}</span>
+      </div>
+      ${activeCardsHtml ? `<div class="lobby-games-grid lobby-active-grid">${activeCardsHtml}</div>` : `<div class="muted lobby-empty-state">No active games available.</div>`}
+    </section>
 
     ${finishedGames.length ? `
-      <details id="finishedGamesDetails" class="fixtures-card collapse-card" style="margin-top:16px;" ${finishedGamesOpen ? "open" : ""}>
-        <summary class="collapse-summary">
-          <h3 style="margin:0;">Finished games <span class="muted small">(${finishedGames.length})</span></h3>
-          <span class="caret">▸</span>
-        </summary>
-
-        <div style="margin-top:12px;">
+      <section class="lobby-section-card lobby-section-card--season">
+        <div class="lobby-section-head">
+          <h3>Season 25/26</h3>
+          <span class="muted small">${finishedGames.length} finished games</span>
+        </div>
+        <div class="lobby-games-grid lobby-finished-grid">
           ${finishedCardsHtml}
         </div>
-      </details>
+      </section>
     ` : ``}
   `;
 
@@ -6567,8 +6882,8 @@ function renderLobby_() {
 
   const lobbyTopRightHtml = sessionEmail
     ? `
-    <button id="lobbyProfileBtn" class="profile-chip-btn" type="button" title="Profile">
-      <span class="profile-chip-icon">👤</span>
+    <button id="lobbyProfileBtn" class="profile-chip-btn profile-initials-btn" type="button" title="Account">
+      ${escapeHtml(getUserInitials_())}
     </button>
   `
     : `<button id="lobbyAuthBtn" class="btn btn-secondary" type="button">Login/register</button>`;
@@ -6576,7 +6891,7 @@ function renderLobby_() {
   lobbyView.innerHTML = `
     <div class="phone">
       <header class="topbar">
-        <div class="brand auth-brand">
+        <div class="brand auth-brand" data-lobby-home>
           <img class="brand-logo" src="site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
           <div class="brand-text">
             <div class="brand-title">Last Man Standing</div>
@@ -6594,7 +6909,7 @@ function renderLobby_() {
       <main class="content">
         <div class="main-card">
           <div class="lobby-title">
-            LOBBY
+            LMS Lobby
           </div>
           ${cardsHtml || `<div class="muted">No games available.</div>`}
         </div>
@@ -6602,26 +6917,19 @@ function renderLobby_() {
     </div>
   `;
 
-  document.getElementById("finishedGamesDetails")?.addEventListener("toggle", (e) => {
-    finishedGamesOpen = e.currentTarget.open;
+  document.getElementById("lobbyAuthBtn")?.addEventListener("click", () => {
+    showAuthPage_("register");
   });
 
-  document.getElementById("lobbyAuthBtn")?.addEventListener("click", async () => {
-    showSplash(true);
-
-    try {
-      showRegisterBtn?.classList.remove("active");
-      showLoginBtn?.classList.add("active");
-      registerForm?.classList.add("hidden");
-      loginForm?.classList.remove("hidden");
-      authMsg?.classList.add("hidden");
-
-      authView.classList.remove("hidden");
-      lobbyView?.classList.add("hidden");
-      appView.classList.add("hidden");
-    } finally {
-      showSplash(false);
+  lobbyView.querySelector("[data-lobby-home]")?.addEventListener("click", () => {
+    if (sessionEmail) {
+      showLobby_();
+      renderLobby_();
+      return;
     }
+
+    showLanding_();
+    requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
   });
 
   lobbyView.querySelectorAll("[data-lobby-competitions]").forEach(btn => {
@@ -6633,9 +6941,7 @@ function renderLobby_() {
 
   lobbyView.querySelectorAll("[data-auth-required]").forEach(btn => {
     btn.addEventListener("click", () => {
-      authView.classList.remove("hidden");
-      lobbyView?.classList.add("hidden");
-      appView.classList.add("hidden");
+      showAuthPage_("register");
     });
   });
 
@@ -6668,26 +6974,7 @@ function renderLobby_() {
   });
 
   document.getElementById("lobbyProfileBtn")?.addEventListener("click", () => {
-    const body = document.getElementById("profileModalBody");
-    if (!body) return;
-
-    body.innerHTML = `
-    <div style="margin-top:12px" class="fixtures-card">
-      <div class="muted small"><strong>Name</strong></div>
-      <div style="margin:4px 0;">${escapeHtml(`${sessionUser?.firstName || ""} ${sessionUser?.lastName || ""}`.trim() || "—")}</div>
-
-      <div style="margin-top:10px" class="muted small"><strong>Email</strong></div>
-      <div style="margin-top:4px;">${escapeHtml(sessionUser?.email || "—")}</div>
-
-      <div style="margin-top:10px" class="muted small"><strong>Phone</strong></div>
-      <div style="margin-top:4px;">${escapeHtml(sessionUser?.phone || "—")}</div>
-
-      <div style="margin-top:10px" class="muted small"><strong>Team / Connection</strong></div>
-      <div style="margin-top:4px;">${escapeHtml(sessionUser?.clubTeam || "—")}</div>
-    </div>
-  `;
-
-    openModal(profileModal);
+    renderAccountPage_();
   });
   startCountdowns_();
 }
@@ -7204,6 +7491,17 @@ async function savePick(team, gwIdOverride = null) {
   setBtnLoading(submitPickBtn, true);
 
   try {
+    if (activeGameId === PRIVATE_DUMMY_GAME_ID && shouldShowPrivateDummyGame_()) {
+      upsertLocalPick(gwId, team, pickOutcome);
+      showFixturesMessage("Preview selection saved locally only.", "good");
+      resetPickInputUi_();
+      renderFixturesTab();
+      renderCurrentPickBlock();
+      renderStatusBox();
+      renderSelectedFixturesCard_();
+      return;
+    }
+
     await api({
       action: "submitPick",
       email: sessionEmail,
@@ -8086,6 +8384,107 @@ showLoginBtn.addEventListener("click", () => {
   authMsg.classList.add("hidden");
 });
 
+function showAuthPage_(mode = "register") {
+  authView.classList.remove("hidden");
+  appView.classList.add("hidden");
+  document.getElementById("lobbyView")?.classList.add("hidden");
+  document.querySelector(".landing-page")?.classList.add("landing-page--auth");
+
+  if (mode === "login") {
+    showLoginBtn?.click();
+  } else {
+    showRegisterBtn?.click();
+  }
+
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+}
+
+async function goToLoggedInDestination_() {
+  if (!sessionEmail) {
+    showAuthPage_("login");
+    return;
+  }
+
+  showSplash(true);
+
+  try {
+    if (!Array.isArray(gamesList) || !gamesList.length) {
+      await fetchGames_(sessionEmail);
+    }
+
+    if (!Array.isArray(myEntries) || !myEntries.length) {
+      await fetchMyEntries_();
+    }
+
+    const autoEnterGameId = getAutoEnterGameIdForSession_();
+
+    if (autoEnterGameId) {
+      await enterGame_(autoEnterGameId);
+      return;
+    }
+
+    showLobby_();
+    renderLobby_();
+    refreshLobbyCounts_().catch(() => { });
+    startLobbyPolling_();
+  } finally {
+    showSplash(false);
+  }
+}
+
+document.addEventListener("click", (e) => {
+  const trigger = e.target.closest("[data-auth-mode]");
+  if (!trigger) return;
+
+  const mode = String(trigger.getAttribute("data-auth-mode") || "register").toLowerCase();
+
+  if (mode === "app") {
+    if (sessionEmail) {
+      goToLoggedInDestination_().catch(console.warn);
+      return;
+    }
+
+    showSplash(true);
+    try {
+      showLobby_();
+      renderLobby_();
+      refreshLobbyCounts_().catch(() => { });
+    } finally {
+      showSplash(false);
+    }
+    return;
+  }
+
+  if (sessionEmail) {
+    goToLoggedInDestination_().catch(console.warn);
+    return;
+  }
+
+  showAuthPage_(mode === "login" ? "login" : "register");
+});
+
+document.addEventListener("click", (e) => {
+  const trigger = e.target.closest("[data-landing-scroll]");
+  if (!trigger) return;
+
+  const target = String(trigger.getAttribute("data-landing-scroll") || "top").toLowerCase();
+  if (target === "top") {
+    document.querySelector(".landing-page")?.classList.remove("landing-page--auth");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
+  const targetId = {
+    features: "landingFeatures",
+    how: "landingHow"
+  }[target] || "landingTop";
+
+  document.getElementById(targetId)?.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
+
 // Open Privacy Modal (shared everywhere)
 document.addEventListener("click", (e) => {
   const trigger = e.target.closest("[data-open-privacy], #privacyLink");
@@ -8355,8 +8754,12 @@ function closeModal(modalEl) {
   }
 }
 
-document.getElementById("homeBrandBtn")?.addEventListener("click", () => {
-  goToLobby_();
+document.getElementById("homeBrandBtn")?.addEventListener("click", (e) => {
+  e.preventDefault();
+  e.stopPropagation();
+  showLanding_();
+  document.querySelector(".landing-page")?.classList.remove("landing-page--auth");
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
 });
 
 document.addEventListener("click", (e) => {
@@ -8364,12 +8767,14 @@ document.addEventListener("click", (e) => {
   if (!brandHit) return;
 
   if (sessionEmail) {
-    goToLobby_();
-  } else {
     showLobby_();
     renderLobby_();
-    refreshLobbyCounts_().catch(() => { });
+    return;
   }
+
+  showLanding_();
+  document.querySelector(".landing-page")?.classList.remove("landing-page--auth");
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "smooth" }));
 });
 
 
@@ -8404,36 +8809,8 @@ document.getElementById("logoutBtnModal")?.addEventListener("click", () => {
 });
 
 document.getElementById("profileBtn")?.addEventListener("click", () => {
-  const body = document.getElementById("profileModalBody");
-  const sess = getSession();
-
-  const profile = {
-    firstName: sessionUser?.firstName || sess?.firstName || "",
-    lastName: sessionUser?.lastName || sess?.lastName || "",
-    email: sessionUser?.email || sess?.email || "",
-    phone: sessionUser?.phone || sess?.phone || "—",
-    clubTeam: sessionUser?.clubTeam || sess?.clubTeam || "—"
-  };
-
-  if (body) {
-    body.innerHTML = `
-      <div style="margin-top:12px" class="fixtures-card">
-        <div class="muted small"><strong>Name</strong></div>
-        <div style="margin:4px 0px;">${escapeHtml(profile.firstName)} ${escapeHtml(profile.lastName)}</div>
-
-        <div style="margin-top:10px" class="muted small"><strong>Email</strong></div>
-        <div style="margin-top:4px;">${escapeHtml(profile.email)}</div>
-
-        <div style="margin-top:10px" class="muted small"><strong>Phone</strong></div>
-        <div style="margin-top:4px;">${escapeHtml(profile.phone)}</div>
-
-        <div style="margin-top:10px" class="muted small"><strong>Team / Connection</strong></div>
-        <div style="margin-top:4px;">${escapeHtml(profile.clubTeam)}</div>
-      </div>
-    `;
-  }
-
-  openModal(profileModal);
+  showLobby_();
+  renderAccountPage_();
 });
 
 
@@ -8586,6 +8963,16 @@ document.getElementById("backToLobbyBtn")?.addEventListener("click", () => {
 /*******************************
  * APP START/STOP
  *******************************/
+function showLanding_() {
+  authView.classList.remove("hidden");
+  appView.classList.add("hidden");
+  document.getElementById("lobbyView")?.classList.add("hidden");
+  document.querySelector(".landing-page")?.classList.remove("landing-page--auth");
+
+  logoutBtnOuter?.classList.add("hidden");
+  logoutBtnApp?.classList.add("hidden");
+}
+
 function showLobby_() {
   authView.classList.add("hidden");
   appView.classList.add("hidden");
@@ -8598,8 +8985,7 @@ function showLobby_() {
 }
 
 function exitApp_() {
-  authView.classList.remove("hidden");
-  appView.classList.add("hidden");
+  showLanding_();
 
   if (deadlineInterval) clearInterval(deadlineInterval);
 
@@ -8731,7 +9117,7 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true, gameId = activ
         loadGameArchivesOnce_()
       ]);
 
-      showLobby_();
+      showLanding_();
       renderLobby_();
 
       loadFixturesAndDeadlines_()
@@ -8784,8 +9170,9 @@ async function initDataAndRenderGame_({ allowOutcomeModal = true, gameId = activ
       renderLobby_();
       refreshLobbyCounts_().catch(() => { });
       startLobbyPolling_();
-      showSplash(false);
     }
+
+    showSplash(false);
   } catch (err) {
     console.error(err);
 

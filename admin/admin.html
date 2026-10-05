@@ -68,6 +68,7 @@
             <button class="tab2" data-tab="pending-actions" type="button">
               Activity <span id="pendingActionsCount"></span>
             </button>
+            <button class="tab2" data-tab="create-game" type="button">Create Game</button>
           </div>
 
           <div id="adminGameContext" class="admin-console-toolbar hidden">
@@ -87,6 +88,117 @@
 
           <section id="panel-pending-actions" class="hidden">
             <div id="pendingActionsList"></div>
+          </section>
+
+          <section id="panel-create-game" class="hidden">
+            <div class="admin-create-game-layout">
+              <div class="fixtures-card admin-create-form-card">
+                <div class="admin-form-head">
+                  <div>
+                    <h2>Create game</h2>
+                    <p class="muted">Create a new LMS game and store the setup in Firebase.</p>
+                  </div>
+                </div>
+
+                <form id="createGameForm" class="form admin-create-game-form">
+                  <label>
+                    <span>Game Name*</span>
+                    <input id="createGameName" name="title" required placeholder="Title" />
+                  </label>
+
+                  <fieldset class="admin-form-fieldset">
+                    <legend>Competitions Included*</legend>
+                    <div class="admin-check-grid">
+                      <label class="gdpr-row admin-check-row">
+                        <input type="checkbox" name="competitions" value="Premier League" checked />
+                        <span class="gdpr-text">Premier League</span>
+                      </label>
+                      <label class="gdpr-row admin-check-row">
+                        <input type="checkbox" name="competitions" value="Championship" />
+                        <span class="gdpr-text">Championship</span>
+                      </label>
+                      <label class="gdpr-row admin-check-row">
+                        <input type="checkbox" name="competitions" value="League One" />
+                        <span class="gdpr-text">League One</span>
+                      </label>
+                      <label class="gdpr-row admin-check-row">
+                        <input type="checkbox" name="competitions" value="League Two" />
+                        <span class="gdpr-text">League Two</span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <label>
+                    <span>Game Description</span>
+                    <textarea id="createGameBio" name="bio" rows="3" placeholder="Game description"></textarea>
+                  </label>
+
+                  <div>
+                    <span class="admin-field-label">Custom Banner Image <small class="muted">(Optional · recommended 1600 x 600px · 8:3)</small></span>
+                    <input id="createGameBanner" name="bannerImage" type="hidden" />
+                    <div id="createGameBannerDrop" class="admin-banner-drop" role="button" tabindex="0">
+                      <input id="createGameBannerFile" type="file" accept="image/*" hidden />
+                      <div>
+                        <strong>Drop banner image here</strong>
+                        <span>or click to choose an image from your computer</span>
+                        <span>Recommended size: 1600 x 600px · 8:3</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <label>
+                    <span>Start Game Weekend Date*</span>
+                    <select id="createGameStartGw" name="startGameweek" required></select>
+                  </label>
+
+                  <label>
+                    <span>Entry Fee*</span>
+                    <select id="createGameEntryFee" name="entryFee" required>
+                      <option value="10" selected>£10</option>
+                      <option value="15">£15</option>
+                      <option value="20">£20</option>
+                    </select>
+                  </label>
+
+                  <label>
+                    <span>Prize Money Split*</span>
+                    <select id="createGamePrizeSplit" name="prizeSplit" required>
+                      <option value="50_50" selected>50% winner / 50% fundraising</option>
+                      <option value="60_40">60% winner / 40% fundraising</option>
+                      <option value="70_30">70% winner / 30% fundraising</option>
+                      <option value="75_25">75% winner / 25% fundraising</option>
+                    </select>
+                  </label>
+
+                  <fieldset class="admin-form-fieldset">
+                    <legend>What happens if all remaining players are knocked out?*</legend>
+                    <div class="admin-radio-list">
+                      <label class="gdpr-row admin-check-row">
+                        <input type="radio" name="allOutRule" value="ROLLOVER" checked />
+                        <span class="gdpr-text">Rollover prize money to the next game</span>
+                      </label>
+                      <label class="gdpr-row admin-check-row">
+                        <input type="radio" name="allOutRule" value="NO_WINNER" />
+                        <span class="gdpr-text">End game (no winner)</span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div class="admin-create-actions">
+                    <button id="createGameSubmitBtn" class="btn btn-primary" type="submit">Create game</button>
+                  </div>
+                </form>
+              </div>
+
+              <aside class="fixtures-card admin-game-preview-wrap">
+                <div class="admin-preview-kicker">Live preview</div>
+                <div class="admin-phone-preview-frame" aria-label="Create game mobile preview">
+                  <div class="admin-phone-preview-screen">
+                    <div id="createGamePreview" class="admin-game-preview"></div>
+                  </div>
+                </div>
+              </aside>
+            </div>
           </section>
 
           <!-- GAMES OVERVIEW -->

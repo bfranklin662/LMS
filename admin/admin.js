@@ -100,6 +100,10 @@ function escapeHtml(str) {
   }[m]));
 }
 
+function escapeAttr(str) {
+  return escapeHtml(str);
+}
+
 function setBtnLoading(btn, loading) {
   if (!btn) return;
   if (loading) {
@@ -237,6 +241,15 @@ const pendingActionsPanel = document.getElementById("panel-pending-actions");
 const pendingActionsList = document.getElementById("pendingActionsList");
 const pendingActionsCount = document.getElementById("pendingActionsCount");
 
+const createGamePanel = document.getElementById("panel-create-game");
+const createGameForm = document.getElementById("createGameForm");
+const createGameStartGw = document.getElementById("createGameStartGw");
+const createGameSubmitBtn = document.getElementById("createGameSubmitBtn");
+const createGamePreview = document.getElementById("createGamePreview");
+const createGameBannerInput = document.getElementById("createGameBanner");
+const createGameBannerDrop = document.getElementById("createGameBannerDrop");
+const createGameBannerFile = document.getElementById("createGameBannerFile");
+
 const autoResolveGameBody = document.getElementById("autoResolveGameBody");
 
 function overviewDate_(value) {
@@ -250,6 +263,928 @@ function overviewDate_(value) {
     month: "short",
     year: "numeric"
   }).format(date);
+}
+
+const CREATE_GAME_WEEKENDS_26_27 = [
+  { gw: 1, date: "2026-08-21" },
+  { gw: 2, date: "2026-08-29" },
+  { gw: 3, date: "2026-09-05" },
+  { gw: 4, date: "2026-09-12" },
+  { gw: 5, date: "2026-09-19" },
+  { gw: 6, date: "2026-10-10" },
+  { gw: 7, date: "2026-10-17" },
+  { gw: 8, date: "2026-10-24" },
+  { gw: 9, date: "2026-10-31" },
+  { gw: 10, date: "2026-11-07" },
+  { gw: 11, date: "2026-11-21" },
+  { gw: 12, date: "2026-11-28" },
+  { gw: 13, date: "2026-12-02" },
+  { gw: 14, date: "2026-12-05" },
+  { gw: 15, date: "2026-12-12" },
+  { gw: 16, date: "2026-12-19" },
+  { gw: 17, date: "2026-12-26" },
+  { gw: 18, date: "2026-12-30" },
+  { gw: 19, date: "2027-01-02" },
+  { gw: 20, date: "2027-01-06" },
+  { gw: 21, date: "2027-01-16" }
+];
+
+function createGameSlug_(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 60);
+}
+
+function createGameDateLabel_(isoDate) {
+  const date = new Date(`${isoDate}T12:00:00`);
+  if (isNaN(date.getTime())) return isoDate;
+
+  const day = date.getDate();
+  const suffix = day % 10 === 1 && day !== 11
+    ? "st"
+    : day % 10 === 2 && day !== 12
+      ? "nd"
+      : day % 10 === 3 && day !== 13
+        ? "rd"
+        : "th";
+  const month = new Intl.DateTimeFormat("en-GB", { month: "long" }).format(date);
+  const year = date.getFullYear();
+
+  return `${String(day).padStart(2, "0")}${suffix} ${month} ${year}`;
+}
+
+function isoDateFromLocalDate_(date) {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getWeekendStartDateKey_(date) {
+  const d = new Date(date);
+  if (isNaN(d.getTime())) return "";
+
+  d.setHours(12, 0, 0, 0);
+  const daysSinceFriday = (d.getDay() + 2) % 7;
+  d.setDate(d.getDate() - daysSinceFriday);
+  return isoDateFromLocalDate_(d);
+}
+
+async function getCreateGameWeekendOptions_(competitions = []) {
+  const selectedLeagues = new Set(competitions.map(name => String(name).toLowerCase()));
+  const allFixtures = await loadCreateGameFixtures_();
+  const buckets = new Map();
+
+  for (const fixture of allFixtures) {
+    if (selectedLeagues.size && !selectedLeagues.has(String(fixture.league || "").toLowerCase())) continue;
+
+    const bucketDate = getWeekendStartDateKey_(fixture.kickoff);
+    if (!bucketDate) continue;
+
+    if (!buckets.has(bucketDate)) {
+      buckets.set(bucketDate, {
+        date: bucketDate,
+        fixtures: [],
+        gwIds: new Set()
+      });
+    }
+
+    const bucket = buckets.get(bucketDate);
+    bucket.fixtures.push(fixture);
+    bucket.gwIds.add(String(fixture.gwId || "").toUpperCase());
+  }
+
+  const options = Array.from(buckets.values())
+    .sort((a, b) => a.date.localeCompare(b.date))
+    .map((bucket, index) => {
+      const firstGw = Array.from(bucket.gwIds).sort((a, b) => getCreateGameGwNumber_(a) - getCreateGameGwNumber_(b))[0] || `GW${index + 1}`;
+      return {
+        gw: index + 1,
+        date: bucket.date,
+        fixtureCount: bucket.fixtures.length,
+        sourceGw: firstGw
+      };
+    });
+
+  return options.length ? options : CREATE_GAME_WEEKENDS_26_27.map(({ gw, date }) => ({
+    gw,
+    date,
+    fixtureCount: 0,
+    sourceGw: `GW${gw}`
+  }));
+}
+
+async function populateCreateGameWeekends_(force = false) {
+  if (!createGameStartGw) return;
+  if (createGameStartGw.options.length && !force) return;
+
+  const previousValue = createGameStartGw.value;
+  const formData = createGameForm ? new FormData(createGameForm) : new FormData();
+  const competitions = formData.getAll("competitions").map(value => String(value).trim()).filter(Boolean);
+  const options = await getCreateGameWeekendOptions_(competitions);
+  createGameWeekendOptionsCache = options;
+
+  createGameStartGw.innerHTML = options.map(({ gw, date, fixtureCount, sourceGw }) => `
+    <option value="${escapeAttr(date)}" data-start-date="${escapeAttr(date)}" data-source-gw="${escapeAttr(sourceGw)}">
+      GW${gw} - Starts ${createGameDateLabel_(date)}${fixtureCount ? ` (${fixtureCount} fixtures)` : ""}
+    </option>
+  `).join("");
+
+  if (previousValue && Array.from(createGameStartGw.options).some(option => option.value === previousValue)) {
+    createGameStartGw.value = previousValue;
+  } else {
+    createGamePreviewGwIndex = 0;
+  }
+}
+
+function getCreateGameFormState_() {
+  const formData = createGameForm ? new FormData(createGameForm) : new FormData();
+  const selectedGwOption = createGameStartGw?.selectedOptions?.[0] || null;
+  const competitions = formData.getAll("competitions").map(value => String(value).trim()).filter(Boolean);
+
+  return {
+    title: String(formData.get("title") || "").trim() || "Title",
+    bio: String(formData.get("bio") || "").trim() || "Game description",
+    bannerImage: String(formData.get("bannerImage") || "").trim(),
+    competitions,
+    startGw: String(selectedGwOption?.dataset?.sourceGw || "GW1").trim(),
+    startDate: String(selectedGwOption?.dataset?.startDate || formData.get("startGameweek") || CREATE_GAME_WEEKENDS_26_27[0]?.date || "").trim(),
+    entryFee: Number(formData.get("entryFee") || 10),
+    prizeSplit: String(formData.get("prizeSplit") || "50_50").trim(),
+    allOutRule: String(formData.get("allOutRule") || "ROLLOVER").trim()
+  };
+}
+
+async function loadCreateGameFixtures_() {
+  if (createGameFixtureCache) return createGameFixtureCache;
+
+  const previewLeagues = new Set([
+    "Premier League",
+    "Championship",
+    "League One",
+    "League Two"
+  ]);
+
+  const loaded = [];
+
+  await Promise.all(
+    FIXTURE_SOURCES
+      .filter(source => previewLeagues.has(source.league))
+      .map(async source => {
+        try {
+          const res = await fetch(source.url, { cache: "no-store" });
+          if (!res.ok) return;
+
+          const data = await res.json();
+          const rows = Array.isArray(data.matches)
+            ? data.matches
+            : Array.isArray(data.fixtures)
+              ? data.fixtures
+              : Array.isArray(data)
+                ? data
+                : [];
+
+          for (const item of rows) {
+            const fixture = normalizeFixture(item, source.league);
+            if (fixture) loaded.push(fixture);
+          }
+        } catch {
+          // Keep the preview usable even if one fixture source is missing.
+        }
+      })
+  );
+
+  createGameFixtureCache = loaded.sort((a, b) => a.kickoff - b.kickoff);
+  return createGameFixtureCache;
+}
+
+function getCreateGamePreviewContext_(state) {
+  const options = createGameWeekendOptionsCache.length
+    ? createGameWeekendOptionsCache
+    : CREATE_GAME_WEEKENDS_26_27.map(({ gw, date }) => ({ gw, date, fixtureCount: 0, sourceGw: `GW${gw}` }));
+  const startIndex = Math.max(0, options.findIndex(option => option.date === state.startDate));
+  const maxIndex = Math.max(0, options.length - startIndex - 1);
+
+  createGamePreviewGwIndex = Math.max(0, Math.min(createGamePreviewGwIndex, maxIndex));
+
+  const option = options[startIndex + createGamePreviewGwIndex] || options[startIndex] || options[0] || {
+    gw: 1,
+    date: state.startDate,
+    sourceGw: state.startGw,
+    fixtureCount: 0
+  };
+
+  return {
+    options,
+    startIndex,
+    maxIndex,
+    displayGwNumber: createGamePreviewGwIndex + 1,
+    displayDate: option.date,
+    sourceGw: option.sourceGw || `GW${createGamePreviewGwIndex + 1}`,
+    option
+  };
+}
+
+function getCreateGamePreviewFixtures_(fixtures, state, context = null) {
+  const selectedLeagues = new Set(state.competitions.map(name => String(name).toLowerCase()));
+  const selectedWeekend = String(context?.displayDate || state.startDate || "").trim();
+
+  return fixtures.filter(fixture =>
+    selectedLeagues.has(String(fixture.league || "").toLowerCase()) &&
+    getWeekendStartDateKey_(fixture.kickoff) === selectedWeekend
+  );
+}
+
+function formatCreateGameFixtureDate_(fixture) {
+  if (!fixture?.kickoff || isNaN(fixture.kickoff.getTime())) return "Fixture date";
+
+  return new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "2-digit",
+    month: "short",
+    timeZone: "Europe/London"
+  }).format(fixture.kickoff);
+}
+
+function getCreateGameGwNumber_(gwId) {
+  const match = String(gwId || "").match(/(\d+)/);
+  return match ? Number(match[1]) : 1;
+}
+
+function formatCreateGameGwRange_(fixtures, state, context = null) {
+  if (!fixtures.length) return createGameDateLabel_(context?.displayDate || state.startDate);
+
+  const sorted = [...fixtures].sort((a, b) => a.kickoff - b.kickoff);
+  const first = sorted[0]?.kickoff;
+  const last = sorted[sorted.length - 1]?.kickoff;
+
+  if (!first || !last) return createGameDateLabel_(context?.displayDate || state.startDate);
+
+  const fmt = new Intl.DateTimeFormat("en-GB", {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Europe/London"
+  });
+
+  return `${fmt.format(first)} - ${fmt.format(last)}`;
+}
+
+function getCreatePreviewSelectionForGw_(gwNumber) {
+  return createGamePreviewSelections.get(`GW${gwNumber}`) || null;
+}
+
+function renderCreateGameGwNav_(fixtures, state, context = null) {
+  const currentGw = context?.displayGwNumber || 1;
+  const maxIndex = context?.maxIndex || 0;
+  const selected = getCreatePreviewSelectionForGw_(currentGw);
+  const firstPill = Math.max(1, currentGw === 1 ? 1 : currentGw - 1);
+  const pills = [firstPill, firstPill + 1, firstPill + 2]
+    .filter(gw => gw <= maxIndex + 1)
+    .map(gw => `
+      <button class="fixture-gw-pill${gw === currentGw ? " active" : ""}" type="button" data-create-preview-gw-index="${gw - 1}">
+        GW${gw}
+      </button>
+    `).join("");
+
+  const helperHtml = selected ? `
+    <div class="fixture-gw-helper">
+      <span class="fixture-gw-status-pill">
+        Selection:
+        <span class="team-inline">
+          <img class="team-logo" src="${escapeAttr(getTeamLogo_(selected.team))}" alt="" onerror="this.onerror=null;this.src='../site/images/team-default.png';" />
+          ${escapeHtml(selected.team)}
+        </span>
+        ✓
+      </span>
+    </div>
+  ` : `
+    <div class="fixture-gw-helper admin-preview-make-selection">Make a selection</div>
+  `;
+
+  return `
+    <div class="fixture-gw-nav admin-preview-gw-nav">
+      <div class="fixture-gw-current-title">Gameweek ${currentGw}</div>
+      <div class="fixture-gw-date muted">${escapeHtml(formatCreateGameGwRange_(fixtures, state, context))}</div>
+      <div class="fixture-gw-nav-row">
+        <button class="fixture-gw-arrow" type="button" data-create-preview-gw-delta="-1" ${currentGw <= 1 ? "disabled" : ""}>←</button>
+        <div class="fixture-gw-pills">${pills}</div>
+        <button class="fixture-gw-arrow" type="button" data-create-preview-gw-delta="1" ${currentGw > maxIndex ? "disabled" : ""}>→</button>
+      </div>
+      ${helperHtml}
+    </div>
+  `;
+}
+
+function renderCreateGamePreviewTabs_() {
+  return `
+    <div class="seg-tabs admin-preview-tabs">
+      <button class="tab2${createGamePreviewTab === "fixtures" ? " active" : ""}" type="button" data-create-preview-tab="fixtures">Fixtures</button>
+      <button class="tab2${createGamePreviewTab === "selections" ? " active" : ""}" type="button" data-create-preview-tab="selections">Selections</button>
+      <button class="tab2${createGamePreviewTab === "players" ? " active" : ""}" type="button" data-create-preview-tab="players">Players</button>
+    </div>
+  `;
+}
+
+function renderCreateGameFixtureMiddle_(fixture) {
+  const hasScore = Number.isInteger(fixture.homeScore) && Number.isInteger(fixture.awayScore);
+
+  return `
+    <div class="admin-preview-score-box">
+      <span>${hasScore ? `${fixture.homeScore}-${fixture.awayScore}` : escapeHtml(fixture.kickoff.toLocaleTimeString("en-GB", {
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Europe/London"
+      }))}</span>
+      ${hasScore ? `<small>${escapeHtml(String(fixture.resultStatus || "final").toUpperCase())}</small>` : ""}
+    </div>
+  `;
+}
+
+function renderCreateGameFixtureTeamButton_(team, side) {
+  const logo = getTeamLogo_(team);
+  const content = side === "home"
+    ? `<span class="team-name team-name-home">${escapeHtml(team)}</span><img src="${escapeAttr(logo)}" alt="${escapeAttr(team)}" class="team-logo" onerror="this.onerror=null;this.src='../site/images/team-default.png';" />`
+    : `<img src="${escapeAttr(logo)}" alt="${escapeAttr(team)}" class="team-logo" onerror="this.onerror=null;this.src='../site/images/team-default.png';" /><span class="team-name team-name-away">${escapeHtml(team)}</span>`;
+
+  return `
+    <button class="admin-preview-fixture-team admin-preview-fixture-team--${side}" type="button" data-create-preview-select-team="${escapeAttr(team)}">
+      ${content}
+    </button>
+  `;
+}
+
+function renderCreateGameFixtureRow_(fixture) {
+  return `
+    <div class="fixture-row admin-preview-game-fixture-row">
+      <div class="fixture-row-main" style="min-width:0;width:100%;">
+        <div class="fixture-teams admin-preview-game-fixture-teams">
+          ${renderCreateGameFixtureTeamButton_(fixture.home, "home")}
+          <div class="admin-preview-fixture-middle">
+            ${renderCreateGameFixtureMiddle_(fixture)}
+          </div>
+          ${renderCreateGameFixtureTeamButton_(fixture.away, "away")}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderCreateGameFixturePreview_(fixtures, state, context = null) {
+  if (!state.competitions.length) {
+    return `
+      ${renderCreateGamePreviewTabs_()}
+      ${renderCreateGameGwNav_(fixtures, state, context)}
+      <div class="admin-preview-empty">
+        Choose at least one competition to preview fixtures.
+      </div>
+    `;
+  }
+
+  if (!fixtures.length) {
+    return `
+      ${renderCreateGamePreviewTabs_()}
+      ${renderCreateGameGwNav_(fixtures, state, context)}
+      <div class="admin-preview-empty">
+        No fixtures found for the weekend starting ${escapeHtml(createGameDateLabel_(context?.displayDate || state.startDate))} in the selected competitions yet.
+      </div>
+    `;
+  }
+
+  const byDay = new Map();
+  for (const fixture of fixtures) {
+    const day = new Date(fixture.kickoff);
+    day.setHours(0, 0, 0, 0);
+    const key = day.toISOString();
+    if (!byDay.has(key)) byDay.set(key, []);
+    byDay.get(key).push(fixture);
+  }
+
+  const singleCompetition = state.competitions.length === 1;
+  const dayHtml = Array.from(byDay.entries())
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([dayKey, dayFixtures]) => {
+      const dayDate = new Date(dayKey);
+      const leagueMap = new Map();
+
+      for (const fixture of dayFixtures) {
+        if (!leagueMap.has(fixture.league)) leagueMap.set(fixture.league, []);
+        leagueMap.get(fixture.league).push(fixture);
+      }
+
+      const leagueHtml = state.competitions.map(leagueName => {
+        const list = [...(leagueMap.get(leagueName) || [])].sort((a, b) => a.kickoff - b.kickoff);
+        if (!list.length) return "";
+
+        const fixturesHtml = `
+          <div class="league-group admin-preview-league-group">
+            ${list.map(renderCreateGameFixtureRow_).join("")}
+          </div>
+        `;
+
+        if (singleCompetition) return fixturesHtml;
+
+        return `
+          <details class="league-details admin-preview-league-details">
+            <summary class="league-summary">
+              <span class="league-left">${escapeHtml(leagueName)} (${list.length})</span>
+              <span class="league-summary-right"></span>
+            </summary>
+            ${fixturesHtml}
+          </details>
+        `;
+      }).join("");
+
+      return `
+        <div class="day-group admin-preview-day-group">
+          <div class="day-head">
+            <div>
+              <div class="day-title">${escapeHtml(formatCreateGameFixtureDate_({ kickoff: dayDate }))}</div>
+              <div class="day-sub">Fixtures</div>
+            </div>
+          </div>
+          ${leagueHtml}
+        </div>
+      `;
+    }).join("");
+
+  return `
+    ${renderCreateGamePreviewTabs_()}
+    ${renderCreateGameGwNav_(fixtures, state, context)}
+    <div class="admin-preview-game-fixtures-list">
+      ${dayHtml}
+    </div>
+  `;
+}
+
+function getCreateGameCountdownTarget_(state) {
+  const startDate = String(state.startDate || "").trim();
+  if (!startDate) return null;
+
+  const target = new Date(`${startDate}T20:00:00`);
+  return isNaN(target.getTime()) ? null : target;
+}
+
+function getCreateGameCountdownParts_(state) {
+  const target = getCreateGameCountdownTarget_(state);
+  const diffMs = target ? Math.max(0, target.getTime() - Date.now()) : 0;
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return [days, hours, minutes, seconds].map(value => String(value).padStart(2, "0"));
+}
+
+function renderCreateGameCountdown_(state) {
+  const [days, hours, minutes, seconds] = getCreateGameCountdownParts_(state);
+  const digitGroup = (value, unit) => `
+    <div class="cool-countdown-group" data-create-preview-countdown-group="${escapeAttr(unit)}">
+      <span class="cool-digit" data-create-preview-countdown-digit="${escapeAttr(unit)}-h">${escapeHtml(value[0])}</span>
+      <span class="cool-digit" data-create-preview-countdown-digit="${escapeAttr(unit)}-l">${escapeHtml(value[1])}</span>
+    </div>
+  `;
+
+  return `
+    <div class="lobby-deadline-panel lobby-deadline-panel--red admin-preview-countdown">
+      <div class="lobby-deadline-panel-head">
+        <div class="lobby-deadline-panel-line">
+          <span class="lobby-deadline-panel-label">Game starts in:</span>
+        </div>
+      </div>
+
+      <div class="cool-countdown cool-countdown--compact" aria-label="Preview countdown">
+        ${digitGroup(days, "days")}
+        <span class="cool-sep">:</span>
+        ${digitGroup(hours, "hours")}
+        <span class="cool-sep">:</span>
+        ${digitGroup(minutes, "mins")}
+        <span class="cool-sep">:</span>
+        ${digitGroup(seconds, "secs")}
+      </div>
+    </div>
+  `;
+}
+
+function paintCreateGameCountdown_() {
+  if (!createGamePreview) return;
+
+  const state = getCreateGameFormState_();
+  const [days, hours, minutes, seconds] = getCreateGameCountdownParts_(state);
+  const values = { days, hours, mins: minutes, secs: seconds };
+
+  Object.entries(values).forEach(([unit, value]) => {
+    const high = createGamePreview.querySelector(`[data-create-preview-countdown-digit="${unit}-h"]`);
+    const low = createGamePreview.querySelector(`[data-create-preview-countdown-digit="${unit}-l"]`);
+    if (high) high.textContent = value[0];
+    if (low) low.textContent = value[1];
+  });
+}
+
+function startCreateGamePreviewCountdown_() {
+  if (createGamePreviewCountdownTimer) return;
+
+  paintCreateGameCountdown_();
+  createGamePreviewCountdownTimer = setInterval(paintCreateGameCountdown_, 1000);
+}
+
+function renderCreateGamePlayersPreview_(fixtures, state, context = null) {
+  return `
+    ${renderCreateGamePreviewTabs_()}
+    ${renderCreateGameGwNav_(fixtures, state, context)}
+    <div class="fixtures-card admin-preview-selections-card">
+      <h3>Players</h3>
+      <div class="admin-preview-empty">Player list preview will appear here once registrations are added.</div>
+    </div>
+  `;
+}
+
+function renderCreateGameSelectionsPreview_(fixtures, state, context = null) {
+  const entries = Array.from(createGamePreviewSelections.entries())
+    .sort(([a], [b]) => getCreateGameGwNumber_(a) - getCreateGameGwNumber_(b));
+
+  const rows = entries.length ? entries.map(([gwId, selection]) => `
+    <div class="selection-step pending admin-preview-selection-step">
+      <strong>${escapeHtml(gwId)} -</strong>
+      <span class="team-inline">
+        <img class="team-logo" src="${escapeAttr(getTeamLogo_(selection.team))}" alt="" onerror="this.onerror=null;this.src='../site/images/team-default.png';" />
+        ${escapeHtml(selection.team)}
+      </span>
+      <span class="admin-preview-selection-state">Team submitted</span>
+    </div>
+  `).join("") : `
+    <div class="admin-preview-empty">Pick a team in the Fixtures tab to see how selections will look.</div>
+  `;
+
+  return `
+    ${renderCreateGamePreviewTabs_()}
+    ${renderCreateGameGwNav_(fixtures, state, context)}
+    <div class="fixtures-card admin-preview-selections-card">
+      <h3>${escapeHtml(state.title)} - Selections</h3>
+      <div class="status-stage-title">Preview selections</div>
+      <div class="admin-preview-selection-list">${rows}</div>
+    </div>
+  `;
+}
+
+function renderCreateGameSelectionModal_() {
+  const selection = createGamePreviewPendingSelection;
+  if (!selection) return "";
+
+  return `
+    <div class="admin-preview-modal" role="dialog" aria-modal="true">
+      <div class="admin-preview-modal-card">
+        <h3>Preview selection</h3>
+        <p>Select <strong>${escapeHtml(selection.team)}</strong> for <strong>GW${selection.gwNumber}</strong>?</p>
+        <div class="admin-preview-modal-actions">
+          <button class="btn btn-primary" type="button" data-create-preview-confirm-selection>Preview selection</button>
+          <button class="btn btn-ghost" type="button" data-create-preview-cancel-selection>Cancel</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function buildCreateGamePreviewHtml_(state, fixturesHtml) {
+  const competitionText = state.bio || "Game description";
+  const bannerSrc = state.bannerImage || "../site/images/game-banners/lms_default.png";
+  const [winnerPctRaw, fundraisingPctRaw] = String(state.prizeSplit || "50_50").split("_");
+  const winnerPct = Number(winnerPctRaw || 50);
+  const fundraisingPct = Number(fundraisingPctRaw || 50);
+  const examplePlayers = 50;
+  const examplePrize = Math.round(examplePlayers * Number(state.entryFee || 0) * (winnerPct / 100));
+  return `
+    <header class="topbar admin-preview-topbar">
+      <div class="brand auth-brand">
+        <img class="brand-logo" src="../site/images/lmsSquare5.jpg" alt="Polytechnic FC" />
+        <div class="brand-text">
+          <div class="brand-title">Last Man Standing</div>
+          <div class="brand-sub">Polytechnic FC</div>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="profile-chip-btn profile-initials-btn admin-preview-account-pill">NH</span>
+      </div>
+    </header>
+
+    <div class="game-hero-card lobby-hero-card admin-preview-card">
+      <div class="game-hero-banner lobby-hero-banner admin-preview-banner">
+        <img
+          class="game-hero-banner-img admin-preview-banner-img"
+          src="${escapeHtml(bannerSrc)}"
+          alt="${escapeHtml(state.title)} banner preview"
+          onerror="this.onerror=null;this.src='../site/images/game-banners/lms_default.png';"
+        />
+        <div class="game-new-badge">NEW</div>
+        <div class="game-hero-banner-badges game-hero-banner-badges--left">
+          <span class="game-hero-badge hero-pill-tooltip" data-tooltip="Players"><span class="pill-emoji">👤</span> ${examplePlayers}</span>
+          <span class="game-hero-badge hero-pill-tooltip" data-tooltip="Entry fee"><span class="pill-emoji">🎟️</span> £${state.entryFee}</span>
+          <span class="game-hero-badge hero-pill-tooltip" data-tooltip="Prize pot"><span class="pill-emoji">💰</span> £${examplePrize}</span>
+        </div>
+        <div class="game-hero-banner-badges game-hero-banner-badges--right">
+          <span class="game-status-pill registering hero-pill-tooltip" data-tooltip="Status">Registering</span>
+        </div>
+      </div>
+
+      <div class="game-hero-info">
+        <div class="lobby-bottom-top">
+          <div class="game-hero-player-name">${escapeHtml(state.title)}</div>
+          <span class="text-link-btn lobby-competitions-link">Competitions</span>
+        </div>
+
+        <div class="lobby-game-bio">${escapeHtml(competitionText)}</div>
+
+        ${renderCreateGameCountdown_(state)}
+      </div>
+    </div>
+
+    <div class="admin-preview-fixtures">
+      ${fixturesHtml}
+    </div>
+    ${renderCreateGameSelectionModal_()}
+  `;
+}
+
+async function renderCreateGamePreview_() {
+  if (!createGamePreview) return;
+
+  const renderToken = ++createGamePreviewRenderToken;
+  const state = getCreateGameFormState_();
+  const loadingContext = getCreateGamePreviewContext_(state);
+
+  createGamePreview.innerHTML = buildCreateGamePreviewHtml_(
+    state,
+    `${renderCreateGamePreviewTabs_()}${renderCreateGameGwNav_([], state, loadingContext)}<div class="admin-preview-empty">Loading fixtures...</div>`
+  );
+  startCreateGamePreviewCountdown_();
+
+  try {
+    const allFixtures = await loadCreateGameFixtures_();
+    if (renderToken !== createGamePreviewRenderToken) return;
+
+    const context = getCreateGamePreviewContext_(state);
+    const fixtures = getCreateGamePreviewFixtures_(allFixtures, state, context);
+    const contentHtml = createGamePreviewTab === "selections"
+      ? renderCreateGameSelectionsPreview_(fixtures, state, context)
+      : createGamePreviewTab === "players"
+        ? renderCreateGamePlayersPreview_(fixtures, state, context)
+        : renderCreateGameFixturePreview_(fixtures, state, context);
+
+    createGamePreview.innerHTML = buildCreateGamePreviewHtml_(state, contentHtml);
+    startCreateGamePreviewCountdown_();
+  } catch (err) {
+    if (renderToken !== createGamePreviewRenderToken) return;
+
+    console.warn("Create game fixture preview failed", err);
+    createGamePreview.innerHTML = buildCreateGamePreviewHtml_(
+      state,
+      `${renderCreateGamePreviewTabs_()}<div class="admin-preview-empty">Fixture preview unavailable: ${escapeHtml(err?.message || err)}</div>`
+    );
+    startCreateGamePreviewCountdown_();
+  }
+}
+
+function bindCreateGamePreview_() {
+  if (!createGameForm) return;
+
+  createGameForm.querySelectorAll("input, select, textarea").forEach(field => {
+    field.addEventListener("input", renderCreateGamePreview_);
+    field.addEventListener("change", async () => {
+      if (field.name === "competitions") {
+        createGamePreviewGwIndex = 0;
+        createGamePreviewSelections.clear();
+        createGamePreviewPendingSelection = null;
+        await populateCreateGameWeekends_(true);
+      }
+
+      if (field === createGameStartGw) {
+        createGamePreviewGwIndex = 0;
+        createGamePreviewPendingSelection = null;
+      }
+
+      renderCreateGamePreview_();
+    });
+  });
+
+  const previewScreen = createGamePreview?.closest(".admin-phone-preview-screen");
+  if (previewScreen) {
+    let isDraggingPreview = false;
+    let dragStartY = 0;
+    let dragStartScrollTop = 0;
+    let dragMoved = false;
+
+    previewScreen.addEventListener("pointerdown", event => {
+      if (event.button !== 0) return;
+      if (event.target.closest("button, input, select, textarea, a, summary")) return;
+
+      isDraggingPreview = true;
+      dragMoved = false;
+      dragStartY = event.clientY;
+      dragStartScrollTop = previewScreen.scrollTop;
+      previewScreen.classList.add("is-dragging");
+      previewScreen.setPointerCapture?.(event.pointerId);
+    });
+
+    previewScreen.addEventListener("pointermove", event => {
+      if (!isDraggingPreview) return;
+
+      const deltaY = event.clientY - dragStartY;
+      if (Math.abs(deltaY) > 4) dragMoved = true;
+      previewScreen.scrollTop = dragStartScrollTop - deltaY;
+    });
+
+    const stopPreviewDrag = event => {
+      if (!isDraggingPreview) return;
+      isDraggingPreview = false;
+      previewScreen.classList.remove("is-dragging");
+      previewScreen.releasePointerCapture?.(event.pointerId);
+    };
+
+    previewScreen.addEventListener("pointerup", stopPreviewDrag);
+    previewScreen.addEventListener("pointercancel", stopPreviewDrag);
+    previewScreen.addEventListener("click", event => {
+      if (!dragMoved) return;
+      event.preventDefault();
+      event.stopPropagation();
+      dragMoved = false;
+    }, true);
+  }
+
+  createGamePreview?.addEventListener("click", event => {
+    const tooltipPill = event.target.closest(".hero-pill-tooltip");
+    if (tooltipPill) {
+      createGamePreview.querySelectorAll(".hero-pill-tooltip.active").forEach(pill => {
+        if (pill !== tooltipPill) pill.classList.remove("active");
+      });
+      tooltipPill.classList.toggle("active");
+      return;
+    }
+
+    const tabButton = event.target.closest("[data-create-preview-tab]");
+    if (tabButton) {
+      createGamePreviewTab = tabButton.dataset.createPreviewTab || "fixtures";
+      renderCreateGamePreview_();
+      return;
+    }
+
+    const deltaButton = event.target.closest("[data-create-preview-gw-delta]");
+    if (deltaButton && !deltaButton.disabled) {
+      createGamePreviewGwIndex += Number(deltaButton.dataset.createPreviewGwDelta || 0);
+      createGamePreviewPendingSelection = null;
+      renderCreateGamePreview_();
+      return;
+    }
+
+    const gwButton = event.target.closest("[data-create-preview-gw-index]");
+    if (gwButton) {
+      createGamePreviewGwIndex = Number(gwButton.dataset.createPreviewGwIndex || 0);
+      createGamePreviewPendingSelection = null;
+      renderCreateGamePreview_();
+      return;
+    }
+
+    const teamButton = event.target.closest("[data-create-preview-select-team]");
+    if (teamButton) {
+      const state = getCreateGameFormState_();
+      const context = getCreateGamePreviewContext_(state);
+      createGamePreviewPendingSelection = {
+        team: teamButton.dataset.createPreviewSelectTeam || "",
+        gwNumber: context.displayGwNumber
+      };
+      renderCreateGamePreview_();
+      return;
+    }
+
+    if (event.target.closest("[data-create-preview-confirm-selection]")) {
+      const selection = createGamePreviewPendingSelection;
+      if (selection?.team) {
+        createGamePreviewSelections.set(`GW${selection.gwNumber}`, selection);
+        createGamePreviewTab = "selections";
+      }
+      createGamePreviewPendingSelection = null;
+      renderCreateGamePreview_();
+      return;
+    }
+
+    if (event.target.closest("[data-create-preview-cancel-selection]")) {
+      createGamePreviewPendingSelection = null;
+      renderCreateGamePreview_();
+    }
+  });
+
+  populateCreateGameWeekends_().then(renderCreateGamePreview_);
+}
+
+function setCreateGameBannerFromFile_(file) {
+  if (!file || !String(file.type || "").startsWith("image/")) {
+    showMsg("Choose an image file for the banner.", false);
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    if (createGameBannerInput) {
+      createGameBannerInput.value = String(reader.result || "");
+      createGameBannerInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
+  };
+  reader.readAsDataURL(file);
+}
+
+function bindCreateGameBannerDrop_() {
+  if (!createGameBannerDrop || !createGameBannerFile) return;
+
+  createGameBannerDrop.addEventListener("click", () => createGameBannerFile.click());
+  createGameBannerDrop.addEventListener("keydown", event => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      createGameBannerFile.click();
+    }
+  });
+
+  createGameBannerFile.addEventListener("change", () => {
+    setCreateGameBannerFromFile_(createGameBannerFile.files?.[0]);
+    createGameBannerFile.value = "";
+  });
+
+  ["dragenter", "dragover"].forEach(eventName => {
+    createGameBannerDrop.addEventListener(eventName, event => {
+      event.preventDefault();
+      createGameBannerDrop.classList.add("is-dragging");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(eventName => {
+    createGameBannerDrop.addEventListener(eventName, event => {
+      event.preventDefault();
+      createGameBannerDrop.classList.remove("is-dragging");
+    });
+  });
+
+  createGameBannerDrop.addEventListener("drop", event => {
+    setCreateGameBannerFromFile_(event.dataTransfer?.files?.[0]);
+  });
+}
+
+async function submitCreateGame_() {
+  if (!createGameForm) return;
+
+  const formData = new FormData(createGameForm);
+  const title = String(formData.get("title") || "").trim();
+  const competitions = formData.getAll("competitions").map(value => String(value).trim()).filter(Boolean);
+  const selectedGwOption = createGameStartGw?.selectedOptions?.[0] || null;
+  const startGw = String(selectedGwOption?.dataset?.sourceGw || "GW1").trim();
+  const startDate = String(selectedGwOption?.dataset?.startDate || formData.get("startGameweek") || "").trim();
+  const entryFee = Number(formData.get("entryFee") || 10);
+  const prizeSplit = String(formData.get("prizeSplit") || "50_50").trim();
+  const allOutRule = String(formData.get("allOutRule") || "ROLLOVER").trim();
+  const bio = String(formData.get("bio") || "").trim();
+  const bannerImage = String(formData.get("bannerImage") || "").trim();
+
+  if (!title) throw new Error("Enter a game name.");
+  if (!competitions.length) throw new Error("Choose at least one competition.");
+  if (!startGw || !startDate) throw new Error("Choose a start gameweek.");
+
+  const gameId = createGameSlug_(title);
+  if (!gameId) throw new Error("Game name needs at least one letter or number.");
+
+  await api({
+    action: "adminCreateGame",
+    adminKey,
+    game: {
+      id: gameId,
+      title,
+      status: "OPEN",
+      season: "2026/27",
+      bio,
+      bannerImage,
+      competitions,
+      competitionsText: competitions.join(", "),
+      startGw,
+      startDate,
+      fixtureGrouping: "DATE_WEEKEND",
+      entryFee,
+      prizeSplit,
+      allOutRule,
+      createdAt: new Date().toISOString()
+    }
+  });
+
+  createGameForm.reset();
+  if (createGameStartGw) createGameStartGw.innerHTML = "";
+  await populateCreateGameWeekends_(true);
+  renderCreateGamePreview_();
+  gamesOverviewCache = null;
+  await loadAdminGames();
+  await loadGamesOverview_({ force: true });
 }
 
 async function openAdminGame_(gameId) {
@@ -489,6 +1424,14 @@ function adminGameIncludesLeague_(leagueName, game = getSelectedGame_()) {
  *******************************/
 let adminKey = "";
 let fixturePreviewData = null;
+let createGameFixtureCache = null;
+let createGamePreviewRenderToken = 0;
+let createGamePreviewCountdownTimer = null;
+let createGameWeekendOptionsCache = [];
+let createGamePreviewGwIndex = 0;
+let createGamePreviewTab = "fixtures";
+let createGamePreviewPendingSelection = null;
+const createGamePreviewSelections = new Map();
 
 let adminFixtureGameweeks = [];
 let adminFixtureSelectedGw = "ALL";
@@ -1741,13 +2684,14 @@ async function loadPendingActions_() {
 }
 
 async function setTab(name) {
-  const isHome = name === "overview" || name === "pending-actions";
+  const isHome = name === "overview" || name === "pending-actions" || name === "create-game";
 
   overviewPanel?.classList.toggle("hidden", name !== "overview");
   pendingActionsPanel?.classList.toggle(
     "hidden",
     name !== "pending-actions"
   );
+  createGamePanel?.classList.toggle("hidden", name !== "create-game");
 
   approvalsPanel?.classList.toggle("hidden", name !== "approvals");
   subsPanel?.classList.toggle("hidden", name !== "submissions");
@@ -1768,6 +2712,12 @@ async function setTab(name) {
 
   if (name === "pending-actions") {
     await loadPendingActions_();
+    return;
+  }
+
+  if (name === "create-game") {
+    await populateCreateGameWeekends_();
+    await renderCreateGamePreview_();
     return;
   }
 
@@ -3841,6 +4791,9 @@ function logout() {
  * Events
  *******************************/
 
+bindCreateGamePreview_();
+bindCreateGameBannerDrop_();
+
 refreshOverviewBtn?.addEventListener("click", async () => {
   try {
     setBtnLoading(refreshOverviewBtn, true);
@@ -3849,6 +4802,21 @@ refreshOverviewBtn?.addEventListener("click", async () => {
     showMsg(String(error.message || error), false);
   } finally {
     setBtnLoading(refreshOverviewBtn, false);
+  }
+});
+
+createGameForm?.addEventListener("submit", async event => {
+  event.preventDefault();
+
+  try {
+    setBtnLoading(createGameSubmitBtn, true);
+    await submitCreateGame_();
+    showMsg("Game created.", true, true);
+    await setTab("overview");
+  } catch (error) {
+    showMsg(String(error.message || error), false);
+  } finally {
+    setBtnLoading(createGameSubmitBtn, false);
   }
 });
 
